@@ -150,7 +150,7 @@ jobs:
           python tools/build_social_card.py
           test -s docs/assets/demo-block.gif
           test -s docs/assets/social-card.png
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: elder-council-collateral
           path: |

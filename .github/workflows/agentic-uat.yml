@@ -63,7 +63,7 @@ jobs:
           if [ -n "${UAT_LLM_API_KEY:-}" ]; then MODE=real; fi
           echo "scenario=$SCENARIO ide=$IDE mode=$MODE"
           python uat/agentic/run.py --scenario "$SCENARIO" --ide "$IDE" --mode "$MODE"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: agentic-uat-${{ matrix.os }}
