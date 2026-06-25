@@ -1,0 +1,91 @@
+# Elder Council Harness — the canonical SME lenses.
+#
+# A lens is a disciplined perspective. It can be played by an AI model, a human
+# subject-matter expert, or a tool-supported analyst. Each lens has a distinct
+# job and reasons independently before synthesis. Council definitions reference
+# these by `role_key`; the role_key resolves to a model via council-models.json.
+#
+# The six canonical lenses are the public roster; the specialised lenses are
+# task-specific roles that each map to one canonical family for model assignment.
+
+canonical:
+  - role_key: strategic_risk_owner
+    name: "Strategic / Risk Owner"
+    sme: "Business owner, risk executive, product owner, or control owner"
+    responsibility: "Connects the decision to business impact, risk appetite, and accountability."
+    question: "What is the consequence if this decision is wrong?"
+
+  - role_key: engineering_sme
+    name: "Engineering SME"
+    sme: "Platform engineer, cloud architect, software engineer, network engineer, or systems SME"
+    responsibility: "Tests whether the recommendation is technically accurate, feasible, safe, and compatible with the environment."
+    question: "Will this work in our actual architecture?"
+
+  - role_key: security_sme
+    name: "Security SME"
+    sme: "Threat hunter, AppSec specialist, incident responder, security architect, or SOC lead"
+    responsibility: "Evaluates adversarial behaviour, attack paths, controls, detection, and containment."
+    question: "How could this be exploited or missed?"
+
+  - role_key: compliance_legal_sme
+    name: "Compliance / Legal SME"
+    sme: "Privacy, compliance, legal, audit, or data-governance specialist"
+    responsibility: "Reviews jurisdictional obligations, evidence standards, reporting duties, and contractual constraints. Output is illustrative, not legal advice."
+    question: "What obligations or evidence requirements apply, and what must a human verify?"
+
+  - role_key: critic_challenge
+    name: "Critic / Challenge"
+    sme: "Devil's advocate, red-team reviewer, model-risk reviewer, or internal audit challenger"
+    responsibility: "Searches for hidden assumptions, weak evidence, bias, overconfidence, and failure modes."
+    question: "What are we assuming that may be false?"
+
+  - role_key: pragmatic_ops
+    name: "Pragmatic Operations"
+    sme: "Service owner, operations lead, local administrator, or implementation owner"
+    responsibility: "Focuses on what can be done safely now with available access, people, time, and tools."
+    question: "What is the safest practical next step?"
+
+# Specialised lenses — each maps to one canonical family for model resolution.
+specialised:
+  - role_key: detection_engineer
+    name: "Detection Engineer"
+    family: engineering_sme
+    responsibility: "Tests whether existing logs, rules, and telemetry support the finding."
+    question: "Do our detections actually see this?"
+
+  - role_key: adversary_redteam
+    name: "Adversarial / Red-Team"
+    family: security_sme
+    responsibility: "Reasons as a capable attacker: evasion, persistence, pivot, and lateral movement."
+    question: "How would an attacker evade, persist, or pivot here?"
+
+  - role_key: ir_owner
+    name: "Incident Response Owner"
+    family: security_sme
+    responsibility: "Decides containment, escalation, evidence preservation, and operational impact."
+    question: "What do we contain, preserve, and escalate — and who owns it?"
+
+  - role_key: cross_family_critic
+    name: "Cross-Family Critic"
+    family: critic_challenge
+    responsibility: "An independent reviewer drawn from a DIFFERENT model family than the other lenses. Disagreement with the primary reviewer is a signal, not noise."
+    question: "What does a different reasoning lineage see that the others miss?"
+
+  - role_key: arbitrator
+    name: "Arbitrator"
+    family: strategic_risk_owner
+    responsibility: "Integrates the lenses and proposes the final recommendation; never overrides a fail-closed rule or accepts risk on a human's behalf."
+    question: "Given all lenses, what is the recommendation — and where does a human still decide?"
+
+  - role_key: synthesiser
+    name: "Synthesiser"
+    family: strategic_risk_owner
+    responsibility: "For advisory councils: integrates the independent lens outputs into one record, preserving dissent."
+    question: "What is the integrated view, and what disagreement must be preserved?"
+
+  - role_key: deterministic_tool
+    name: "Deterministic Tool Lens"
+    family: engineering_sme
+    is_tool: true
+    responsibility: "Not an LLM. Runs deterministic checks (SAST, dependency scan, secret scan, tests, policy checks) and feeds the findings into the council as evidence."
+    question: "What do the deterministic tools say, independent of any model?"

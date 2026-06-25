@@ -1,0 +1,19 @@
+# Default owner
+* @Cyberelders
+
+# Load-bearing files — the guarantees rest on these (extra review)
+/eldercouncil/risk_gate.py        @Cyberelders
+/eldercouncil/consensus.py        @Cyberelders
+/eldercouncil/audit.py            @Cyberelders
+/eldercouncil/schema.py           @Cyberelders
+/eldercouncil/councils/           @Cyberelders
+/eldercouncil/lenses.yaml         @Cyberelders
+/eldercouncil/council-models.json @Cyberelders
+/docs/METHODOLOGY.md              @Cyberelders
+/docs/STANDARDS-MAP.md            @Cyberelders
+/THREAT_MODEL.md                  @Cyberelders
+
+# Anti-leak / honesty controls — must not be weakened without review
+/tests/test_docs.py               @Cyberelders
+/.gitignore                       @Cyberelders
+/.github/                         @Cyberelders

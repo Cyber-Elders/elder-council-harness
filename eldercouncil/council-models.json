@@ -1,0 +1,22 @@
+{
+  "version": "2026-Q2",
+  "_README": "Role -> model registry. Council role files reference a ROLE KEY (never a model tag), resolved here. Re-pin quarterly. Editing this file and re-running `eldercouncil install <ide>` re-pins every rendered role agent; agent prompt bodies never change.",
+  "_disclaimer": "The only tags shipped as concrete defaults are verified-real Anthropic models (claude-opus-4-8 / claude-sonnet-4-6 / claude-haiku-4-5). Every cross-family, open-weight, and local lane ships as a REPLACE_ME:<capability> sentinel — pick a real model that matches the capability. Model tags age; this registry is the single place to update them. Run `eldercouncil models check` to find unresolved sentinels.",
+  "_continuity": "Open-weight models from a single foreign lab can become unavailable (export controls, sanctions, licensing). Add a `fallback` list per role for critical councils so a provider cut-off does not disable a process. The local lane keeps sensitive workloads on-device.",
+  "verified_real": ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"],
+  "roles": {
+    "strategic_risk_owner": { "frontier": "claude-opus-4-8", "open": "REPLACE_ME:strong-reasoning-open-weight", "local": "REPLACE_ME:local-reasoning-model" },
+    "engineering_sme":      { "frontier": "claude-sonnet-4-6", "open": "REPLACE_ME:code-specialised-open-weight", "local": "REPLACE_ME:local-code-model" },
+    "security_sme":         { "frontier": "claude-opus-4-8", "open": "REPLACE_ME:reasoning-open-weight", "local": "REPLACE_ME:local-reasoning-model" },
+    "compliance_legal_sme": { "frontier": "claude-sonnet-4-6", "open": "REPLACE_ME:long-context-open-weight", "local": "REPLACE_ME:local-model" },
+    "critic_challenge":     { "frontier": "claude-opus-4-8", "open": "REPLACE_ME:adversarial-open-weight", "local": "REPLACE_ME:local-model" },
+    "pragmatic_ops":        { "frontier": "claude-haiku-4-5", "open": "REPLACE_ME:fast-open-weight", "local": "REPLACE_ME:local-fast-model" },
+    "detection_engineer":   { "frontier": "claude-sonnet-4-6", "open": "REPLACE_ME:code-specialised-open-weight", "local": "REPLACE_ME:local-code-model" },
+    "adversary_redteam":    { "frontier": "claude-opus-4-8", "open": "REPLACE_ME:adversarial-open-weight", "local": "REPLACE_ME:local-reasoning-model" },
+    "ir_owner":             { "frontier": "claude-opus-4-8", "open": "REPLACE_ME:strong-reasoning-open-weight", "local": "REPLACE_ME:local-reasoning-model" },
+    "cross_family_critic":  { "frontier": "REPLACE_ME:non-anthropic-frontier-model", "open": "REPLACE_ME:non-anthropic-open-weight", "local": "REPLACE_ME:non-anthropic-local-model" },
+    "arbitrator":           { "frontier": "claude-opus-4-8", "open": "REPLACE_ME:strong-open-reasoner", "local": "REPLACE_ME:local-reasoning-model" },
+    "synthesiser":          { "frontier": "claude-sonnet-4-6", "open": "REPLACE_ME:synthesis-open-weight", "local": "REPLACE_ME:local-model" },
+    "deterministic_tool":   { "frontier": null, "open": null, "local": null, "kind": "tool", "note": "Not an LLM. This lens runs deterministic checks (SAST / dependency scan / secret scan / tests) and feeds findings into the council; no model is assigned." }
+  }
+}

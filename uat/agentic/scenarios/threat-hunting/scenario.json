@@ -1,0 +1,6 @@
+{
+  "council": "threat-hunting",
+  "question": "A privileged service account logged in from a new ASN at 02:00. There is no corroborating EDR telemetry. Is this a compromise?",
+  "expect": { "route": "human", "verdicts": ["escalate"], "dissent": true },
+  "note": "When benign anomaly vs plausible compromise cannot be distinguished and impact is high, escalate to human IR — do not dismiss."
+}

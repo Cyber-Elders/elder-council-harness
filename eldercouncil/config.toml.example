@@ -1,0 +1,20 @@
+# Elder Council Harness — project config (.council/config.toml)
+# Written by `eldercouncil init`. Safe to edit by hand.
+
+[governance]
+# explorer | practitioner (default) | governed | operator
+tier = "practitioner"
+# enforce | observe  (observe logs/advises but never blocks an action)
+mode = "enforce"
+# control-gate profile: lite (4 gates) | standard (11) | regulated (11 + operational controls)
+profile = "standard"
+
+[council]
+# Default model lane for council roles: frontier | open | local.
+# Roles resolve their model from .council/council-models.json for this lane.
+lane = "frontier"
+# Risk score (1-25, impact x likelihood) at or above which a council is convened.
+# Below it, a single agent or a deterministic tool handles the decision.
+# This is the escalation-not-default control: councils are for consequential,
+# uncertain, or adversarial decisions, not for every task.
+convene_threshold = 5

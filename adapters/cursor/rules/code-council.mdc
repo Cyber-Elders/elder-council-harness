@@ -1,0 +1,7 @@
+---
+description: Elder Council — Code Council (advisory).
+alwaysApply: true
+---
+# Code Council (advisory)
+
+Cursor has no blocking pre-tool hook, so this is advisory. Before a high-stakes action in this domain (git push | npm publish | docker push | kubectl apply | deploy | release), call the `risk_gate` MCP tool; if it routes to a council, call `convene_council` (council="code-council"), run the lenses, and honour the verdict. Outcomes: merge, request-changes, block, escalate. Fail-closed: Critical authentication, authorisation, cryptography, payment, privacy, or production-control changes require explicit human approval, not silent model confidence. Any CRITICAL finding blocks the merge pending human security review. Record the result with `audit_log`. Councils can be wrong; risk acceptance and critical actions are a human's call. Do not bypass the gate.

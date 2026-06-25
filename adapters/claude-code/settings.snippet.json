@@ -1,0 +1,17 @@
+{
+  "_comment": "Reference: the hooks `eldercouncil install claude-code` merges into .claude/settings.json. The gate routes each tool call (score <=4 allow, 5-15 ask=convene, 16+ deny). The audit hook records a post-tool gate event. Per-council slash commands and role agents are written under .claude/.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|Read|MultiEdit|NotebookEdit|WebFetch|Task|mcp__.*",
+        "hooks": [{ "type": "command", "command": "eldercouncil gate claude-code" }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|Read|MultiEdit|NotebookEdit|WebFetch|Task|mcp__.*",
+        "hooks": [{ "type": "command", "command": "eldercouncil audit claude-code" }]
+      }
+    ]
+  }
+}

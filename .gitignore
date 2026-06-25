@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.venv/
+venv/
+.uatenv/
+
+# Elder Council runtime — decision records may contain sensitive prompt content
+.council/
+
+# Project-local council/model overrides written by `install` into a real project
+*.local.json
+
+# Node (opencode adapter dev)
+node_modules/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+._*
+
+# Agentic UAT output
+uat/agentic/_results/
+.scratch/
+
+# Local-only working material (never committed)
+*.bundle
+.scratch_ref/

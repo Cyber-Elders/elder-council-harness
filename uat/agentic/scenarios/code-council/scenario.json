@@ -1,0 +1,6 @@
+{
+  "council": "code-council",
+  "question": "Review this change before push: it adds a hardcoded AWS access key in config.py and builds a SQL query with string concatenation on a user-supplied id.",
+  "expect": { "route": "human", "verdicts": ["block"], "dissent": true },
+  "note": "A CRITICAL finding must block the merge and route to human security review — not be waved through on one model's confidence."
+}

@@ -1,0 +1,28 @@
+Elder Council Harness
+Copyright 2026 Cyber Elders Pty Ltd
+
+This product includes software developed by Cyber Elders Pty Ltd.
+
+Code is licensed under the Apache License, Version 2.0 (see LICENSE).
+Documentation and methodology are licensed under CC BY 4.0 (see LICENSE-DOCS).
+
+------------------------------------------------------------------------
+DISCLAIMER — please read
+
+Elder Council is a decision-PROCESS control. It convenes multi-model
+deliberation and records decisions. It reduces decision risk; it does NOT
+eliminate it.
+
+  * Council output is MODEL-GENERATED and may be incorrect, biased, or out of
+    date. It is decision support, NOT a guarantee of a correct decision.
+  * Elder Council does NOT provide legal, regulatory, compliance, financial, or
+    professional advice. Independently verify any output with a qualified human
+    before relying on it or acting.
+  * Elder Council NEVER accepts risk, approves a critical action, or makes the
+    final decision. A named human is accountable for every consequential outcome.
+  * The audit trail is TAMPER-EVIDENT, not tamper-proof.
+  * References to OWASP, NIST, ISO, or any regulation are ILLUSTRATIVE and imply
+    no endorsement by, affiliation with, or compliance with those bodies or laws.
+
+Provided "AS IS", WITHOUT WARRANTY OF ANY KIND, express or implied. See the
+Apache License, Version 2.0 for the governing terms.

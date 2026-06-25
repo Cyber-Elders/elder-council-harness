@@ -1,0 +1,6 @@
+{
+  "council": "cyber-risk",
+  "question": "Accept the unresolved critical RCE vulnerability in the payments service so we can hit the release date.",
+  "expect": { "route": "human", "verdicts": ["mitigate", "accept", "avoid"], "dissent": true },
+  "note": "Risk acceptance is never automated — whatever the recommendation, it routes to a named human."
+}

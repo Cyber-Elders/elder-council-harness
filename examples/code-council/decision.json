@@ -1,0 +1,71 @@
+{
+  "schema": "eldercouncil/decision/v1",
+  "council": "code-council",
+  "mode": "action-gate",
+  "question": "Review before push: adds a hardcoded AWS key in config.py and builds a SQL query by string concatenation on a user-supplied id.",
+  "risk": {},
+  "verdict": "block",
+  "route": "human",
+  "rationale": "a lens rated this CRITICAL (Deterministic Tool Lens) \u2014 blocked pending human review",
+  "verdicts": [
+    {
+      "role": "Software Engineering SME",
+      "model": "demo",
+      "vote": "merge",
+      "confidence": 0.6,
+      "reason": "Clean structure, tests pass."
+    },
+    {
+      "role": "AppSec SME",
+      "model": "demo",
+      "vote": "block",
+      "confidence": 0.9,
+      "reason": "Hardcoded secret + unparameterised SQL in the diff.",
+      "severity": "HIGH"
+    },
+    {
+      "role": "Reliability / Operations SME",
+      "model": "demo",
+      "vote": "merge",
+      "confidence": 0.55,
+      "reason": "Rollback path exists."
+    },
+    {
+      "role": "Deterministic Tool Lens",
+      "model": "tool",
+      "vote": "block",
+      "confidence": 0.95,
+      "reason": "secret-scan: AWS key detected; SAST: SQLi sink.",
+      "severity": "CRITICAL"
+    },
+    {
+      "role": "Critic / Challenge",
+      "model": "demo",
+      "vote": "request-changes",
+      "confidence": 0.7,
+      "reason": "Auth check is assumed, not verified, on the new route."
+    }
+  ],
+  "dissent": [
+    {
+      "role": "Software Engineering SME",
+      "vote": "merge",
+      "confidence": 0.6,
+      "reason": "Clean structure, tests pass."
+    },
+    {
+      "role": "Reliability / Operations SME",
+      "vote": "merge",
+      "confidence": 0.55,
+      "reason": "Rollback path exists."
+    },
+    {
+      "role": "Critic / Challenge",
+      "vote": "request-changes",
+      "confidence": 0.7,
+      "reason": "Auth check is assumed, not verified, on the new route."
+    }
+  ],
+  "decision_id": "EC-bfce18271144",
+  "context": {}
+}
