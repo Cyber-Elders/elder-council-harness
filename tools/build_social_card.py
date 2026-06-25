@@ -42,7 +42,7 @@ def main():
     d.rectangle([0, h - 12, w, h], fill=INDIGO)        # base bar
     d.text((80, 90), "Elder Council Harness", font=_font(64, bold=True), fill=WHITE)
     d.text((80, 175), "Don't let one model decide alone.", font=_font(38), fill=GREEN)
-    d.text((80, 245), "Multi-model councils for high-stakes cyber decisions.", font=_font(25), fill=SLATE)
+    d.text((80, 245), "Councils for high-stakes decisions — cyber-first, and any call too big for one model.", font=_font(25), fill=SLATE)
 
     # The differentiator, shown not told: a verdict card with preserved dissent.
     RED = (248, 113, 113)

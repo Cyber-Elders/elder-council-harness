@@ -11,6 +11,9 @@ governing high-stakes, AI-supported judgement**. The adaptation rule is simple:
 The discipline that must carry over to any domain: independent reasoning before synthesis, explicit
 escalation, evidence capture, preserved dissent, and an accountable human decision owner.
 
+The same loop framing applies in any domain — a consequential turn in an organisation's *decision* loop,
+not just an agent's tool loop. See [LOOP-ENGINEERING.md](LOOP-ENGINEERING.md).
+
 | Domain | Example councils | Typical lenses |
 |---|---|---|
 | **Finance** | investment-risk, credit-risk, treasury-risk, financial-control | portfolio manager · risk analyst · macro lens · compliance SME · critic |

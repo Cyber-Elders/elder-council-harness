@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Elder Council — a local-first multi-model council harness for high-stakes
-cyber decisions.
+decisions: built for cyber, general enough for any call too consequential to
+leave to one model alone.
 
 Convene a structured, multi-lens council when a decision is consequential,
 uncertain, adversarial, or expensive to get wrong — and stay out of the way

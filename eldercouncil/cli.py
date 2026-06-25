@@ -92,7 +92,10 @@ def cmd_show(args) -> int:
 def _print_decision(rec: dict) -> None:
     verdict = rec.get("verdict", "?")
     color = _VERDICT_COLOR.get(verdict, "32")
-    print(_c("1", f"\n  {rec.get('council')}  —  {rec.get('mode')}"))
+    mode = rec.get("mode", "")
+    mode_label = {"advisory": "advisory · a human decides",
+                  "action-gate": "action-gate · can block automatically"}.get(mode, mode)
+    print(_c("1", f"\n  {rec.get('council')}  —  {mode_label}"))
     for v in rec.get("verdicts", []):
         vc = _VERDICT_COLOR.get(v.get("vote"), "32")
         conf = v.get("confidence", "")
@@ -102,7 +105,9 @@ def _print_decision(rec: dict) -> None:
         # counted in the column width (else colored output mis-aligns in a TTY).
         # Severity gets its own fixed-width slot so non-severity rows line up.
         vote_cell = _c(vc, vote) + " " * max(1, 16 - len(vote))
-        print(f"    {v.get('role',''):<30} {vote_cell}{sev:<11} ({conf:>4})  {v.get('reason','')[:66]}")
+        reason = v.get("reason", "")
+        reason = (reason[:65].rstrip() + "…") if len(reason) > 66 else reason  # ellipsis = intentional cut, not a broken line
+        print(f"    {v.get('role',''):<30} {vote_cell}{sev:<11} ({conf:>4})  {reason}")
     print(_c("1", f"\n  COUNCIL VERDICT: {_c(color, verdict)}   → route: {_c('36', rec.get('route','?'))}"))
     print(f"  {rec.get('rationale','')}")
     if rec.get("dissent"):
@@ -113,13 +118,19 @@ def _print_decision(rec: dict) -> None:
         gres = gr.get("result", "allow")
         gc = _VERDICT_COLOR.get("block" if gres in ("block", "human_required") else
                                 "escalate" if gres == "escalate" else "merge", "32")
-        print(_c("1", f"  GATES ({gr.get('profile','?')}): {_c(gc, gres)}")
+        # When nothing tripped, say so — a bare "allow" between two human-routing
+        # lines otherwise reads as a contradiction to a non-technical reader.
+        note = "" if tripped else _c("2", "  — no safety gate tripped; the council sets the routing")
+        print(_c("1", f"  GATES ({gr.get('profile','?')}): {_c(gc, gres)}") + note
               + (f"  ⛔ HARD STOP" if gr.get("hard_stopped") else ""))
         for g in tripped:
             print(f"    ✗ {g['gate']:22} {g['result']:14} → {g.get('escalation','')}  ({', '.join(g['reasons'])})")
     disp = rec.get("disposition", "")
     dc = "31" if "block" in disp else ("33" if disp == "human" else "32")
-    print(_c("1", f"  DISPOSITION: {_c(dc, disp)}"))
+    disp_legend = (" (the final call — a person decides)" if disp == "human"
+                   else " (final — proceeds automatically)" if disp == "auto"
+                   else " (final — action withheld)" if "block" in disp else "")
+    print(_c("1", f"  DISPOSITION: {_c(dc, disp)}") + _c("2", disp_legend))
     print(f"  decision {rec.get('decision_id')}\n")
 
 
@@ -156,7 +167,14 @@ def cmd_convene(args) -> int:
             sys.stderr.write(_c("33",
                 "\n  ⚠ This is the failure a council does NOT catch: when your lenses share a\n"
                 "    blind spot (e.g. all one model/provider), they can be confidently wrong\n"
-                "    together. Diversify your model lanes — see docs/THREAT_MODEL.md.\n"))
+                "    together. Diversify your model lanes — see THREAT_MODEL.md.\n"))
+        if args.orchestrate and not args.json:
+            verdicts = rec.get("verdicts", [])
+            unavail = [v for v in verdicts if v.get("vote") == "unavailable"]
+            if verdicts and len(unavail) == len(verdicts):
+                sys.stderr.write(_c("33",
+                    "\n  hint: no model lanes resolved — run `eldercouncil models check` and pin a real\n"
+                    "        model per lane in .council/council-models.json before --orchestrate.\n"))
         # `--demo` is an illustration, not a gate → always exit 0. Real runs
         # (`--orchestrate`) gate on the DISPOSITION (council route ∧ gate result).
         if args.demo:
@@ -170,9 +188,12 @@ def cmd_convene(args) -> int:
     except RegistryError as exc:
         print(exc); return 1
     if sys.stdout.isatty():
+        sys.stderr.write(_c("1",
+            "\n  This is a task-pack for a coding agent to run on your own AI models — not the verdict.\n"))
         sys.stderr.write(
-            "# preview: the BYO-LLM tasks for your agent to run. Add --demo to see a sample\n"
-            "# verdict (keyless), or --orchestrate to run your own models.\n")
+            f"  • To just SEE a sample council decide right now (keyless):  eldercouncil convene {c.id} --demo\n"
+            "  • To run it for real: an installed coding agent executes these tasks, or add --orchestrate\n"
+            "    to run your own models now (pin them first: eldercouncil models check).\n\n")
     print(json.dumps(review, indent=2))
     return 0
 
@@ -265,7 +286,7 @@ def cmd_models(args) -> int:
             # The whole premise is plural review — an all-one-provider council has
             # correlated blind spots. Warn, but don't fail (a user may intend it).
             print(_c("33", f"⚠ monoculture: every resolvable frontier lens maps to '{mono}'. "
-                            f"Diversify (esp. cross_family_critic) — see docs/THREAT_MODEL.md."))
+                            f"Diversify (esp. cross_family_critic) — see THREAT_MODEL.md."))
         if not miss:
             print("✓ all model lanes are pinned")
             return 0
@@ -320,7 +341,9 @@ _IDES = ["claude-code", "opencode", "kiro", "cursor", "copilot"]
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="eldercouncil",
-                                description="Elder Council — local-first multi-model council harness for high-stakes cyber decisions.")
+                                description="Elder Council — local-first multi-model council harness for "
+                                            "high-stakes decisions: built for cyber, general enough for any "
+                                            "call too consequential to leave to one model alone.")
     sub = p.add_subparsers(dest="command", required=True)
 
     n = sub.add_parser("init", help="guided install (interactive)")
@@ -383,7 +406,10 @@ def build_parser() -> argparse.ArgumentParser:
     m = sub.add_parser("models", help="model-registry management")
     msub = m.add_subparsers(dest="models_cmd", required=True)
     msub.add_parser("list", help="show the registry")
-    msub.add_parser("check", help="flag unpinned (REPLACE_ME) lanes")
+    msub.add_parser("check", help="flag unpinned (REPLACE_ME) lanes",
+                    description="Flag unpinned (REPLACE_ME) model lanes. Exit 0 = all lanes pinned; "
+                                "exit 2 = unpinned lanes remain (expected on a fresh BYO-LLM install — "
+                                "pin real models in council-models.json); exit 1 = registry error.")
     mr = msub.add_parser("resolve", help="resolve a role key to a model")
     mr.add_argument("role_key")
     mr.add_argument("--lane", default="frontier", choices=["frontier", "open", "local"])

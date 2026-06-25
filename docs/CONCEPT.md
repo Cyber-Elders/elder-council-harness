@@ -1,7 +1,8 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Concept — why councils, and when
 
-> Read this first. It explains the idea in five minutes. The full method is in
+> Read this first. It explains the idea in five minutes. For how a council fits an agent's turn-by-turn
+> **loop**, see [LOOP-ENGINEERING.md](LOOP-ENGINEERING.md); the full method is in
 > [METHODOLOGY.md](METHODOLOGY.md); the terms are defined in [GLOSSARY.md](GLOSSARY.md).
 
 ## The metaphor
@@ -15,8 +16,9 @@ ceremony. The point is to stop an important decision from depending on one uncha
 
 A traditional chatbot mistake is local: one user gets one weak answer. An AI model embedded across
 your operational workflows is different. When the *same* model influences code review, threat triage,
-dependency vetting, compliance interpretation, and risk scoring, a single flaw in its reasoning is
-**repeated across many decisions, teams, and downstream systems at machine speed**. This is
+dependency vetting, compliance interpretation, risk scoring — or a major business decision — a single
+flaw in its reasoning is **repeated across many decisions, teams, and downstream systems at machine
+speed**. This is
 **common-mode failure**: many processes failing together because they share one model, one vendor,
 one assumption, one blind spot. Single-model dependence in key processes is a **systemic risk**, not
 just an occasional bad answer.
@@ -25,6 +27,10 @@ The failure modes are familiar from model-risk management, amplified by autonomy
 representational blind spots, automation bias (people defer to a confident model), stale knowledge,
 loss of local context, prompt injection, vendor and geopolitical dependency, and fragile audit trails
 that preserve neither dissent nor uncertainty.
+
+These pressures are sharpest in **cyber** — adversarial, local-context-heavy, and regulated — which is
+why the councils, lenses, and threat model run deepest there. But the pattern holds for any high-stakes
+decision a model touches, up to a bet-the-business executive call ([beyond cyber](DOMAIN-ADAPTATION.md)).
 
 ## The two ideas that make it practical
 

@@ -6,9 +6,10 @@ All notable changes to Elder Council Harness are recorded here. The format follo
 
 ## [0.1.0] — unreleased (alpha)
 
-First alpha. A local-first, multi-model **council** harness for high-stakes cyber decisions —
-selective plurality, deterministic risk routing, a fail-closed consensus tally, and a tamper-evident
-audit. Bring-your-own-LLM; ships no keys.
+First alpha. A local-first, multi-model **council** harness for high-stakes decisions — built for
+cyber, general enough for any call too consequential to leave to one model alone. Selective plurality,
+deterministic risk routing, a fail-closed consensus tally, and a tamper-evident audit.
+Bring-your-own-LLM; ships no keys.
 
 ### Added
 

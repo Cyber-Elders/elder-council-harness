@@ -28,6 +28,9 @@ Owner). It proposes the final recommendation but never overrides a fail-closed r
 **Audit (hash chain)** — the append-only, hash-chained record of decisions in `.council/audit.jsonl`,
 with full records in `.council/decisions/`. **Tamper-evident, not tamper-proof.**
 
+**BYO-LLM (bring your own LLM)** — the harness ships **no** model and **no** API keys; councils run on
+the model(s) your coding agent already uses (or that you pin per lane in `council-models.json`).
+
 **Consensus tally** — the deterministic, pure function that combines lens votes into a verdict and a
 route, applying the minimum-governance rules. Same votes + same council → same outcome.
 
@@ -52,9 +55,17 @@ resolves to a model via its lane in `council-models.json`.
 
 **Lens** — a disciplined, independent perspective in a council; see [LENSES.md](LENSES.md).
 
+**MCP (Model Context Protocol)** — a standard way a coding agent connects to external tools. An MCP
+client gets **advisory** enforcement (the agent is asked to call the gate and honour it), not a hard
+block.
+
 **Minimum governance rules** — the fail-closed rules applied to every council: ties block; no-quorum
 blocks; escalation wins; empty/abstain → block; critical actions & risk acceptance → human; advisory
 never auto-decides.
+
+**Pre-tool hook** — a checkpoint a coding agent runs *before* it executes an action, so a council can
+intervene first. On Claude Code / OpenCode this enables a **hard block**; elsewhere enforcement is
+advisory.
 
 **Risk gate / risk routing** — the deterministic impact × likelihood score (1–25) that decides whether
 (and how) to convene. The *selective-plurality* control.

@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Cyber Elders Pty Ltd" }]
-keywords = ["agentic", "council", "governance", "multi-model", "consensus", "risk", "owasp", "nist", "mcp", "claude-code", "opencode", "kiro", "cursor", "security"]
+keywords = ["agentic", "council", "governance", "multi-model", "consensus", "risk", "owasp", "nist", "mcp", "claude-code", "opencode", "kiro", "cursor", "copilot", "security", "decision-support", "deliberation", "human-in-the-loop", "risk-governance"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

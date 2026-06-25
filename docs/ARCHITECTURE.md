@@ -8,6 +8,9 @@ the whole decision path is testable without a model or the network.
 
 ## The decision loop
 
+This is the deterministic inner loop wrapped around the model lenses. For how it sits inside an agent's
+turn-by-turn engineering loop — and why that framing matters — see [LOOP-ENGINEERING.md](LOOP-ENGINEERING.md).
+
 ```mermaid
 flowchart TD
     A[Pre-tool action] --> RG[risk_gate.assess<br/>impact x likelihood 1-25]

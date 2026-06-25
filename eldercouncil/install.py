@@ -417,7 +417,10 @@ def install(ide: str, councils: list[str] | None = None, target_dir: str | None 
     unresolved = models.unresolved(reg)
     if lane != "frontier" or any(r.variant != "frontier" for c in selected for r in c.roles):
         print(f"Model lanes still unpinned (REPLACE_ME): {len(unresolved)} — run `eldercouncil models check`.")
-    print("Verify:  echo '{\"action\":\"bash\",\"target\":\"git push --force\"}' | eldercouncil gate opencode")
+    if ide in ("claude-code", "opencode", "kiro"):  # hard-block IDEs have a `gate <ide>` target
+        print(f"Verify:  echo '{{\"action\":\"bash\",\"target\":\"git push --force\"}}' | eldercouncil gate {ide}")
+    else:  # cursor / copilot are advisory — no pre-tool gate; verify the advisory wiring instead
+        print("Verify:  eldercouncil convene code-council --demo   (advisory IDE — no pre-tool gate; the agent is asked to convene)")
     return 0
 
 

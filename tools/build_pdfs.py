@@ -48,9 +48,10 @@ def overview(ss):
     s += [Paragraph("Don't let one model decide alone.", ss["ECTag"])]
     for h, b in [
         ("The problem",
-         "When one model reviews your code, triages your alerts, vets your dependencies, and scores "
-         "your risk, its blind spots stop being an isolated bad answer and become a repeatable pattern "
-         "inside your decision infrastructure — a systemic single point of failure."),
+         "When one model reviews your code, triages your alerts, vets your dependencies, scores "
+         "your risk — and weighs your bet-the-business calls — its blind spots stop being an isolated "
+         "bad answer and become a repeatable pattern inside your decision infrastructure — a systemic "
+         "single point of failure."),
         ("The response: selective plurality",
          "Use a single agent or a deterministic tool where that is enough; convene a structured, "
          "multi-lens council only when a decision is consequential, uncertain, adversarial, or "
