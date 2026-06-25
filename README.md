@@ -206,7 +206,7 @@ This is an honest tool. It is **out of scope** for it to:
 | [docs/METHODOLOGY.md](docs/METHODOLOGY.md) — the full method | [docs/IDE-SUPPORT.md](docs/IDE-SUPPORT.md) — install per IDE |
 | [docs/STANDARDS-MAP.md](docs/STANDARDS-MAP.md) — OWASP/NIST | [docs/LICENSING.md](docs/LICENSING.md) — licensing |
 | [docs/TESTING.md](docs/TESTING.md) — how it's tested | [THREAT_MODEL.md](THREAT_MODEL.md) — the honest edges |
-| [docs/GLOSSARY.md](docs/GLOSSARY.md) · [docs/FAQ.md](docs/FAQ.md) | [docs/DOMAIN-ADAPTATION.md](docs/DOMAIN-ADAPTATION.md) — beyond cyber |
+| [docs/GLOSSARY.md](docs/GLOSSARY.md) · [docs/FAQ.md](docs/FAQ.md) | [docs/MODEL-GUIDANCE.md](docs/MODEL-GUIDANCE.md) — choosing models per role (IDE-aware, local, hybrid) |
 
 ## Contributing & security
 

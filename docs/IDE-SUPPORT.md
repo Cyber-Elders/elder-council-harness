@@ -64,6 +64,11 @@ Role agents reference a role key resolved from `.council/council-models.json`. A
 file, re-run `eldercouncil install <ide>` — it re-pins each role's `model:` line and leaves the prompt
 bodies unchanged. Run `eldercouncil models check` to find lanes you still need to pin.
 
+**Which model for which lens?** See [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md) — it maps each role to
+concrete open-weight picks per IDE (note: **Claude Code is single-provider per session**; OpenCode /
+Copilot / Cursor can run cross-family), plus privacy-first all-local (Mac MLX / AI PC by RAM tier) and
+hybrid (local + Ollama Cloud) setups.
+
 ## Adding an MCP-capable IDE
 
 Any MCP client can use the advisory path: register `eldercouncil serve` in the client's MCP config and

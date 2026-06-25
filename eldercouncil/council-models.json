@@ -1,6 +1,6 @@
 {
   "version": "2026-Q2",
-  "_README": "Role -> model registry. Council role files reference a ROLE KEY (never a model tag), resolved here. Re-pin quarterly. Editing this file and re-running `eldercouncil install <ide>` re-pins every rendered role agent; agent prompt bodies never change.",
+  "_README": "Role -> model registry. Council role files reference a ROLE KEY (never a model tag), resolved here. Re-pin quarterly. Editing this file and re-running `eldercouncil install <ide>` re-pins every rendered role agent; agent prompt bodies never change. See docs/MODEL-GUIDANCE.md for concrete per-role picks, what each IDE can run (Claude Code is single-provider per session), and privacy-first / hybrid (local + Ollama Cloud) setups.",
   "_disclaimer": "The only tags shipped as concrete defaults are verified-real Anthropic models (claude-opus-4-8 / claude-sonnet-4-6 / claude-haiku-4-5). Every cross-family, open-weight, and local lane ships as a REPLACE_ME:<capability> sentinel — pick a real model that matches the capability. Model tags age; this registry is the single place to update them. Run `eldercouncil models check` to find unresolved sentinels.",
   "_continuity": "Open-weight models from a single foreign lab can become unavailable (export controls, sanctions, licensing). Add a `fallback` list per role for critical councils so a provider cut-off does not disable a process. The local lane keeps sensitive workloads on-device.",
   "verified_real": ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"],

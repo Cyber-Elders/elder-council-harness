@@ -27,7 +27,9 @@ and a local/offline option). The defaults ship only verified Anthropic models; t
 placeholders you fill in with whatever you run. `eldercouncil models check` tells you which are still
 unset — and warns if every lens resolves to a single provider (a correlated-blind-spot risk). Re-pin
 as models change. *(For cross-model diversity — the whole point — pin at least one lens to a different
-model family.)*
+model family.)* See **[MODEL-GUIDANCE.md](MODEL-GUIDANCE.md)** for concrete per-role picks, what each
+IDE can actually run (Claude Code is single-provider per session; OpenCode/Copilot/Cursor can go
+cross-family), and privacy-first (all-local) vs hybrid (local + Ollama Cloud) setups.
 
 **What if a model provider becomes unavailable (export controls, sanctions, licensing)?**
 Treat external model access as a continuity risk. Configure a `fallback` list per role for critical
