@@ -52,7 +52,7 @@ jobs:
       # mode is 'real' only when a CI-scoped key is present; else keyless mock
       UAT_LLM_API_KEY: ${{ secrets.UAT_LLM_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
