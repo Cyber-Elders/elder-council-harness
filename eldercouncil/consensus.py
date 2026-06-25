@@ -62,8 +62,9 @@ _RESTRICTIVENESS = {
     "escalate-to-counsel": 99, "escalate": 98, "isolate": 96, "block": 94, "reject": 92,
     "avoid": 80, "defer": 78, "request-changes": 70, "mitigate": 55, "transfer": 50,
     "approve-with-controls": 45, "contain": 40, "recommend-with-guardrails": 35,
-    "monitor": 30, "proceed-with-controls": 28, "observe": 22, "recommend": 18,
-    "accept": 15, "approve": 12, "merge": 10, "allow": 10,
+    "proceed-with-guardrails": 32, "monitor": 30, "proceed-with-controls": 28,
+    "observe": 22, "recommend": 18, "accept": 15, "proceed": 14, "approve": 12,
+    "merge": 10, "allow": 10,
 }
 
 _PERMISSIVE_CONFIDENCE_FLOOR = 0.5

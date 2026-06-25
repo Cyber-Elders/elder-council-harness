@@ -318,11 +318,37 @@ def _wire_cursor_hooks(root: Path, changes: list[str]) -> None:
     changes.append("! Cursor is ADVISORY only (no hard pre-tool block) — see docs/IDE-SUPPORT.md")
 
 
+# --------------------------------------------------------------------------
+# GitHub Copilot (advisory — VS Code / JetBrains / Visual Studio agent mode)
+# --------------------------------------------------------------------------
+def _render_copilot_council(root: Path, c: Council, reg, lane: str, changes: list[str]) -> None:
+    # Copilot agent mode has no blocking pre-tool hook, so guidance is advisory and
+    # lives in the repo-wide custom-instructions file (one sentinel block per council).
+    block = (
+        f"### Elder Council — {c.name} ({c.mode}, advisory)\n"
+        f"Before a high-stakes action in this domain "
+        f"({'; '.join(t.condition for t in c.triggers) or c.purpose.strip()[:80]}), call the "
+        f"`risk_gate` MCP tool; if it routes to a council, call `convene_council` (council=\"{c.id}\"), "
+        f"run the lenses, and honour the verdict. Outcomes: {', '.join(c.decision_outcomes)}. "
+        f"Fail-closed: {c.fail_closed.strip()} Record the result with `audit_log`. Councils can be "
+        f"wrong; risk acceptance and critical actions are a human's call. Do not bypass the gate."
+    )
+    _append_block(root / ".github" / "copilot-instructions.md", c.id, block, changes)
+
+
+def _wire_copilot_hooks(root: Path, changes: list[str]) -> None:
+    # VS Code uses the top-level key "servers" (NOT "mcpServers"); requires agent mode.
+    _register_mcp(root / ".vscode" / "mcp.json", "servers", _MCP_ENTRY, changes)
+    changes.append("! Copilot agent mode is ADVISORY only (no hard pre-tool block in the editor); "
+                   "Copilot CLI/cloud can hard-block via a preToolUse hook — see docs/IDE-SUPPORT.md")
+
+
 _RENDERERS = {
     "claude-code": (_render_claude_council, _wire_claude_hooks),
     "opencode": (_render_opencode_council, _wire_opencode_hooks),
     "kiro": (_render_kiro_council, _wire_kiro_hooks),
     "cursor": (_render_cursor_council, _wire_cursor_hooks),
+    "copilot": (_render_copilot_council, _wire_copilot_hooks),
 }
 
 
@@ -406,7 +432,7 @@ def guided_init(ide: str | None = None, target_dir: str | None = None) -> int:
         return ans or default
 
     if ide is None:
-        ide = ask("Which coding agent? (claude-code / opencode / kiro = hard-block · cursor = advisory)", "claude-code")
+        ide = ask("Which coding agent? (claude-code / opencode / kiro = hard-block · cursor / copilot = advisory)", "claude-code")
     if ide not in _RENDERERS:
         print(f"unknown IDE: {ide}")
         return 1

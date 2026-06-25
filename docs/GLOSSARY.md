@@ -7,7 +7,7 @@ The canonical home for Elder Council terms and the two disambiguations newcomers
 
 - **Lenses ≠ councils.** A **lens** is a single perspective (Security SME, Critic, …). A **council**
   is a *roster of lenses* convened for one class of decision. The same lens appears in several
-  councils. There are six lenses and six councils — different sixes.
+  councils. There are six lenses and seven councils — don't conflate the two.
 - **Council mode ≠ risk routing.** **Mode** (advisory vs action-gate) is *how a council's verdict is
   used*. **Risk routing** (the 1–25 score) is *whether a council is convened at all*. One is about the
   output; the other is about the trigger.
@@ -19,8 +19,8 @@ The canonical home for Elder Council terms and the two disambiguations newcomers
 Used by Code and Supply Chain. Contrast: *advisory*.
 
 **Advisory (council mode)** — a council that deliberates and recommends; a **human synthesises and
-decides**. Used by Threat Hunting, Compliance, Cyber Risk, Platform Architecture. It never
-auto-decides.
+decides**. Used by Threat Hunting, Compliance, Cyber Risk, Platform Architecture, and Business
+Decision. It never auto-decides.
 
 **Arbitrator** — the lens designated as the decision owner for a council (e.g. the Incident Response
 Owner). It proposes the final recommendation but never overrides a fail-closed rule.
@@ -34,8 +34,8 @@ route, applying the minimum-governance rules. Same votes + same council → same
 **Convene threshold** — the risk score (default 5) at or above which a council is convened. Below it,
 a single agent or a deterministic tool handles the decision.
 
-**Council** — a roster of lenses convened for one class of high-stakes decision. Six ship by default;
-see [COUNCILS.md](COUNCILS.md).
+**Council** — a roster of lenses convened for one class of high-stakes decision. Seven ship by default
+(six cyber + one business); see [COUNCILS.md](COUNCILS.md).
 
 **Decision outcomes** — the set of verdicts a council can return (e.g. Code: merge / request-changes
 / block / escalate). Declared per council in its YAML.

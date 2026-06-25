@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # IDE / agent support
 
-`eldercouncil install <ide>` renders the six councils into your coding agent and wires a pre-tool gate
+`eldercouncil install <ide>` renders the councils into your coding agent and wires a pre-tool gate
 that asks you to convene the right council on high-stakes actions. The councils run on your agent's
 **own** model(s) — Elder Council ships no keys.
 
@@ -17,12 +17,20 @@ that asks you to convene the right council on high-stakes actions. The councils 
 | **OpenCode** | Win · macOS · Linux | **Hard block** (`tool.execute.before` plugin) | `.opencode/agents/<c>-<role>.md`, orchestrator in `opencode.json`, `.opencode/plugins/eldercouncil.js`, MCP entry |
 | **Kiro** | Win · macOS · Linux | **Hard block\*** (best-effort) | action-gate → `.kiro/agents/<c>.json`; advisory → `.kiro/specs/<c>.md`; scheduled → `.kiro/settings/cli.json`; steering + MCP |
 | **Cursor** | Win · macOS · Linux | **Advisory** | `.cursor/rules/<c>.mdc` (always-on) + `.cursor/mcp.json` |
+| **GitHub Copilot** | Win · macOS · Linux | **Advisory\*\*** (agent mode) | `.github/copilot-instructions.md` block + `.vscode/mcp.json` (top-level key `servers`) |
 | **Windsurf / VS Code / Claude Desktop / any MCP client** | Win · macOS · Linux | **Advisory** | register `eldercouncil serve` + a steering note |
 
 **\* Kiro is best-effort.** The Claude Code and OpenCode adapters are written against their live
 pre-tool hooks; the Kiro adapter is implemented to Kiro's documented `pre_action` / `parallel_agents`
 / `scheduled_agents` contracts but is **pending verification against a live Kiro install**. It reads
 payloads defensively and falls back to exit-2 + stderr — it fails safe.
+
+**\*\* Copilot agent mode (in-editor) has no blocking pre-tool hook**, so `install copilot` wires the
+advisory MCP path (VS Code reads `.vscode/mcp.json` under the top-level `servers` key — *not*
+`mcpServers`) plus a best-effort `.github/copilot-instructions.md` block. Note: **Copilot CLI and the
+cloud coding agent** *do* expose a deterministic, fail-closed `preToolUse` hook
+(`.github/hooks/*.json`) that can hard-block — a hard-block Copilot adapter for those surfaces is a
+planned addition; today the shipped adapter is advisory.
 
 ## Enforcement tiers — what they mean
 

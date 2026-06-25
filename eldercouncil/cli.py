@@ -315,7 +315,7 @@ def cmd_version(args) -> int:
     return 0
 
 
-_IDES = ["claude-code", "opencode", "kiro", "cursor"]
+_IDES = ["claude-code", "opencode", "kiro", "cursor", "copilot"]
 
 
 def build_parser() -> argparse.ArgumentParser:

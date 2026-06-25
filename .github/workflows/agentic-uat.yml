@@ -21,7 +21,7 @@ on:
         description: "council scenario (or 'all')"
         type: choice
         default: all
-        options: [all, code-council, threat-hunting, supply-chain, compliance, cyber-risk, platform-architecture]
+        options: [all, code-council, threat-hunting, supply-chain, compliance, cyber-risk, platform-architecture, business-decision]
       ide:
         description: "agent to install"
         type: choice

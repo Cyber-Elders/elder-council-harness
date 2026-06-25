@@ -47,7 +47,7 @@ jobs:
           set -e
           eldercouncil version | tee ver.txt | grep -q "0.1.0"
           eldercouncil list | grep -q "code-council"
-          for c in code-council threat-hunting supply-chain compliance cyber-risk platform-architecture; do
+          for c in code-council threat-hunting supply-chain compliance cyber-risk platform-architecture business-decision; do
             eldercouncil show "$c" >/dev/null
           done
 

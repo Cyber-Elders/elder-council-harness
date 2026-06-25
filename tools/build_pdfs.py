@@ -55,10 +55,11 @@ def overview(ss):
          "Use a single agent or a deterministic tool where that is enough; convene a structured, "
          "multi-lens council only when a decision is consequential, uncertain, adversarial, or "
          "expensive to get wrong. A risk gate (impact x likelihood, 1-25) decides when."),
-        ("Six councils",
-         "Code, Threat Hunting, Supply Chain Audit, Multi-Jurisdictional Compliance, Cyber Risk, and "
-         "Platform Architecture. Each convenes independent lenses, combines their votes under "
-         "fail-closed rules, preserves dissent, and records a tamper-evident audit entry."),
+        ("Seven councils",
+         "Six cyber — Code, Threat Hunting, Supply Chain Audit, Multi-Jurisdictional Compliance, Cyber "
+         "Risk, Platform Architecture — plus a general Business Decision council for executive calls. "
+         "Each convenes independent lenses, combines their votes under fail-closed rules, preserves "
+         "dissent, and records a tamper-evident audit entry."),
         ("Honest by design",
          "A council is decision support, not a guarantee. Councils can be wrong. A named human owns "
          "every critical and risk-acceptance decision. The audit is tamper-evident, not tamper-proof. "

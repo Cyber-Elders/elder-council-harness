@@ -9,9 +9,9 @@ from eldercouncil import install
 def test_install_claude_code_renders_all_artifacts(tmp_path):
     rc = install.install("claude-code", target_dir=str(tmp_path), all_councils=True)
     assert rc == 0
-    # 6 slash commands, 30 role agents (6 councils x 5 lenses), hooks, MCP, config
-    assert len(list((tmp_path / ".claude" / "commands").glob("*.md"))) == 6
-    assert len(list((tmp_path / ".claude" / "agents").glob("*.md"))) == 30
+    # 7 slash commands, 35 role agents (7 councils x 5 lenses), hooks, MCP, config
+    assert len(list((tmp_path / ".claude" / "commands").glob("*.md"))) == 7
+    assert len(list((tmp_path / ".claude" / "agents").glob("*.md"))) == 35
     assert (tmp_path / ".claude" / "settings.json").exists()
     assert (tmp_path / ".mcp.json").exists()
     assert (tmp_path / "CLAUDE.md").exists()
@@ -51,6 +51,15 @@ def test_cursor_advisory_rule(tmp_path):
     install.install("cursor", councils=["code-council"], target_dir=str(tmp_path))
     rule = (tmp_path / ".cursor" / "rules" / "code-council.mdc").read_text(encoding="utf-8")
     assert "advisory" in rule.lower() and "alwaysApply: true" in rule
+
+
+def test_copilot_advisory(tmp_path):
+    install.install("copilot", councils=["code-council"], target_dir=str(tmp_path))
+    instr = (tmp_path / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")
+    assert "advisory" in instr.lower() and "code-council" in instr.lower()
+    # VS Code MCP uses the top-level "servers" key (not "mcpServers")
+    mcp = json.loads((tmp_path / ".vscode" / "mcp.json").read_text())
+    assert "eldercouncil" in mcp["servers"]
 
 
 def test_opencode_plugin_and_orchestrator(tmp_path):

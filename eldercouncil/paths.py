@@ -4,7 +4,7 @@ Path resolution for the `.council/` namespace.
 
 All project-local state (decision records, dissent log, config, optional project
 council overrides + model registry) lives under `.council/`, resolvable via
-$COUNCIL_DIR or the current working directory. Bundled package data (the six
+$COUNCIL_DIR or the current working directory. Bundled package data (the
 council definitions, the lens roster, the default model registry) lives inside
 the installed package.
 """

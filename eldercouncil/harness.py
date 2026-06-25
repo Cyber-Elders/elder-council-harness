@@ -43,6 +43,7 @@ _SUGGEST = [
     (("data residency", "cross-region", "transfer", "gdpr", "popia", "retention"), "compliance"),
     (("accept risk", "risk acceptance", "vulnerability", "remediation"), "cyber-risk"),
     (("architecture", "redesign", "platform", "migration", "adr"), "platform-architecture"),
+    (("acquisition", "acquire", "m&a", "merger", "market entry", "budget", "investment", "reorg", "pricing"), "business-decision"),
 ]
 
 

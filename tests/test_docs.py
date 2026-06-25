@@ -112,20 +112,22 @@ def test_secret_scan_pattern_has_no_self_match():
 # --------------------------------------------------------------------------
 # Doc-as-test — docs cannot drift from the product.
 # --------------------------------------------------------------------------
-SIX = ["code-council", "threat-hunting", "supply-chain", "compliance", "cyber-risk", "platform-architecture"]
+COUNCILS = ["code-council", "threat-hunting", "supply-chain", "compliance", "cyber-risk",
+            "platform-architecture", "business-decision"]
 
 
-def test_all_six_councils_documented():
+def test_all_councils_documented():
     councils = _read("docs/COUNCILS.md")
-    for cid in SIX:
+    for cid in COUNCILS:
         assert cid in councils, f"{cid} missing from docs/COUNCILS.md"
     # and the YAML set matches the documented set
-    assert set(catalog.load_councils()) == set(SIX)
+    assert set(catalog.load_councils()) == set(COUNCILS)
 
 
 def test_readme_and_councils_consistent():
     readme = _read("README.md")
-    for name in ("Code", "Threat Hunting", "Supply Chain", "Compliance", "Cyber Risk", "Platform Architecture"):
+    for name in ("Code", "Threat Hunting", "Supply Chain", "Compliance", "Cyber Risk",
+                 "Platform Architecture", "Business Decision"):
         assert name in readme
 
 

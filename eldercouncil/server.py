@@ -51,7 +51,7 @@ def convene_council(council_id: str, question: str, lane: str = "") -> dict:
     """Return a BYO-LLM deliberation task for a named council — your model runs it.
 
     Pick `council_id` from: code-council, threat-hunting, supply-chain,
-    compliance, cyber-risk, platform-architecture. Run each lens task with your
+    compliance, cyber-risk, platform-architecture, business-decision. Run each lens task with your
     own model(s), collect one vote per lens, then call `audit_log` with the
     votes to get the tallied verdict and record the decision. Ships no keys.
     """

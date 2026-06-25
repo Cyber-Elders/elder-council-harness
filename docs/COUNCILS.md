@@ -1,9 +1,10 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
-# The six councils
+# The councils
 
-Each council is pure data (`eldercouncil/councils/<id>.yaml`) and installs into every supported IDE
-via the same generic renderer. A council declares its **lenses**, its **decision outcomes**, its
-**fail-closed rule**, and the **triggers** (with a minimum risk score) that should convene it.
+Six cyber councils plus a general **Business Decision** council for executive calls. Each council is
+pure data (`eldercouncil/councils/<id>.yaml`) and installs into every supported IDE via the same
+generic renderer. A council declares its **lenses**, its **decision outcomes**, its **fail-closed
+rule**, and the **triggers** (with a minimum risk score) that should convene it.
 
 **Lenses ≠ councils.** The six [lenses](LENSES.md) are reusable perspectives; a council is a *roster*
 of lenses convened for one class of decision. The same lens (e.g. Security SME) appears in several
@@ -12,18 +13,18 @@ can gate the action behind the risk gate). See [CONCEPT.md](CONCEPT.md).
 
 ## Lens × council matrix
 
-| Lens \ Council | Code | Threat Hunting | Supply Chain | Compliance | Cyber Risk | Platform Arch |
-|---|:--:|:--:|:--:|:--:|:--:|:--:|
-| Strategic / Risk Owner | | | ● | ● | ● | |
-| Engineering SME | ● | ● | ● | ● | ● | ● |
-| Security SME | ● | ● | ● | ● | ● | ● |
-| Compliance / Legal SME | | | | ● | | ● |
-| Critic / Challenge | ● | | ● | | ● | |
-| Pragmatic Operations | ● | | ● | | | ● |
-| *Detection Engineer* | | ● | | | | |
-| *Adversary / Red-Team* | | ● | | | | |
-| *Incident Response Owner* | | ● | | | | |
-| *Deterministic Tool* | ● | | | | | |
+| Lens \ Council | Code | Threat Hunting | Supply Chain | Compliance | Cyber Risk | Platform Arch | Business |
+|---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| Strategic / Risk Owner | | | ● | ● | ● | | ● |
+| Engineering SME | ● | ● | ● | ● | ● | ● | |
+| Security SME | ● | ● | ● | ● | ● | ● | |
+| Compliance / Legal SME | | | | ● | | ● | ● |
+| Critic / Challenge | ● | | ● | | ● | | ● |
+| Pragmatic Operations | ● | | ● | | | ● | ● |
+| *Detection Engineer* | | ● | | | | | |
+| *Adversary / Red-Team* | | ● | | | | | |
+| *Incident Response Owner* | | ● | | | | | |
+| *Deterministic Tool* | ● | | | | | | |
 
 *(Italic lenses are specialised roles that map to a canonical lens family for model assignment.)*
 
@@ -148,6 +149,28 @@ long-term operating model.
 **Fail-closed:** decisions that create long-lived exposure, irreversible lock-in, or unclear
 ownership are **deferred until the accountable owner accepts the trade-off**. Produces a versioned
 decision record (MADR) with the deliberation as its provenance.
+
+## 7. Business Decision Council — `business-decision` · advisory
+
+**Convene for:** business-critical, high-stakes, or hard-to-reverse executive decisions — strategic
+commitments, major spend, M&A, market entry, reorganisations, vendor lock-in, pricing, or
+reputational exposure. A general (non-cyber) council for the calls a leadership team should not make
+on one voice alone.
+
+| Lens | Role |
+|---|---|
+| Strategy / Executive Owner *(arbitrator)* | strategic fit, the bet being made, horizon, accountability |
+| Financial / Commercial | cost, ROI, runway impact, downside exposure, opportunity cost |
+| Legal / Compliance | regulatory, contractual, and governance obligations (illustrative, not legal advice) |
+| Operations / Execution | can this actually be delivered with the people, time, and capacity we have? |
+| Critic / Challenge | hidden assumptions, optimism bias, anchoring, unnamed failure modes |
+
+**Outcomes:** `proceed` · `proceed-with-guardrails` · `defer` · `reject` · `escalate`
+**Fail-closed:** no business-critical, irreversible, or material-commitment decision is finalized by
+an AI system — the council informs; a named, accountable executive owns and makes the call.
+
+> **Not professional advice.** Council output is model-generated and may be wrong or stale; the
+> Legal/Compliance lens is illustrative, not legal, financial, or regulatory advice.
 
 ---
 

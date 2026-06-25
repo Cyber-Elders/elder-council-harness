@@ -134,6 +134,18 @@ _DEMO = {
         {"role": "Pragmatic Implementation", "model": "demo", "vote": "recommend-with-guardrails", "confidence": 0.55,
          "reason": "Deliverable this quarter with the guardrails."},
     ],
+    "business-decision": [
+        {"role": "Strategy / Executive Owner", "model": "demo", "vote": "proceed-with-guardrails", "confidence": 0.6,
+         "reason": "Strategic fit is real if we ring-fence the downside and stage the spend."},
+        {"role": "Financial / Commercial", "model": "demo", "vote": "defer", "confidence": 0.7,
+         "reason": "$40M is most of our runway; the case assumes best-case synergies."},
+        {"role": "Legal / Compliance", "model": "demo", "vote": "proceed-with-guardrails", "confidence": 0.55,
+         "reason": "Doable with reps, warranties, and regulatory clearance."},
+        {"role": "Operations / Execution", "model": "demo", "vote": "defer", "confidence": 0.6,
+         "reason": "We can't integrate two orgs and still ship the roadmap this year."},
+        {"role": "Critic / Challenge", "model": "demo", "vote": "reject", "confidence": 0.75,
+         "reason": "Anchored on a synergy number nobody has stress-tested."},
+    ],
 }
 
 

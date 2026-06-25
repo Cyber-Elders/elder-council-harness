@@ -96,7 +96,9 @@ flowchart LR
 5. **Audit** records the verdict, every vote, the gate outcomes, and the **dissent** to a hash-chained,
    tamper-evident log under `.council/`.
 
-## The six councils
+## The councils
+
+Six cyber councils, plus a general **Business Decision** council for executive calls:
 
 | Council | Convene it for | Mode |
 |---|---|---|
@@ -106,6 +108,7 @@ flowchart LR
 | **Multi-Jurisdictional Compliance** | a decision spanning regulatory regimes or data residency | advisory |
 | **Cyber Risk** | risk acceptance, control gaps, or remediation sequencing | advisory |
 | **Platform Architecture** | an architecture decision with long-term, hard-to-reverse trade-offs | advisory |
+| **Business Decision** | a business-critical, high-spend, or hard-to-reverse executive call (M&A, market entry, big bets) | advisory |
 
 Each council ships as pure data (`eldercouncil/councils/*.yaml`) and installs into every supported
 IDE. See [docs/COUNCILS.md](docs/COUNCILS.md).
@@ -130,7 +133,7 @@ own model(s)** — Elder Council ships no keys.
 |---|---|
 | **Claude Code** · **OpenCode** | hard block (pre-tool hook) |
 | **Kiro** | hard block (best-effort, pending live verification) |
-| **Cursor** · any **MCP** client | advisory (the agent is asked to call the gate and honour it) |
+| **Cursor** · **GitHub Copilot** · any **MCP** client | advisory (the agent is asked to call the gate and honour it) |
 
 Full matrix and per-IDE behaviour: [docs/IDE-SUPPORT.md](docs/IDE-SUPPORT.md).
 
@@ -182,7 +185,7 @@ This is an honest tool. It is **out of scope** for it to:
 | Start here | Then |
 |---|---|
 | [START-HERE.md](START-HERE.md) — pick your path | [docs/CONCEPT.md](docs/CONCEPT.md) — the why |
-| [docs/COUNCILS.md](docs/COUNCILS.md) — the six councils | [docs/LENSES.md](docs/LENSES.md) — the six lenses |
+| [docs/COUNCILS.md](docs/COUNCILS.md) — the councils | [docs/LENSES.md](docs/LENSES.md) — the six lenses |
 | [docs/GATES.md](docs/GATES.md) — the 11 control gates + profiles | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — how it's built |
 | [docs/METHODOLOGY.md](docs/METHODOLOGY.md) — the full method | [docs/IDE-SUPPORT.md](docs/IDE-SUPPORT.md) — install per IDE |
 | [docs/STANDARDS-MAP.md](docs/STANDARDS-MAP.md) — OWASP/NIST | [docs/LICENSING.md](docs/LICENSING.md) — licensing |

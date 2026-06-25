@@ -30,9 +30,9 @@ eldercouncil install claude-code --all  # or non-interactive
 
 ## Reading order
 
-1. [README](README.md) — what it is, the six councils, how it compares.
+1. [README](README.md) — what it is, the councils, how it compares.
 2. [docs/CONCEPT.md](docs/CONCEPT.md) — the *why*: systemic risk + selective plurality (5 min).
-3. [docs/COUNCILS.md](docs/COUNCILS.md) — the six councils; pick yours.
+3. [docs/COUNCILS.md](docs/COUNCILS.md) — the councils; pick yours.
 4. [docs/IDE-SUPPORT.md](docs/IDE-SUPPORT.md) — install into your agent.
 5. [docs/METHODOLOGY.md](docs/METHODOLOGY.md) — the full method, for depth (not the front door).
 

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "eldercouncil"
 version = "0.1.0"
-description = "Elder Council — a local-first multi-model council harness for high-stakes cyber decisions (risk-gated escalation, consensus tally, hash-chained audit). Six installable cyber councils; BYO-LLM, ships no keys. OWASP-Agentic-aware, NIST-AI-RMF-aligned."
+description = "Elder Council — a local-first multi-model council harness for high-stakes decisions (risk-gated escalation, consensus tally, hash-chained audit). Seven installable councils (six cyber + a general business council); BYO-LLM, ships no keys. OWASP-Agentic-aware, NIST-AI-RMF-aligned."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }

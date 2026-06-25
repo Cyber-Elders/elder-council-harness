@@ -1,17 +1,19 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Council definitions — all six load, validate, and fail closed when malformed."""
+"""Council definitions — all load, validate, and fail closed when malformed."""
 
 import pytest
 
 from eldercouncil import catalog
 from eldercouncil.schema import SchemaError, parse_council
 
-SIX = {"code-council", "threat-hunting", "supply-chain", "compliance", "cyber-risk", "platform-architecture"}
+# Six cyber councils + one general business council.
+COUNCILS = {"code-council", "threat-hunting", "supply-chain", "compliance", "cyber-risk",
+            "platform-architecture", "business-decision"}
 
 
-def test_all_six_councils_load_and_validate():
+def test_all_councils_load_and_validate():
     cs = catalog.load_councils()
-    assert set(cs) == SIX, set(cs)
+    assert set(cs) == COUNCILS, set(cs)
     for c in cs.values():
         assert c.mode in ("advisory", "action-gate")
         assert len(c.roles) >= 1
@@ -37,6 +39,7 @@ def test_action_gate_vs_advisory_split():
     assert cs["supply-chain"].mode == "action-gate"
     assert cs["cyber-risk"].mode == "advisory"
     assert cs["compliance"].mode == "advisory"
+    assert cs["business-decision"].mode == "advisory"  # exec decisions never auto-decided
 
 
 def test_cyber_risk_has_accept_outcome():

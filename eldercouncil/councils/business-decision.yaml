@@ -1,0 +1,58 @@
+id: business-decision
+name: Business Decision Council
+purpose: >
+  Evaluate business-critical, high-stakes, or hard-to-reverse executive decisions
+  — strategic commitments, major spend, M&A, market entry, reorganisations,
+  vendor lock-in, pricing changes, or reputational exposure. A general (non-cyber)
+  council for the calls a leadership team should not make on one voice alone.
+description: >
+  An advisory council that produces a recommendation, the trade-offs, the
+  dissent, and an explicit statement of what a human still owns. The decision
+  itself is never made by the council — a business-critical or irreversible
+  commitment always routes to a named, accountable executive, supported by the
+  council's analysis.
+mode: advisory
+
+roles:
+  - name: Strategy / Executive Owner
+    lens: >
+      Frame strategic fit, the bet being made, time horizon, and who is
+      accountable for the outcome. What does success look like, and what is the
+      cost of being wrong?
+    role_key: strategic_risk_owner
+    arbitrator: true
+  - name: Financial / Commercial
+    lens: >
+      Evaluate cost, ROI, runway impact, downside exposure, and opportunity
+      cost. Stress-test the assumptions the business case depends on.
+    role_key: strategic_risk_owner
+  - name: Legal / Compliance
+    lens: >
+      Surface regulatory, contractual, and governance obligations and the
+      evidence a human must verify. Output is illustrative, not legal advice.
+    role_key: compliance_legal_sme
+  - name: Operations / Execution
+    lens: >
+      Assess whether this can actually be delivered with the people, time,
+      capacity, and dependencies available — and what breaks if it is rushed.
+    role_key: pragmatic_ops
+  - name: Critic / Challenge
+    lens: >
+      Hunt the hidden assumptions, optimism bias, anchoring, and the failure
+      modes nobody is naming. Are we talking ourselves into this?
+    role_key: critic_challenge
+
+decision_outcomes: [proceed, proceed-with-guardrails, defer, reject, escalate]
+
+fail_closed: >
+  No business-critical, irreversible, or material-commitment decision is
+  finalized by an AI system. The council informs; a named, accountable executive
+  owns and makes the call.
+
+triggers:
+  - condition: "business-critical | irreversible | material spend | strategic commitment | M&A | market entry | reputational exposure"
+    min_risk_score: 10
+
+output:
+  path: ".council/decisions/business-decision-{ts}.json"
+  format: json
