@@ -9,7 +9,7 @@ high-stakes call, including executive business decisions. It stays out of the wa
 |---|---|---|
 | **anyone — just show me a council decide** | run `eldercouncil convene code-council --demo` (keyless) | 5 min |
 | **security analyst / threat hunter** | [CONCEPT](docs/CONCEPT.md) → [Threat Hunting council](docs/COUNCILS.md#2-threat-hunting-council--threat-hunting--advisory) → [install](docs/IDE-SUPPORT.md) | 15 min |
-| **developer rolling councils into your agent** | [IDE-SUPPORT](docs/IDE-SUPPORT.md) → [Code council](docs/COUNCILS.md#1-code-council--code-council--action-gate) | 20 min |
+| **developer rolling councils into your agent** | [IDE-SUPPORT](docs/IDE-SUPPORT.md) → [MODEL-GUIDANCE](docs/MODEL-GUIDANCE.md) → [Code council](docs/COUNCILS.md#1-code-council--code-council--action-gate) | 20 min |
 | **risk / compliance owner** | [METHODOLOGY](docs/METHODOLOGY.md) (routing + governance) → [Compliance](docs/COUNCILS.md#4-multi-jurisdictional-compliance-council--compliance--advisory--scheduled) / [Cyber Risk](docs/COUNCILS.md#5-cyber-risk-council--cyber-risk--advisory) | 30 min |
 | **security owner / skeptic** | [THREAT_MODEL](THREAT_MODEL.md) → [STANDARDS-MAP](docs/STANDARDS-MAP.md) | 20 min |
 | **executive / leadership (a high-stakes business call)** | try `eldercouncil convene business-decision --demo` → [Business Decision council](docs/COUNCILS.md#7-business-decision-council--business-decision--advisory) | 10 min |
@@ -53,8 +53,9 @@ you the `convene … --demo` output (it needs no keys and no setup beyond the in
 2. [docs/CONCEPT.md](docs/CONCEPT.md) — the *why*: systemic risk + selective plurality (5 min).
 3. [docs/LOOP-ENGINEERING.md](docs/LOOP-ENGINEERING.md) — how a council fits an agent's turn-by-turn loop.
 4. [docs/COUNCILS.md](docs/COUNCILS.md) — the councils; pick yours.
-5. [docs/IDE-SUPPORT.md](docs/IDE-SUPPORT.md) — install into your agent.
-6. [docs/METHODOLOGY.md](docs/METHODOLOGY.md) — the full method, for depth (not the front door).
+5. [docs/MODEL-GUIDANCE.md](docs/MODEL-GUIDANCE.md) — choose which model plays each lens; avoid a single-provider monoculture (the failure councils exist to prevent). Read *before* installing — some IDEs (notably Claude Code) lock a whole session to one provider.
+6. [docs/IDE-SUPPORT.md](docs/IDE-SUPPORT.md) — install into your agent.
+7. [docs/METHODOLOGY.md](docs/METHODOLOGY.md) — the full method, for depth (not the front door).
 
 ## Honest by design
 

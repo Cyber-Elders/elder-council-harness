@@ -96,7 +96,13 @@ def _print_decision(rec: dict) -> None:
     mode_label = {"advisory": "advisory · a human decides",
                   "action-gate": "action-gate · can block automatically"}.get(mode, mode)
     print(_c("1", f"\n  {rec.get('council')}  —  {mode_label}"))
-    for v in rec.get("verdicts", []):
+    # Column widths sized to the actual data so long role names / verdicts (e.g.
+    # 'Infrastructure / Application SME', 'recommend-with-guardrails') don't shove
+    # the confidence column out of alignment.
+    rows = rec.get("verdicts", [])
+    rw = max(30, *(len(v.get("role", "")) for v in rows)) if rows else 30
+    vw = max(16, *(len(v.get("vote", "")) for v in rows)) if rows else 16
+    for v in rows:
         vc = _VERDICT_COLOR.get(v.get("vote"), "32")
         conf = v.get("confidence", "")
         vote = v.get("vote", "")
@@ -104,10 +110,10 @@ def _print_decision(rec: dict) -> None:
         # Pad on the PLAIN vote length, THEN colorize — ANSI codes must not be
         # counted in the column width (else colored output mis-aligns in a TTY).
         # Severity gets its own fixed-width slot so non-severity rows line up.
-        vote_cell = _c(vc, vote) + " " * max(1, 16 - len(vote))
+        vote_cell = _c(vc, vote) + " " * max(1, vw - len(vote))
         reason = v.get("reason", "")
         reason = (reason[:65].rstrip() + "…") if len(reason) > 66 else reason  # ellipsis = intentional cut, not a broken line
-        print(f"    {v.get('role',''):<30} {vote_cell}{sev:<11} ({conf:>4})  {reason}")
+        print(f"    {v.get('role',''):<{rw}} {vote_cell}{sev:<11} ({conf:>4})  {reason}")
     print(_c("1", f"\n  COUNCIL VERDICT: {_c(color, verdict)}   → route: {_c('36', rec.get('route','?'))}"))
     print(f"  {rec.get('rationale','')}")
     if rec.get("dissent"):
@@ -216,8 +222,10 @@ def cmd_risk_gate(args) -> int:
         try:
             d = json.loads(raw)
             action, target = d.get("action", ""), d.get("target", "")
-        except json.JSONDecodeError:
-            pass
+        except json.JSONDecodeError as exc:
+            # Fail closed: don't evaluate an empty action on malformed JSON.
+            sys.stderr.write(f"invalid action JSON: {exc}\n")
+            return 2
     rs = assess(f"{action} {target}".strip())
     print(json.dumps({"score": rs.score, "level": rs.level, "route": rs.route, "reasoning": rs.reasoning}))
     return 0 if rs.route == "SOLO_ALLOW" else 2
@@ -247,8 +255,10 @@ def cmd_gates(args) -> int:
                 d = json.loads(raw)
                 signals = d.get("signals", d)
                 action = d.get("action", "")
-            except json.JSONDecodeError:
-                pass
+            except json.JSONDecodeError as exc:
+                # Fail closed: malformed JSON must NOT evaluate as an empty (allowed) action.
+                sys.stderr.write(f"invalid signals JSON: {exc}\n")
+                return 2
         else:
             action = raw
         try:
@@ -277,7 +287,10 @@ def cmd_models(args) -> int:
     if args.models_cmd == "list":
         print(f"registry {reg.version} ({reg.source})")
         for role, entry in sorted(reg.roles.items()):
-            print(f"  {role:22} frontier={entry.get('frontier')}  open={entry.get('open')}  local={entry.get('local')}")
+            if entry.get("kind") == "tool":
+                print(f"  {role:22} (tool — deterministic checks, no model)")
+            else:
+                print(f"  {role:22} frontier={entry.get('frontier')}  open={entry.get('open')}  local={entry.get('local')}")
         return 0
     if args.models_cmd == "check":
         miss = unresolved(reg)
@@ -339,24 +352,35 @@ def cmd_version(args) -> int:
 _IDES = ["claude-code", "opencode", "kiro", "cursor", "copilot"]
 
 
+class _Parser(argparse.ArgumentParser):
+    """Usage/parse errors exit 64 (EX_USAGE), NOT 2 — so a CI/hook script can tell a
+    *policy* stop (exit 2 = blocked/escalated) from a *usage* mistake (bad flag/choice)."""
+    def error(self, message: str):  # noqa: D401
+        self.print_usage(sys.stderr)
+        sys.stderr.write(f"{self.prog}: error: {message}\n")
+        raise SystemExit(64)
+
+
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="eldercouncil",
-                                description="Elder Council — local-first multi-model council harness for "
-                                            "high-stakes decisions: built for cyber, general enough for any "
-                                            "call too consequential to leave to one model alone.")
+    p = _Parser(prog="eldercouncil",
+                description="Elder Council — local-first multi-model council harness for "
+                            "high-stakes decisions: built for cyber, general enough for any "
+                            "call too consequential to leave to one model alone.")
     sub = p.add_subparsers(dest="command", required=True)
 
     n = sub.add_parser("init", help="guided install (interactive)")
-    n.add_argument("ide", nargs="?", choices=_IDES)
-    n.add_argument("--dir")
+    n.add_argument("ide", nargs="?", choices=_IDES, help="target coding agent / IDE (prompted if omitted)")
+    n.add_argument("--dir", help="project directory to install into (default: cwd)")
     n.set_defaults(func=cmd_init)
 
     i = sub.add_parser("install", help="wire councils into a harness")
-    i.add_argument("ide", choices=_IDES)
+    i.add_argument("ide", choices=_IDES, help="target coding agent / IDE to wire councils into")
     i.add_argument("--council", help="comma-separated council ids (default: all)")
     i.add_argument("--all", action="store_true", help="install all councils")
-    i.add_argument("--lane", default="frontier", choices=["frontier", "open", "local"])
-    i.add_argument("--tier", default="practitioner")
+    i.add_argument("--lane", default="frontier", choices=["frontier", "open", "local"],
+                    help="model lane to resolve: frontier (hosted) / open (open-weight) / local (on-device)")
+    i.add_argument("--tier", default="practitioner",
+                   help="maturity tier written to .council/config.toml (explorer/practitioner/governed/operator)")
     i.add_argument("--profile", default="standard", choices=["lite", "standard", "regulated"])
     i.add_argument("--dir")
     i.set_defaults(func=cmd_install)
@@ -364,12 +388,13 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("list", help="list installed councils").set_defaults(func=cmd_list)
 
     sh = sub.add_parser("show", help="show a council's resolved roster")
-    sh.add_argument("council")
-    sh.add_argument("--lane", default="frontier", choices=["frontier", "open", "local"])
+    sh.add_argument("council", help="council id (see `eldercouncil list`)")
+    sh.add_argument("--lane", default="frontier", choices=["frontier", "open", "local"],
+                    help="model lane to resolve: frontier (hosted) / open (open-weight) / local (on-device)")
     sh.set_defaults(func=cmd_show)
 
     cv = sub.add_parser("convene", help="run (--demo/--orchestrate) or preview a council")
-    cv.add_argument("council")
+    cv.add_argument("council", help="council id (see `eldercouncil list`)")
     cv.add_argument("--question", help="the decision under review (or pipe on stdin)")
     cv.add_argument("--demo", action="store_true", help="deterministic sample votes (keyless, CI-safe)")
     cv.add_argument("--scenario", default="default", choices=["default", "monoculture"],
@@ -377,17 +402,18 @@ def build_parser() -> argparse.ArgumentParser:
     cv.add_argument("--orchestrate", action="store_true", help="run with your own models ([orchestrator] extra)")
     cv.add_argument("--profile", default="standard", choices=["lite", "standard", "regulated"],
                     help="control-gate profile (default: standard)")
-    cv.add_argument("--lane", default="frontier", choices=["frontier", "open", "local"])
+    cv.add_argument("--lane", default="frontier", choices=["frontier", "open", "local"],
+                    help="model lane to resolve: frontier (hosted) / open (open-weight) / local (on-device)")
     cv.add_argument("--json", action="store_true", help="emit the decision record as JSON")
     cv.add_argument("--no-audit", action="store_true", help="do not write an audit record")
     cv.set_defaults(func=cmd_convene)
 
     g = sub.add_parser("gate", help="pre-tool gate (hook target; reads stdin)")
-    g.add_argument("ide", choices=["claude-code", "opencode", "kiro"])
+    g.add_argument("ide", choices=["claude-code", "opencode", "kiro"], help="the hard-block IDE whose pre-tool payload is on stdin")
     g.set_defaults(func=cmd_gate)
 
     a = sub.add_parser("audit", help="post-tool audit (hook target; reads stdin)")
-    a.add_argument("ide", choices=["claude-code", "opencode", "kiro"])
+    a.add_argument("ide", choices=["claude-code", "opencode", "kiro"], help="the hard-block IDE whose post-tool payload is on stdin")
     a.set_defaults(func=cmd_audit)
 
     rg = sub.add_parser("risk-gate", help="score + route an action (1-25)")
@@ -412,7 +438,8 @@ def build_parser() -> argparse.ArgumentParser:
                                 "pin real models in council-models.json); exit 1 = registry error.")
     mr = msub.add_parser("resolve", help="resolve a role key to a model")
     mr.add_argument("role_key")
-    mr.add_argument("--lane", default="frontier", choices=["frontier", "open", "local"])
+    mr.add_argument("--lane", default="frontier", choices=["frontier", "open", "local"],
+                    help="model lane to resolve: frontier (hosted) / open (open-weight) / local (on-device)")
     m.set_defaults(func=cmd_models)
 
     vf = sub.add_parser("verify", help="verify the audit hash-chain")

@@ -101,3 +101,12 @@ def test_clean_council_decision_disposition_is_council_routed():
     # gates pass on a benign description; disposition follows the council route (human, on the block)
     assert rec["gate_report"]["result"] == "allow"
     assert rec["disposition"] in ("human", "auto", "blocked by gate")
+
+
+def test_cli_gate_fails_closed_on_malformed_json():
+    # A fail-closed control gate must NOT evaluate malformed JSON as an empty (=allowed)
+    # action — that would be a confident ALLOW on bad input, the worst failure mode.
+    from eldercouncil import cli
+    assert cli.main(["gates", "check", "{action: not valid json"]) == 2  # malformed -> blocked
+    assert cli.main(["risk-gate", "{not json either"]) == 2              # same guard on risk-gate
+    assert cli.main(["gates", "check", '{"action": "read a file"}']) == 0  # valid benign still proceeds

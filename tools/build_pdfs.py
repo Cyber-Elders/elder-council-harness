@@ -77,7 +77,9 @@ def quickstart(ss):
     s += [Paragraph("Elder Council — Quickstart", ss["ECTitle"])]
     s += [Paragraph("Convene the council. Keep the dissent. Own the decision.", ss["ECTag"])]
     for h, b in [
-        ("1. Install", "pip install eldercouncil &nbsp; (ships no keys — bring your own LLM)"),
+        ("1. Install (alpha — not yet on PyPI)",
+         "git clone https://github.com/Cyber-Elders/elder-council-harness &amp;&amp; cd elder-council-harness "
+         "&amp;&amp; pip install -e . &nbsp; (ships no keys — bring your own LLM)"),
         ("2. See a council decide (keyless)",
          "eldercouncil convene code-council --demo --question \"merge a diff with a hardcoded AWS key\""),
         ("3. Wire it into your agent",

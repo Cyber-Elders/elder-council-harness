@@ -1,6 +1,6 @@
 {
   "council": "business-decision",
   "question": "Acquire a competitor for $40M to enter a new market — fast, but it bets most of our cash runway on best-case synergies.",
-  "expect": { "route": "human", "verdicts": ["defer", "proceed-with-guardrails", "reject", "escalate", "proceed"], "dissent": true },
+  "expect": { "route": "human", "verdicts": ["defer", "proceed-with-guardrails", "reject"], "dissent": true },
   "note": "A bet-the-balance-sheet exec call where the lenses split must NOT be auto-decided — it routes to the accountable executive with the dissent (finance + critic) preserved."
 }

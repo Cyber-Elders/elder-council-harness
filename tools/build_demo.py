@@ -33,13 +33,15 @@ _VOTES = [
 _HEAD = [
     ("$ eldercouncil convene code-council --demo", FG),
     ("", FG),
-    ("  code-council  —  action-gate", CYAN),
+    ("  code-council  —  action-gate · can block automatically", CYAN),
 ]
 _VERDICT = [
     ("", FG),
-    ("  VERDICT: block   → route: human", RED),
+    ("  COUNCIL VERDICT: block   → route: human", RED),
     ("  a lens rated this CRITICAL (Deterministic Tool Lens)", FG),
     ("  dissent preserved: 3 lens(es) disagreed", DIM),
+    ("  GATES (standard): allow  — no safety gate tripped", GREEN),
+    ("  DISPOSITION: human (the final call — a person decides)", FG),
     ("  decision EC-9c65a3c2cd4f", DIM),
 ]
 LINES = _HEAD + _VOTES + _VERDICT
@@ -59,7 +61,7 @@ def _font(size):
 
 
 def _render(lines):
-    w, h, pad, lh = 820, 372, 18, 24
+    w, h, pad, lh = 820, 420, 18, 24
     img = Image.new("RGB", (w, h), BG)
     d = ImageDraw.Draw(img)
     f = _font(15)

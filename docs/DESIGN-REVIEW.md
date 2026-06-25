@@ -27,8 +27,9 @@ A standing critique pass over the public face of the repo (README = landing page
 ## Usability & onboarding
 
 - 🟢 `START-HERE.md` routes by persona; row one is a time-boxed "see a council decide in 5 minutes".
-- 🟢 One-job-per-doc: METHODOLOGY is the reference, CONCEPT is the on-ramp; the routing table lives in
-  METHODOLOGY only (doc-as-test enforces it).
+- 🟢 One-job-per-doc: METHODOLOGY is the reference, CONCEPT is the on-ramp. METHODOLOGY carries the
+  canonical routing table (a doc-as-test asserts it is present there); CONCEPT, LOOP-ENGINEERING, and
+  the README carry an abbreviated copy for context.
 - 🟢 GLOSSARY carries the two predictable confusions (lenses ≠ councils; council-mode ≠ risk-routing).
 
 ## Product UI (the CLI)

@@ -62,7 +62,7 @@ def _drive(mode: str, ide: str, spec: dict, project: Path) -> None:
 
 def run(scenario: str, ide: str, mode: str) -> int:
     sys.path.insert(0, str(HERE))
-    from assertions import check  # local import after path setup
+    from assertions import check, verify_wiring  # local import after path setup
 
     RESULTS.mkdir(parents=True, exist_ok=True)
     specs = _load_scenarios(scenario)
@@ -75,6 +75,9 @@ def run(scenario: str, ide: str, mode: str) -> int:
             inst = _cli(["install", ide, "--council", spec["council"], "--dir", str(project)], project, {})
             if inst.returncode != 0:
                 print(f"✗ {spec['council']}: install failed\n{inst.stdout}\n{inst.stderr}"); failures += 1; continue
+            wired, wdetail = verify_wiring(ide, project, spec["council"])
+            if not wired:
+                print(f"✗ {spec['council']:24} install wiring invalid — {wdetail}"); failures += 1; continue
             _drive(mode, ide, spec, project)
             ok, detail = check(spec, project / ".council")
             (RESULTS / f"{spec['council']}.json").write_text(
