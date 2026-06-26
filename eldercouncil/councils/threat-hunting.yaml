@@ -1,0 +1,54 @@
+id: threat-hunting
+name: Threat Hunting Council
+purpose: >
+  Investigate suspicious behaviour, uncertain signals, attacker patterns, and
+  possible compromise in a live or monitored environment.
+description: >
+  The defender must model the attacker. This council pairs detection, platform,
+  and red-team lenses with an incident-response owner so a faint signal is
+  neither dismissed nor over-reacted to. It is advisory: it produces a
+  confidence-rated finding and a recommended action; a human incident-response
+  owner decides and acts. Containment in a live incident is a human call.
+mode: advisory
+
+roles:
+  - name: Threat Hunter / Security SME
+    lens: >
+      Interpret indicators, tactics, techniques, and behavioural patterns. Is
+      this consistent with a known or novel attack?
+    role_key: security_sme
+  - name: Detection Engineer
+    lens: >
+      Test whether existing logs, rules, and telemetry actually support the
+      finding. What evidence is present, and what is missing?
+    role_key: detection_engineer
+  - name: Platform / Infrastructure SME
+    lens: >
+      Explain what is normal versus abnormal in the actual environment. Could a
+      benign cause explain this?
+    role_key: engineering_sme
+  - name: Adversarial / Red-Team
+    lens: >
+      Reason as the attacker: how would they evade, persist, or pivot from here?
+    role_key: adversary_redteam
+  - name: Incident Response Owner
+    lens: >
+      Weigh containment, escalation, evidence preservation, and operational
+      impact, and propose the next step for the human IR owner to approve.
+    role_key: ir_owner
+    arbitrator: true
+
+decision_outcomes: [observe, contain, escalate]
+
+fail_closed: >
+  If the council cannot distinguish a benign anomaly from a plausible compromise
+  and the impact is high, escalate to human incident-response leadership rather
+  than dismissing the signal.
+
+triggers:
+  - condition: "SIEM alert HIGH or CRITICAL | lateral-movement indicators | suspicious privileged login"
+    min_risk_score: 10
+
+output:
+  path: ".council/decisions/threat-hunting-{ts}.json"
+  format: json

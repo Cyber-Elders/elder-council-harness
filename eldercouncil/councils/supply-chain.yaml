@@ -1,0 +1,53 @@
+id: supply-chain
+name: Supply Chain Audit Council
+purpose: >
+  Review third-party software, open-source packages, vendors, integrations,
+  build pipelines, and dependency risk.
+description: >
+  Deterministic scanners answer the known-CVE question; this council reasons
+  about the unknown space — novel malicious packages, suspicious maintainer
+  changes, typosquatting, abandoned dependencies, and high-privilege
+  integrations. An action-gate council on dependency approval and vendor
+  onboarding.
+mode: action-gate
+
+roles:
+  - name: Software Engineering SME
+    lens: >
+      Review dependency use, build impact, maintainability, and integration
+      path. Is this the right dependency, used the right way?
+    role_key: engineering_sme
+  - name: AppSec / Supply Chain SME
+    lens: >
+      Check package reputation, known vulnerabilities, maintainer risk, signing,
+      and provenance. Reason about what an adversary would compromise to maximise
+      blast radius.
+    role_key: security_sme
+  - name: Procurement / Vendor-Risk SME
+    lens: >
+      Review supplier posture, contractual risk, criticality, and alternatives.
+      What is our exposure if this vendor or package fails or turns hostile?
+    role_key: strategic_risk_owner
+  - name: Operations SME
+    lens: >
+      Evaluate deployment, rollback, monitoring, and continuity implications.
+    role_key: pragmatic_ops
+  - name: Critic / Challenge
+    lens: >
+      Look for hidden transitive dependencies, abandoned packages, typosquatting,
+      and weak evidence. What are we trusting without checking?
+    role_key: critic_challenge
+
+decision_outcomes: [approve, approve-with-controls, defer, reject, escalate]
+
+fail_closed: >
+  Unknown provenance, suspicious maintainership, unexplained build changes, or a
+  high-privilege integration block approval until reviewed by a human.
+
+triggers:
+  - condition: "new or changed dependency | vendor onboarding | new build-pipeline integration"
+    min_risk_score: 10
+
+output:
+  path: ".council/decisions/supply-chain-{ts}.json"
+  format: json

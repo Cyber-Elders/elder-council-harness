@@ -1,0 +1,6 @@
+{
+  "council": "platform-architecture",
+  "question": "Adopt a proprietary vendor SDK at the core of our platform. It is fast to ship but creates deep, hard-to-reverse lock-in.",
+  "expect": { "route": "human", "verdicts": ["recommend-with-guardrails", "defer"], "dissent": true },
+  "note": "Long-lived exposure / irreversible lock-in is deferred to the accountable owner; output is a versioned decision record."
+}

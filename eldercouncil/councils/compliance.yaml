@@ -1,0 +1,56 @@
+id: compliance
+name: Multi-Jurisdictional Compliance Council
+purpose: >
+  Analyse decisions affected by multiple regulatory regimes, data-residency
+  rules, privacy obligations, sector requirements, or contractual commitments.
+description: >
+  Cross-jurisdictional questions break a single model: it must hold conflicting
+  frameworks at once and find the binding constraint. This advisory council
+  separates the live-regulation, interpretation, technical-controls, and
+  business-impact lenses. It is decision SUPPORT, not legal advice — every named
+  regulation below is illustrative; configure for your jurisdiction and have
+  qualified counsel verify current obligations before relying on any output.
+mode: advisory
+schedule: "0 9 1 */3 *"   # optional: quarterly scheduled drift audit (Kiro)
+
+roles:
+  - name: Compliance / Privacy SME
+    lens: >
+      Identify applicable obligations and evidence requirements for the data and
+      processes in scope. Illustrative frameworks only (e.g. POPIA, GDPR, NIS2,
+      DORA, ISO/IEC 27001) — not legal advice; flag what a human must verify.
+    role_key: compliance_legal_sme
+    arbitrator: true
+  - name: Legal SME
+    lens: >
+      Review interpretation risk, notification duties, contractual constraints,
+      and privilege. Where is the legal reading genuinely uncertain?
+    role_key: compliance_legal_sme
+  - name: Data Architecture SME
+    lens: >
+      Map data flows, residency, transfers, retention, and access paths against
+      the obligations in scope.
+    role_key: engineering_sme
+  - name: Security SME
+    lens: >
+      Review safeguards, breach implications, and control effectiveness.
+    role_key: security_sme
+  - name: Business Owner
+    lens: >
+      Balance operational need, customer impact, and accountable decision-making.
+    role_key: strategic_risk_owner
+
+decision_outcomes: [proceed-with-controls, defer, block, escalate-to-counsel]
+
+fail_closed: >
+  If legal interpretation and technical reality conflict, do not average the
+  conflict away — surface it and escalate to the accountable human owner or
+  counsel. This council does not provide legal, regulatory, or compliance advice.
+
+triggers:
+  - condition: "cross-jurisdiction data move | residency/transfer decision | new regulated data flow"
+    min_risk_score: 5
+
+output:
+  path: ".council/decisions/compliance-{ts}.json"
+  format: json

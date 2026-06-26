@@ -1,0 +1,55 @@
+id: platform-architecture
+name: Platform Architecture Council
+purpose: >
+  Review architecture decisions that shape security, resilience, scalability,
+  data flow, integration, and the long-term operating model.
+description: >
+  Architecture decisions are among the most expensive to reverse. This advisory
+  council produces a structured, versioned decision record (MADR format) with
+  the security and resilience trade-offs and the council's deliberation as the
+  provenance trace. Decisions that create long-lived exposure or lock-in are
+  deferred to the accountable human owner.
+mode: advisory
+
+roles:
+  - name: Platform Architecture SME
+    lens: >
+      Review architecture coherence, dependency structure, scalability, and
+      maintainability.
+    role_key: engineering_sme
+    arbitrator: true
+  - name: Security Architecture SME
+    lens: >
+      Review identity, segmentation, secrets, encryption, logging, and threat
+      exposure of the proposed design.
+    role_key: security_sme
+  - name: Operations / SRE SME
+    lens: >
+      Review reliability, observability, deployment, incident response, and the
+      ongoing support burden.
+    role_key: pragmatic_ops
+  - name: Data / Compliance SME
+    lens: >
+      Review data classification, residency, retention, and governance
+      implications. Illustrative only — not legal advice.
+    role_key: compliance_legal_sme
+  - name: Pragmatic Implementation
+    lens: >
+      Test whether the design can be delivered safely with the available skills,
+      time, and constraints.
+    role_key: pragmatic_ops
+
+decision_outcomes: [recommend, recommend-with-guardrails, defer]
+
+fail_closed: >
+  Architecture decisions that create long-lived exposure, irreversible lock-in,
+  or unclear ownership are deferred until the accountable owner accepts the
+  trade-off.
+
+triggers:
+  - condition: "architecture-class decision | new platform/integration | identity or data-flow redesign"
+    min_risk_score: 5
+
+output:
+  path: ".adr/{id}-{ts}.md"
+  format: madr

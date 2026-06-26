@@ -1,0 +1,42 @@
+{
+  "name": "code-council",
+  "description": "Code Council \u2014 Review code changes where security, reliability, privacy, authentication, authorisation, data flow, or production stabil",
+  "parallel_agents": [
+    {
+      "role": "software-engineering-sme",
+      "model": "claude-sonnet-4-6",
+      "lens": "Review correctness, maintainability, testability, and architecture fit. Would you be comfortable owning this code in production?"
+    },
+    {
+      "role": "appsec-sme",
+      "model": "claude-opus-4-8",
+      "lens": "Review vulnerability classes, authentication/authorisation logic, secrets handling, injection, and abuse cases. Rate severity CRITICAL/HIGH/MEDIUM/LOW."
+    },
+    {
+      "role": "reliability-operations-sme",
+      "model": "claude-haiku-4-5",
+      "lens": "Review deployment risk, rollback, observability, and failure modes. What happens at 2am when this breaks?"
+    },
+    {
+      "role": "deterministic-tool-lens",
+      "model": "inherit",
+      "lens": "Run SAST, dependency checks, secret scanning, and tests. Report findings as evidence \u2014 this lens does not reason, it measures."
+    },
+    {
+      "role": "critic-challenge",
+      "model": "claude-opus-4-8",
+      "lens": "Look for edge cases, implicit trust, unsafe defaults, and missed data paths. What is being assumed that may be false?"
+    }
+  ],
+  "decision_outcomes": [
+    "merge",
+    "request-changes",
+    "block",
+    "escalate"
+  ],
+  "fail_closed": "Critical authentication, authorisation, cryptography, payment, privacy, or production-control changes require explicit human approval, not silent model confidence. Any CRITICAL finding blocks the merge pending human security review.",
+  "hooks": {
+    "pre_action": "eldercouncil gate kiro",
+    "post_decision": "eldercouncil audit kiro"
+  }
+}

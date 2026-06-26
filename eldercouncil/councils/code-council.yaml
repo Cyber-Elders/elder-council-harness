@@ -1,0 +1,54 @@
+id: code-council
+name: Code Council
+purpose: >
+  Review code changes where security, reliability, privacy, authentication,
+  authorisation, data flow, or production stability may be affected.
+description: >
+  An action-gate council convened before a change reaches production. It pairs
+  deterministic tooling (SAST, dependency and secret scanning, tests) with
+  independent engineering, security, reliability, and adversarial lenses so a
+  novel or multi-file weakness is not waved through on one model's confidence.
+mode: action-gate
+
+roles:
+  - name: Software Engineering SME
+    lens: >
+      Review correctness, maintainability, testability, and architecture fit.
+      Would you be comfortable owning this code in production?
+    role_key: engineering_sme
+  - name: AppSec SME
+    lens: >
+      Review vulnerability classes, authentication/authorisation logic, secrets
+      handling, injection, and abuse cases. Rate severity CRITICAL/HIGH/MEDIUM/LOW.
+    role_key: security_sme
+  - name: Reliability / Operations SME
+    lens: >
+      Review deployment risk, rollback, observability, and failure modes. What
+      happens at 2am when this breaks?
+    role_key: pragmatic_ops
+  - name: Deterministic Tool Lens
+    lens: >
+      Run SAST, dependency checks, secret scanning, and tests. Report findings
+      as evidence — this lens does not reason, it measures.
+    role_key: deterministic_tool
+    is_tool: true
+  - name: Critic / Challenge
+    lens: >
+      Look for edge cases, implicit trust, unsafe defaults, and missed data
+      paths. What is being assumed that may be false?
+    role_key: critic_challenge
+
+decision_outcomes: [merge, request-changes, block, escalate]
+
+fail_closed: >
+  Critical authentication, authorisation, cryptography, payment, privacy, or
+  production-control changes require explicit human approval, not silent model
+  confidence. Any CRITICAL finding blocks the merge pending human security review.
+
+triggers:
+  - condition: "git push | npm publish | docker push | kubectl apply | deploy | release"
+    min_risk_score: 10
+
+output:
+  path: ".council/decisions/code-council-{ts}.json"
+  format: json

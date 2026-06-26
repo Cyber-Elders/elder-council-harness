@@ -1,0 +1,6 @@
+{
+  "council": "compliance",
+  "question": "We want to move customer personal data from our EU region to a US region to simplify the stack. Is this OK?",
+  "expect": { "route": "human", "verdicts": ["escalate-to-counsel", "block", "defer"], "dissent": true },
+  "note": "A cross-jurisdiction residency conflict must be surfaced and escalated to a human owner / counsel — illustrative, not legal advice."
+}

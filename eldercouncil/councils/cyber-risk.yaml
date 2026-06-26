@@ -1,0 +1,52 @@
+id: cyber-risk
+name: Cyber Risk Council
+purpose: >
+  Evaluate cyber risks that affect business priorities, investment decisions,
+  control gaps, risk acceptance, insurance, board reporting, or remediation
+  sequencing.
+description: >
+  An advisory council that produces a risk statement, an impact x likelihood
+  rating, the control gaps, and a treatment recommendation. The decision to
+  ACCEPT a material risk is never made by the council — it routes to a named
+  human, supported by the council's analysis.
+mode: advisory
+
+roles:
+  - name: Risk Owner
+    lens: >
+      Define business impact, risk appetite, and accountable acceptance. Frame
+      the recommendation for the human who will own the decision.
+    role_key: strategic_risk_owner
+    arbitrator: true
+  - name: Security SME
+    lens: >
+      Assess threat, vulnerability, control strength, and likelihood.
+    role_key: security_sme
+  - name: Infrastructure / Application SME
+    lens: >
+      Explain exposure, dependencies, and technical remediation options.
+    role_key: engineering_sme
+  - name: Finance / Business SME
+    lens: >
+      Evaluate cost, priority, budget, and operational trade-offs of each
+      treatment option.
+    role_key: strategic_risk_owner
+  - name: Critic / Audit
+    lens: >
+      Challenge assumptions, scoring inflation, missing evidence, and control
+      optimism. Are we under-rating this to make it go away?
+    role_key: critic_challenge
+
+decision_outcomes: [mitigate, transfer, avoid, monitor, accept]
+
+fail_closed: >
+  No material risk is accepted by an AI system alone. Risk acceptance is always a
+  human accountability decision supported by the council's analysis.
+
+triggers:
+  - condition: "risk acceptance | unresolved critical vulnerability | control-gap or remediation-sequencing decision"
+    min_risk_score: 10
+
+output:
+  path: ".council/decisions/cyber-risk-{ts}.json"
+  format: json

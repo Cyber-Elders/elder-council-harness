@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Agentic UAT
+
+# FULL agentic UAT: drive each council end-to-end and assert the agentic loop
+# actually fires — gate -> convene -> consensus -> audit. Runs on dispatch and
+# nightly (agentic regression: catches a broken IDE adapter or a changed
+# pre-tool contract that clean-install UAT cannot see).
+#
+# Two driver modes (uat/agentic/drivers/):
+#   * real  — a headless coding agent (Claude Code / OpenCode) drives the
+#             scenario, using a CI-scoped LLM secret (UAT_LLM_API_KEY) or a local
+#             Ollama. Used ONLY here — the shipped package still ships no keys.
+#   * mock  — keyless, CI-safe: exercises the real install -> convene -> audit ->
+#             assert loop with deterministic sample votes. The default so the
+#             workflow is green without secrets.
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: "council scenario (or 'all')"
+        type: choice
+        default: all
+        options: [all, code-council, threat-hunting, supply-chain, compliance, cyber-risk, platform-architecture, business-decision]
+      ide:
+        description: "agent to install"
+        type: choice
+        default: claude-code
+        options: [claude-code, opencode]
+  schedule:
+    - cron: "0 7 * * *"   # nightly agentic regression
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  agentic-uat:
+    name: "Agentic UAT (${{ matrix.os }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]   # add macos-latest / windows-latest on demand (10x / 2x billing)
+    env:
+      # untrusted dispatch inputs are routed through env (never interpolated into run:)
+      SCENARIO: ${{ github.event.inputs.scenario || 'all' }}
+      IDE: ${{ github.event.inputs.ide || 'claude-code' }}
+      # mode is 'real' only when a CI-scoped key is present; else keyless mock
+      UAT_LLM_API_KEY: ${{ secrets.UAT_LLM_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # The agentic UAT runs uat/agentic/run.py against the source tree; install editable
+      # WITH the mcp extra so the advisory-MCP adapter path is exercised (mirrors ci.yml).
+      - run: pip install -e ".[mcp]"
+      - name: Run agentic scenarios
+        run: |
+          MODE=mock
+          if [ -n "${UAT_LLM_API_KEY:-}" ]; then MODE=real; fi
+          echo "scenario=$SCENARIO ide=$IDE mode=$MODE"
+          python uat/agentic/run.py --scenario "$SCENARIO" --ide "$IDE" --mode "$MODE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agentic-uat-${{ matrix.os }}
+          path: uat/agentic/_results/**
+          if-no-files-found: ignore
+          retention-days: 7

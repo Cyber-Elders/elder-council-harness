@@ -1,0 +1,117 @@
+# Elder Council — deterministic control gates (policy-as-code).
+#
+# These 11 gates are a fail-closed control layer that runs AROUND the council:
+# a gate can BLOCK or ESCALATE an action even when the council voted to proceed.
+# They are deterministic policy over SIGNALS — some signals the harness computes
+# itself (computed_by: harness), the rest are asserted by the host agent / tools
+# / lenses (computed_by: asserted). Honest scope: the harness applies the policy;
+# it does not magically detect everything. Unknown is never "allow".
+#
+# Per gate:
+#   fail_closed_if          — conditions that, if true, TRIP the gate
+#   blocks                  — tripped gate BLOCKS (else it ESCALATEs to a human)
+#   hard_stop               — non-overridable block (offensive-cyber misuse only)
+#   escalation              — the human tier a tripped gate routes to
+#   require_on_high_impact  — signals that MUST be truthy on a high-impact action,
+#                             else the gate escalates (fail-closed-on-unknown)
+#   computed_by             — harness | asserted | hybrid
+
+policy_version: "0.1"
+default_behavior: "fail_closed"   # unknown -> block (high blast radius) / escalate (low)
+
+# offensive_misuse is a hard stop in EVERY profile, regardless of the list below.
+always_on: [offensive_misuse]
+
+profiles:
+  lite:
+    description: "Maturity 1-2. The four foundational gates + the always-on hard stop."
+    required_gates: [evidence, confidence_calibration, action_safety, tool_permission]
+  standard:
+    description: "Maturity 3-4. All eleven gates."
+    required_gates: [evidence, confidence_calibration, action_safety, data_sensitivity,
+                     tool_permission, legal_compliance, offensive_misuse, context_integrity,
+                     model_disagreement, cost_latency, production_change]
+  regulated:
+    description: "Maturity 4-5 / regulated sectors. All gates + operational controls."
+    inherits: standard
+    additional_controls: [immutable_logs, signed_runbooks, authenticated_approval_api,
+                          circuit_breakers, sandboxed_execution, scoped_credentials]
+
+gates:
+  evidence:
+    purpose: "Prevent unsupported claims / hallucinated citations."
+    computed_by: asserted
+    fail_closed_if: [material_claim_without_source, source_conflict_unresolved, evidence_not_reproducible]
+    require_on_high_impact: [evidence_provided]
+    blocks: false
+    escalation: analyst_review
+  confidence_calibration:
+    purpose: "Prevent overconfident decisions."
+    computed_by: asserted
+    fail_closed_if: [low_confidence_high_impact, uncalibrated_model_output, reasoning_quality_below_threshold]
+    require_on_high_impact: [confidence_ok]
+    blocks: false
+    escalation: senior_cyber_elder
+  action_safety:
+    purpose: "Control irreversible, high-blast-radius, destructive actions."
+    computed_by: hybrid
+    fail_closed_if: [external_system_mutation_requested, high_impact_action_without_approval, irreversible_action]
+    require_on_high_impact: [human_approver, rollback_plan]
+    blocks: true
+    escalation: risk_owner
+  data_sensitivity:
+    purpose: "Protect sensitive / regulated / proprietary information."
+    computed_by: hybrid
+    fail_closed_if: [secret_or_credential_detected, personal_information_detected_without_basis, cross_border_transfer_unclear]
+    blocks: false
+    escalation: legal_compliance
+  tool_permission:
+    purpose: "Enforce least privilege for tool calls and credentials."
+    computed_by: hybrid
+    fail_closed_if: [tool_not_allowlisted, credential_scope_too_broad, requested_action_outside_role]
+    blocks: true
+    escalation: platform_owner
+  legal_compliance:
+    purpose: "Surface legal / jurisdictional / compliance uncertainty."
+    computed_by: asserted
+    fail_closed_if: [policy_uncertainty, regulatory_reporting_implication, contractual_restriction_unclear]
+    require_on_high_impact: [legal_cleared_if_regulated]
+    blocks: false
+    escalation: legal_compliance
+  offensive_misuse:
+    purpose: "Prevent exploitation / unauthorised access / step-by-step offensive instructions."
+    computed_by: hybrid
+    fail_closed_if: [payload_generation_requested, exploit_chain_requested, evasion_or_stealth_guidance_requested]
+    blocks: true
+    hard_stop: true   # non-overridable — no approver can clear content enabling unauthorised access
+    escalation: incident_response_lead
+  context_integrity:
+    purpose: "Defend against prompt injection, memory poisoning, context rot."
+    computed_by: hybrid
+    fail_closed_if: [prompt_injection_suspected, context_rot_suspected, memory_contamination_suspected]
+    blocks: false
+    escalation: senior_cyber_elder
+  model_disagreement:
+    purpose: "Treat material disagreement between independent lenses as an escalation signal."
+    computed_by: hybrid
+    fail_closed_if: [material_disagreement_on_high_impact_decision, critic_rejects_generator_output, verifier_cannot_reproduce_conclusion]
+    blocks: false
+    escalation: council_chair
+  cost_latency:
+    purpose: "Prevent runaway loops, token waste, SLA breaches."
+    computed_by: hybrid
+    fail_closed_if: [cost_exceeds_decision_value, latency_exceeds_operational_window, human_review_unavailable_for_required_gate]
+    blocks: false
+    escalation: service_owner
+  production_change:
+    purpose: "Protect live systems / CI-CD / external commitments from uncontrolled mutation."
+    computed_by: hybrid
+    fail_closed_if: [production_mutation_without_change_record, rollback_plan_missing, approval_missing]
+    require_on_high_impact: [change_ticket, rollback_plan, human_approver]
+    blocks: true
+    escalation: executive_risk_owner
+
+audit:
+  required_fields: [decision_id, timestamp, requester, council, profile, task_summary,
+                    data_classification, risk, gate_results, verdict, route, dissent,
+                    evidence_references, human_approver, approval_basis, final_disposition, prev, hash]
