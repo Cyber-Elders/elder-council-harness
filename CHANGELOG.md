@@ -48,6 +48,16 @@ Bring-your-own-LLM; ships no keys.
   every lens **inherit** your agent's own model — the basis of the local/Ollama recipe. Regression
   tests added.
 
+### Tests
+
+- **Full-journey coverage at both layers.** A coverage audit enumerated every supported user journey
+  and found many were exercised only at the engine/function layer. Closed the gap: `test_cli_journeys.py`
+  asserts each CLI subcommand's exit-code + output contract in-process (models list/resolve, every
+  convene run-mode incl. `--orchestrate` fail-closed and `--profile`, `gate`/`audit` per IDE, `gates`,
+  `risk-gate` routing, usage errors, `init` defaults, `serve`); and `uat.yml` (clean-install, 3 OS)
+  now runs **every** journey — install per IDE × lane, lane-aware `models check`, all run-modes, the
+  gate fail-closed guard, and `verify`. **141 tests**; UAT green on Ubuntu / macOS / Windows.
+
 ### Docs & UX
 
 - **New [GET-STARTED](docs/GET-STARTED.md)** — a task-oriented, non-developer walkthrough: install →

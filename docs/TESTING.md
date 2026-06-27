@@ -7,7 +7,7 @@ the network. Three tiers.
 
 ## Tier 1 — Deterministic regression (every PR, in-repo, keyless)
 
-`pytest tests/` — **126 tests across the files below**, all keyless. Runs on Ubuntu ×
+`pytest tests/` — **141 tests across the files below**, all keyless. Runs on Ubuntu ×
 Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 
 | File | Covers |
@@ -22,15 +22,18 @@ Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 | `test_install.py` | per-IDE × per-council render, idempotency, re-pin changes only the model line, fail-safes |
 | `test_engine.py` | mocked-vote fan-out → tally → audit; same votes+council → identical record |
 | `test_journeys.py` | real `python -m eldercouncil.cli` journeys + the **cp1252 Windows-console** regression |
+| `test_cli_journeys.py` | every CLI subcommand's exit-code + output contract — `models list/resolve`, all convene run-modes (default task-pack, `--json`, `--orchestrate` fail-closed, `--profile`), `gate`/`audit` per IDE, `gates list`, `risk-gate` routing, usage errors, `init` defaults, `serve` |
 | `test_docs.py` | doc-as-test + the internal-leak guard + the no-fabricated-model-tags guard |
 | `test_server.py` | the advisory MCP tool surface (skipped without `[mcp]`) |
 | `test_known_bypasses.py` | the documented residual limits, pinned so they stay honest |
 
 ## Tier 2 — Clean-install UAT (dispatch, per OS, keyless)
 
-`.github/workflows/uat.yml`: build the wheel → install it into a **fresh venv** (not editable) → run a
-real `eldercouncil` CLI journey on Ubuntu / macOS / Windows (version → list → show → install → convene
-`--demo` → verify). This catches packaging, entry-point, and encoding bugs the editable-install
+`.github/workflows/uat.yml`: build the wheel → install it into a **fresh venv** (not editable) → run
+**every supported journey** on Ubuntu / macOS / Windows — install per IDE × lane (incl. `--lane local`
+→ inherit), lane-aware `models check`, all convene run-modes (`--demo`, monoculture, default task-pack,
+`--json`, `--orchestrate`, all 7 councils), `gate`/`audit`/`gates`/`risk-gate` (incl. the fail-closed
+guard), and `verify`. This catches packaging, entry-point, and encoding bugs the editable-install
 regression cannot see.
 
 ## Tier 3 — Full agentic UAT + agentic regression (dispatch + nightly)
