@@ -39,6 +39,31 @@ Bring-your-own-LLM; ships no keys.
   agentic regression). CI honesty + leak + secret + determinism gates.
 - Full docs suite, dual licensing (Apache-2.0 + CC BY 4.0), and governance.
 
+### Fixed
+
+- **`--lane local` / `--lane open` now actually select the lane.** Every role defaulted to
+  `variant: "frontier"`, which silently overrode the install/convene `--lane` flag — so the local and
+  open model lanes were unreachable. `Role.variant` now defaults to `None` (follow `--lane`); a role
+  may still pin its own lane explicitly. `eldercouncil install <ide> --all --lane local` now makes
+  every lens **inherit** your agent's own model — the basis of the local/Ollama recipe. Regression
+  tests added.
+
+### Docs & UX
+
+- **New [GET-STARTED](docs/GET-STARTED.md)** — a task-oriented, non-developer walkthrough: install →
+  what changed → how you actually *use* a council (the gate asks → run `/<council>` → read the verdict
+  and preserved dissent → you decide). Linked as the front door from the README and START-HERE.
+- **New [CLAUDE-CODE-OLLAMA](docs/CLAUDE-CODE-OLLAMA.md)** — a copy-paste recipe to run every council
+  on your own local models (Claude Code + Ollama, fully offline), grounded in Ollama's own docs.
+- **[MODEL-GUIDANCE](docs/MODEL-GUIDANCE.md)** gains runnable recipes (all-local cross-family on
+  OpenCode; hybrid local + Ollama Cloud) and a "three ways to run a council" table that defines
+  `--demo`, the in-agent default, and `--orchestrate`.
+- **`eldercouncil models check` is lane-aware** — a local-lane (BYO/on-device) project now reads as a
+  healthy "every lens inherits your model" setup instead of "✗ unpinned"; the monoculture warning
+  names the configured lane.
+- **`install` prints per-agent next steps** — hard-block vs advisory guidance, the local-models pointer,
+  and a link to GET-STARTED. START-HERE's "For non-developers" path no longer dead-ends.
+
 ### Honesty
 
 Councils are decision support, not a guarantee — they can be wrong; a named human owns every critical

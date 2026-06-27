@@ -13,12 +13,14 @@ high-stakes call, including executive business decisions. It stays out of the wa
 | **risk / compliance owner** | [METHODOLOGY](docs/METHODOLOGY.md) (routing + governance) → [Compliance](docs/COUNCILS.md#4-multi-jurisdictional-compliance-council--compliance--advisory--scheduled) / [Cyber Risk](docs/COUNCILS.md#5-cyber-risk-council--cyber-risk--advisory) | 30 min |
 | **security owner / skeptic** | [THREAT_MODEL](THREAT_MODEL.md) → [STANDARDS-MAP](docs/STANDARDS-MAP.md) | 20 min |
 | **executive / leadership (a high-stakes business call)** | try `eldercouncil convene business-decision --demo` → [Business Decision council](docs/COUNCILS.md#7-business-decision-council--business-decision--advisory) | 10 min |
-| **non-technical** | [For non-developers](#for-non-developers) — ask your coding agent to set it up | 10 min |
+| **new here / not a developer** | [**GET-STARTED**](docs/GET-STARTED.md) — install → what changed → how you actually use a council, in plain English | 10 min |
 
-## The 5-minute path
+## The 5-minute path — see it decide first
+
+The fastest taste needs **no keys and no model** — a one-time install from source (alpha; not yet on
+PyPI), then the keyless demo:
 
 ```console
-# Not yet on PyPI (alpha) — install from source for now:
 git clone https://github.com/Cyber-Elders/elder-council-harness && cd elder-council-harness
 pip install -e .
 eldercouncil convene code-council --demo --question "merge a diff with a hardcoded AWS key"
@@ -34,18 +36,30 @@ eldercouncil install claude-code --all  # or non-interactive
 
 ## For non-developers
 
-Elder Council is a developer tool — it runs in a terminal and plugs into a **coding agent**. It runs
-deepest for cyber and code, but the same machinery handles any high-stakes call — which is why the
-example below convenes the Business Decision council, not a code review. To use it you need two things
-first: a coding agent already set up (e.g. Claude Code, Cursor, Copilot), and Python 3.11+ available to it. If you have those, you don't have to touch the terminal yourself — paste
-this to your coding agent:
+You don't need to be a developer to *use* the councils day-to-day — the one-time install uses a
+terminal, but after that you just talk to your coding agent. Elder Council plugs into a **coding agent**;
+it runs deepest for cyber and code, but the same machinery handles any high-stakes call (which is why
+the example below convenes the Business Decision council, not a code review). The plain-English
+walkthrough is **[docs/GET-STARTED.md](docs/GET-STARTED.md)** — start there.
+
+You need two things first: a **coding agent** already set up (e.g. Claude Code, Cursor, or GitHub
+Copilot) and **Python 3.11+**. If you have them, you don't have to touch the terminal yourself — paste
+this to your coding agent (replace `claude-code` with whichever you use — `cursor`, `opencode`,
+`copilot`):
 
 > *"Check that Python 3.11+ is installed, then install Elder Council from source
-> (github.com/Cyber-Elders/elder-council-harness), run `eldercouncil install <my agent>`, and show me
+> (github.com/Cyber-Elders/elder-council-harness), run `eldercouncil install claude-code`, and show me
 > the output of `eldercouncil convene business-decision --demo`."*
 
-If you don't have a coding agent at all, this tool isn't usable for you yet — ask a colleague to show
-you the `convene … --demo` output (it needs no keys and no setup beyond the install above).
+**Does your agent run on local models (e.g. Claude Code on Ollama)?** Tell it to add `--lane local` to
+that install, or it'll error — see [docs/CLAUDE-CODE-OLLAMA.md](docs/CLAUDE-CODE-OLLAMA.md). Then read
+[GET-STARTED.md](docs/GET-STARTED.md) → *"How you actually use it"* so you know how to convene a council
+(Business Decision is advisory — you convene it deliberately) and read its verdict.
+
+**No coding agent yet?** Get one first — e.g. **Claude Code** (claude.com/claude-code) or **Cursor**
+(cursor.com) — sign in, then come back to [GET-STARTED](docs/GET-STARTED.md). Either way, the keyless
+`eldercouncil convene business-decision --demo` works on its own if you just want to *see* a council
+decide right now.
 
 ## Reading order
 

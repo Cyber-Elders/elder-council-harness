@@ -130,6 +130,17 @@ def monoculture(reg: ModelRegistry, lane: str = "frontier") -> str | None:
     return next(iter(providers)) if len(providers) == 1 else None
 
 
+def inherits(reg: ModelRegistry, role_key: str, lane: str = "frontier") -> bool:
+    """True if this role falls back to inheriting the host model on `lane` — i.e. the
+    lane is unpinned (REPLACE_ME sentinel) or explicitly null/`inherit`. This is the
+    intended BYO/on-device state (e.g. `--lane local` → run every lens on your session
+    model), not necessarily a misconfiguration."""
+    try:
+        return resolve(reg, role_key, lane) == "inherit"
+    except RegistryError:
+        return True
+
+
 def fallback_chain(reg: ModelRegistry, role_key: str, lane: str = "frontier") -> list[str]:
     """Optional per-role `fallback` list (continuity: provider cut-off). Returns
     the real (non-sentinel) fallback tags, in order; empty if none configured."""

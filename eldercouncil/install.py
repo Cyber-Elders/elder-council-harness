@@ -414,13 +414,28 @@ def install(ide: str, councils: list[str] | None = None, target_dir: str | None 
     for line in changes:
         print(f"  {line}")
     print("\nLegend: + created · ~ modified · = unchanged")
-    unresolved = models.unresolved(reg)
-    if lane != "frontier" or any(r.variant != "frontier" for c in selected for r in c.roles):
-        print(f"Model lanes still unpinned (REPLACE_ME): {len(unresolved)} — run `eldercouncil models check`.")
+    n_unresolved = len(models.unresolved(reg))
+    off_frontier = all((r.variant or lane) != "frontier" for c in selected for r in c.roles)
+    if off_frontier and n_unresolved:
+        # e.g. --lane local: every lens inherits the host model — that's the BYO/on-device setup.
+        print("Models: every lens runs on your agent's own model (inherit) — nothing to pin "
+              "(`eldercouncil models check` to confirm).")
+    elif any((r.variant or lane) != "frontier" for c in selected for r in c.roles):
+        print(f"Model lanes still unpinned (REPLACE_ME): {n_unresolved} — run `eldercouncil models check`.")
+
+    # The teachable moment — what to actually DO next, depending on whether the IDE enforces.
+    council0 = selected[0].id if selected else "code-council"
     if ide in ("claude-code", "opencode", "kiro"):  # hard-block IDEs have a `gate <ide>` target
+        print(f"\nNext:  work in your agent as usual — on a risky action the gate ASKS you to convene.")
+        print(f"       Run  /{council0}  (or any council), read the verdict + dissent, then you decide.")
         print(f"Verify:  echo '{{\"action\":\"bash\",\"target\":\"git push --force\"}}' | eldercouncil gate {ide}")
-    else:  # cursor / copilot are advisory — no pre-tool gate; verify the advisory wiring instead
-        print("Verify:  eldercouncil convene code-council --demo   (advisory IDE — no pre-tool gate; the agent is asked to convene)")
+    else:  # cursor / copilot / mcp are advisory — no pre-tool gate
+        print(f"\nNext:  advisory — your agent is ASKED to convene on risky actions (it can decline, not forced).")
+        print(f"       Run one yourself anytime:  eldercouncil convene {council0}")
+        print("Verify:  eldercouncil convene code-council --demo   (advisory IDE — no pre-tool gate)")
+    if lane == "local":
+        print("       Local models: Claude Code + Ollama? see docs/CLAUDE-CODE-OLLAMA.md")
+    print("       New to councils? see docs/GET-STARTED.md")
     return 0
 
 

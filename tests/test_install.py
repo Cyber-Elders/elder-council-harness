@@ -97,6 +97,24 @@ def test_repin_changes_only_model_line(tmp_path):
     assert text.split("---", 2)[2] == body_before  # body unchanged
 
 
+def test_local_lane_makes_every_lens_inherit(tmp_path):
+    # --lane local must switch EVERY lens to the local lane → all REPLACE_ME → inherit,
+    # so a user on a local backend (e.g. Claude Code on Ollama) runs every lens on their
+    # own session model with no pinned Claude tag to 404 on. (Regression: role.variant
+    # used to default to "frontier" and silently override --lane.)
+    install.install("claude-code", councils=["code-council"], target_dir=str(tmp_path), lane="local")
+    bodies = [a.read_text(encoding="utf-8") for a in (tmp_path / ".claude" / "agents").glob("*.md")]
+    assert bodies and all("model: inherit" in b for b in bodies), "every lens should inherit on --lane local"
+    assert not any("model: claude-" in b for b in bodies), "no Claude tag may be pinned on the local lane"
+
+
+def test_frontier_lane_still_pins_claude(tmp_path):
+    # the DEFAULT (frontier) path is unchanged — real Claude tags still render.
+    install.install("claude-code", councils=["code-council"], target_dir=str(tmp_path))  # lane defaults to frontier
+    appsec = (tmp_path / ".claude" / "agents" / "code-council-appsec-sme.md").read_text(encoding="utf-8")
+    assert "model: claude-opus-4-8" in appsec
+
+
 def test_unknown_ide_and_council_fail(tmp_path):
     assert install.install("emacs", target_dir=str(tmp_path)) == 1
     assert install.install("claude-code", councils=["nope"], target_dir=str(tmp_path)) == 1

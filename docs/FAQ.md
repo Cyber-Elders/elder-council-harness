@@ -21,6 +21,14 @@ No. Elder Council **ships no keys and no model** — it is bring-your-own-LLM. T
 coding agent's own model(s). The optional `[orchestrator]` extra can run councils headless using your
 own provider credentials (read from the environment), but that is opt-in.
 
+**Can I run it entirely on my own local models (offline, nothing leaves the device)?**
+Yes. Point your coding agent at a local backend (e.g. **Claude Code → Ollama**) and install on the
+local lane: `eldercouncil install <ide> --all --lane local` makes **every lens run on your own model**
+(no Claude tag to fail on, no model file to edit). Copy-paste recipe:
+**[CLAUDE-CODE-OLLAMA.md](CLAUDE-CODE-OLLAMA.md)**; for an all-local *cross-family* council or a hybrid
+(local + cloud) split, see **[MODEL-GUIDANCE.md](MODEL-GUIDANCE.md)**. One caveat: all lenses on a
+single local model is a monoculture — add a second/different-family voice for genuine disagreement.
+
 **Which models should each lens use?**
 You choose. Each lens is mapped to a model (with separate slots for a hosted-frontier, an open-weight,
 and a local/offline option). The defaults ship only verified Anthropic models; the other slots are

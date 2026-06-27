@@ -11,7 +11,7 @@
 [![Docs: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-green.svg)](LICENSE-DOCS)
 [![Version](https://img.shields.io/badge/version-0.1.0-orange.svg)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
-[![Tests](https://img.shields.io/badge/tests-123%20passing-brightgreen.svg)](docs/TESTING.md)
+[![Tests](https://img.shields.io/badge/tests-126%20passing-brightgreen.svg)](docs/TESTING.md)
 [![OWASP Agentic 2026: aware](https://img.shields.io/badge/OWASP%20Agentic%202026-aware-6f42c1.svg)](docs/STANDARDS-MAP.md)
 [![NIST AI RMF: aligned](https://img.shields.io/badge/NIST%20AI%20RMF-aligned-6f42c1.svg)](docs/STANDARDS-MAP.md)
 
@@ -140,6 +140,10 @@ eldercouncil convene code-council --demo   # watch a council decide, keyless
 that asks you to convene the right council on high-risk actions. The councils run on **your agent's
 own model(s)** — Elder Council ships no keys.
 
+> **New here, or not a developer?** [**docs/GET-STARTED.md**](docs/GET-STARTED.md) walks the whole thing
+> — install → what changed → how you actually *use* a council — in plain English. Want to run it on
+> **your own local models** (Ollama, fully offline)? → [docs/CLAUDE-CODE-OLLAMA.md](docs/CLAUDE-CODE-OLLAMA.md).
+
 ## Supported IDEs
 
 | Agent | Enforcement |
@@ -199,7 +203,8 @@ This is an honest tool. It is **out of scope** for it to:
 
 | Start here | Then |
 |---|---|
-| [START-HERE.md](START-HERE.md) — pick your path | [docs/CONCEPT.md](docs/CONCEPT.md) — the why |
+| [docs/GET-STARTED.md](docs/GET-STARTED.md) — **install & first run (plain English)** | [START-HERE.md](START-HERE.md) — pick your path |
+| [docs/CONCEPT.md](docs/CONCEPT.md) — the why | [docs/CLAUDE-CODE-OLLAMA.md](docs/CLAUDE-CODE-OLLAMA.md) — run on your own local models (Ollama) |
 | [docs/COUNCILS.md](docs/COUNCILS.md) — the councils | [docs/LENSES.md](docs/LENSES.md) — the six lenses |
 | [docs/LOOP-ENGINEERING.md](docs/LOOP-ENGINEERING.md) — the decision loop (how it fits the agent loop) | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — how it's built |
 | [docs/GATES.md](docs/GATES.md) — the 11 control gates + profiles | [docs/DOMAIN-ADAPTATION.md](docs/DOMAIN-ADAPTATION.md) — beyond cyber |

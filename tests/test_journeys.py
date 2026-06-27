@@ -70,6 +70,19 @@ def test_monoculture_demo_warns(tmp_path):
 def test_models_check_journey(tmp_path):
     r = _run(["models", "check"], tmp_path)
     assert r.returncode == 2  # cross-family/open/local lanes ship unpinned by design
+    assert "configured lane: frontier" in r.stdout
+
+
+def test_models_check_honours_local_lane(tmp_path):
+    # A --lane local project runs every lens on the host model (inherit) — `models check`
+    # must reflect that as a healthy BYO/on-device setup (exit 0), not "✗ unpinned" (exit 2).
+    _run(["install", "claude-code", "--council", "code-council", "--lane", "local",
+          "--dir", str(tmp_path)], tmp_path)
+    env = {"COUNCIL_DIR": str(tmp_path / ".council")}
+    r = _run(["models", "check"], tmp_path, env)
+    assert r.returncode == 0
+    assert "configured lane: local" in r.stdout
+    assert "inherit your agent's own model" in r.stdout
 
 
 def test_cp1252_console_does_not_crash(tmp_path):

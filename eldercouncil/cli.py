@@ -195,11 +195,13 @@ def cmd_convene(args) -> int:
         print(exc); return 1
     if sys.stdout.isatty():
         sys.stderr.write(_c("1",
-            "\n  This is a task-pack for a coding agent to run on your own AI models — not the verdict.\n"))
+            "\n  These are the deliberation tasks for your coding agent to run on your own models — "
+            "not the verdict itself.\n"))
         sys.stderr.write(
-            f"  • To just SEE a sample council decide right now (keyless):  eldercouncil convene {c.id} --demo\n"
-            "  • To run it for real: an installed coding agent executes these tasks, or add --orchestrate\n"
-            "    to run your own models now (pin them first: eldercouncil models check).\n\n")
+            f"  • Just want to SEE a council decide right now (keyless)?   eldercouncil convene {c.id} --demo\n"
+            "  • Inside your coding agent, you normally trigger this with the council's slash command.\n"
+            "  • No agent / headless? add --orchestrate to run your own pinned models now "
+            "(check them first: eldercouncil models check).\n\n")
     print(json.dumps(review, indent=2))
     return 0
 
@@ -279,7 +281,7 @@ def cmd_gates(args) -> int:
 
 
 def cmd_models(args) -> int:
-    from .models import load_registry, resolve, unresolved, monoculture, RegistryError
+    from .models import load_registry, resolve, unresolved, monoculture, inherits as _inherits, RegistryError
     try:
         reg = load_registry()
     except RegistryError as exc:
@@ -293,13 +295,31 @@ def cmd_models(args) -> int:
                 print(f"  {role:22} frontier={entry.get('frontier')}  open={entry.get('open')}  local={entry.get('local')}")
         return 0
     if args.models_cmd == "check":
+        from .config import load_config
+        cfg_lane = load_config().lane          # check the lane THIS project actually uses
         miss = unresolved(reg)
-        mono = monoculture(reg, "frontier")
+        mono = monoculture(reg, cfg_lane)
+        # How many lenses will inherit the host model on this lane (sentinel/null → inherit)?
+        inheriting = sum(
+            1 for rk, e in reg.roles.items()
+            if e.get("kind") != "tool" and _inherits(reg, rk, cfg_lane)
+        )
+        print(f"configured lane: {cfg_lane}")
         if mono:
             # The whole premise is plural review — an all-one-provider council has
             # correlated blind spots. Warn, but don't fail (a user may intend it).
-            print(_c("33", f"⚠ monoculture: every resolvable frontier lens maps to '{mono}'. "
-                            f"Diversify (esp. cross_family_critic) — see THREAT_MODEL.md."))
+            print(_c("33", f"⚠ monoculture: every pinned lens on the '{cfg_lane}' lane maps to '{mono}'. "
+                            f"The voices share one model's blind spots — the deterministic Tool lens and your "
+                            f"final decision stay independent, but pin a different-family voice (esp. "
+                            f"cross_family_critic) for real plural review. See THREAT_MODEL.md."))
+        if cfg_lane in ("local", "open") and inheriting:
+            # On a BYO/local lane, unpinned means "inherit your agent's own model" — that's the
+            # intended setup (e.g. Claude Code on Ollama), not a misconfiguration. One model =
+            # one set of blind spots, so still nudge toward a second voice.
+            print(_c("36", f"✓ lane '{cfg_lane}': {inheriting} lens(es) inherit your agent's own model "
+                           f"(BYO / on-device — nothing to pin). All on one model = one set of blind "
+                           f"spots; add a second/different-family voice for genuine disagreement."))
+            return 0
         if not miss:
             print("✓ all model lanes are pinned")
             return 0

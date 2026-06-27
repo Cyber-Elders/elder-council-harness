@@ -32,7 +32,7 @@ class Role:
     name: str
     lens: str            # human description of the perspective (becomes the system prompt)
     role_key: str        # key into council-models.json (never a model tag)
-    variant: str = "frontier"
+    variant: str | None = None  # pin THIS role to a lane; None = follow the install/convene --lane
     arbitrator: bool = False
     is_tool: bool = False  # deterministic_tool lens — runs checks, not a model
 
@@ -80,9 +80,13 @@ def parse_role(d: dict, where: str) -> Role:
     role_key = str(_require(d, "role_key", where))
     if not _ROLE_KEY_RE.match(role_key):
         raise SchemaError(f"{where}: role_key {role_key!r} must match ^[a-z0-9][a-z0-9_]*$")
-    variant = str(d.get("variant", "frontier"))
-    if variant not in _LANES:
-        raise SchemaError(f"{where}: role {name!r} has invalid variant {variant!r}")
+    # variant pins a role to a specific lane; if absent (None) the role follows the
+    # install/convene --lane, so `--lane local` actually switches every lens to the local lane.
+    variant = d.get("variant")
+    if variant is not None:
+        variant = str(variant)
+        if variant not in _LANES:
+            raise SchemaError(f"{where}: role {name!r} has invalid variant {variant!r}")
     return Role(
         name=name,
         lens=lens,

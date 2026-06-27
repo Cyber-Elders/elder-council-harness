@@ -7,7 +7,8 @@ the network. Three tiers.
 
 ## Tier 1 — Deterministic regression (every PR, in-repo, keyless)
 
-`pytest tests/` — runs on Ubuntu × Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
+`pytest tests/` — **126 tests across the files below**, all keyless. Runs on Ubuntu ×
+Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 
 | File | Covers |
 |---|---|

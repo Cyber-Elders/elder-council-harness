@@ -9,6 +9,23 @@ that asks you to convene the right council on high-stakes actions. The councils 
 > engineering: they instruct each IDE's *own* agent runtime to fan out to sub-agents and honour the
 > deterministic gate/consensus/audit. They are not a native council API.
 
+## Using a council at runtime — what you actually do
+
+`install` gives your agent the councils plus the gate. Day to day:
+
+- **Hard-block agents (Claude Code, OpenCode, Kiro):** work normally. When the gate scores an action
+  5–15 it **asks you to convene** — run that council's slash command (e.g. `/code-council`,
+  `/supply-chain`). Your agent fans out to the lenses, then shows the verdict + the preserved dissent;
+  16+ also requires a named human. You can convene any council yourself anytime with its slash command.
+- **Advisory agents (Cursor, Copilot, any MCP client) — and advisory councils (Business Decision,
+  Threat Hunting) on any agent:** the gate won't pop up; you convene deliberately. Tell your agent
+  "convene the code council on this" (it calls the `convene_council` MCP tool), or run
+  `eldercouncil convene <council>` in a terminal. The agent is *asked* to honour the verdict but can
+  decline (no enforcement) — everything is still recorded.
+
+Slash-command and MCP names match the council ids (`eldercouncil list`). New to the verdict/dissent
+output? See [GET-STARTED.md](GET-STARTED.md). The engineering detail follows below.
+
 ## Support matrix
 
 | Agent | OS | Enforcement | What `install` writes |
@@ -36,7 +53,8 @@ planned addition; today the shipped adapter is advisory.
 
 - **Hard block** — the IDE routes every tool call through `eldercouncil gate`, which can allow / ask /
   deny before the action runs. Score ≤ 4 → allow (proceed; no council). 5–15 → ask (convene the
-  relevant council). 16+ → deny (council + a named human approve).
+  relevant council). 16+ → deny (council + a named human approve). *(The 5–15 "ask" band is where the
+  README's routing diagram further splits dual-review (5–9) from a full council (10–15).)*
 - **Advisory** — the IDE can't intercept tool calls, so the agent is *instructed* (via a rules /
   steering file) to call the `risk_gate` and `convene_council` MCP tools and honour the verdict.
   Weaker — it relies on the agent following instructions — but everything is still audited. **On

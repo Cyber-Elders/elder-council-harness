@@ -11,6 +11,14 @@
 > verified-real Anthropic tags as defaults; every open-weight and local lane ships as a
 > `REPLACE_ME:<capability>` sentinel **you** pin. This guide is how to pin them well.
 
+> ### Just want councils on your own models — step by step?
+> - **Claude Code + Ollama (simplest, fully local):** → **[CLAUDE-CODE-OLLAMA.md](CLAUDE-CODE-OLLAMA.md)** — copy-paste recipe; every lens runs on one local model.
+> - **All-local *cross-family* (OpenCode):** → [recipe in §3](#recipe--all-local-cross-family-opencode) below.
+> - **Hybrid (local + cloud):** → [recipe in §4](#recipe--hybrid-local--ollama-cloud) below.
+>
+> This page is the *why / which-model* reference behind those recipes. New to the whole thing? Start at
+> [GET-STARTED.md](GET-STARTED.md).
+
 ## The one rule: diversify the council
 
 A council's entire value is **plural scrutiny**. If every lens runs on the *same* model — or even the
@@ -101,6 +109,36 @@ high tokens/sec, because only the active experts hit the GPU per token.
 different-family critic). On 16 GB you mostly run **one** model and swap; 24 GB is the inflection where
 a real multi-lens local council becomes practical; 48 GB holds several distinct-family models at once.
 
+### Recipe — all-local *cross-family* (OpenCode)
+
+For a genuinely cross-family council with **nothing leaving the device**, **OpenCode** is the smoothest
+agent (it runs a different model per lens). On Claude Code you'd instead run every lens on one local
+model — see [CLAUDE-CODE-OLLAMA.md](CLAUDE-CODE-OLLAMA.md).
+
+```console
+# 1. Pull a few DIFFERENT-family models that fit your RAM (see the table above)
+ollama pull gpt-oss:20b          # MoE workhorse for most roles
+ollama pull magistral:24b        # a different lineage (Mistral) for the critic
+ollama pull qwen3:8b             # fast/light for pragmatic_ops   (on 16 GB: pull one, swap)
+
+# 2. Install Elder Council for OpenCode on the local lane
+git clone https://github.com/Cyber-Elders/elder-council-harness && cd elder-council-harness
+pip install -e .
+eldercouncil install opencode --all --lane local
+
+# 3. Pin each lens to a different family in .council/council-models.json (the `local` lane),
+#    using OpenCode's provider/model form, then re-install to apply:
+#      "security_sme":     { "local": "ollama/gpt-oss:20b" }
+#      "critic_challenge":  { "local": "ollama/magistral:24b" }
+#      "pragmatic_ops":     { "local": "ollama/qwen3:8b" }
+eldercouncil install opencode --all --lane local
+eldercouncil models check        # confirms diversity; flags a monoculture
+```
+
+Any lens you leave unpinned simply **inherits** your agent's default model — so you can pin only the
+seats that matter (the critic + a couple of reasoning seats) and let the rest follow. That alone breaks
+the worst monoculture.
+
 ## 4. Hybrid — local where it's cheap and private, cloud where it's hard
 
 Keep the **small, frequent, sensitive** lenses local (free, on-device, no data egress); send only the
@@ -126,6 +164,44 @@ are called through the *same* local CLI/API — you just append a `-cloud` suffi
 > or piece of evidence you send to a `:cloud` lens transits the provider's infrastructure (Ollama states
 > its cloud doesn't retain data, but it still transits). For **regulated or sensitive** council inputs,
 > keep those lenses **local-only** — that's exactly what the `local` lane in `council-models.json` is for.
+
+### Recipe — hybrid (local + Ollama Cloud)
+
+Small/frequent lenses stay local and private; the heavy reasoning lenses borrow a big cloud model —
+both through the *same* Ollama, so your setup barely changes.
+
+```console
+# 1. Sign in to Ollama Cloud (Free = 1 cloud model; Pro $20/mo = 3 in parallel)
+ollama signin
+
+# 2. Pull the local (private) seats + reference a big `-cloud` model for the heavy seats
+ollama pull qwen3:8b                      # local: pragmatic_ops, synthesiser
+ollama run  gpt-oss:120b-cloud "ok"       # cloud: warms up the heavy model
+
+# 3. Install on the local lane, then pin the heavy seats to the `-cloud` model in
+#    .council/council-models.json (`local` lane) and re-install:
+#      "strategic_risk_owner": { "local": "ollama/gpt-oss:120b-cloud" }
+#      "security_sme":          { "local": "ollama/gpt-oss:120b-cloud" }
+#      "pragmatic_ops":         { "local": "ollama/qwen3:8b" }      # stays on-device
+eldercouncil install opencode --all --lane local
+eldercouncil models check
+```
+
+Keep anything **regulated or sensitive** on a local-only seat (see the privacy caveat above) — only
+non-sensitive lenses should point at a `-cloud` model.
+
+## 5. Running a council: three ways
+
+However you pin models, there are three ways to actually *run* a council — pick by what you're doing:
+
+| Command | What it does | Use it when |
+|---|---|---|
+| `eldercouncil convene <c> --demo` | **Keyless illustration** — deterministic sample votes, instant, no models. | You just want to *see* a council decide (trying it out, demos, CI). |
+| `eldercouncil convene <c>` *(no flag)* | Emits the **deliberation tasks** (JSON) for your **coding agent** to run on its own models — this is what the gate/slash-command flow uses inside your IDE. | Day-to-day, **inside an installed agent** (Claude Code, OpenCode, …). You normally trigger this with `/<council>`, not by hand. |
+| `eldercouncil convene <c> --orchestrate` | The **harness itself** runs your **pinned** models and returns a real verdict — **no IDE needed**. Requires the optional runner (`pip install "eldercouncil[orchestrator]"`) and pinned model lanes; unpinned lenses report `unavailable`. | **Headless / CI / no coding agent** — scheduled audits, pipelines, scripts. |
+
+> So: `--demo` to look, your agent (`/<council>`) for everyday use, `--orchestrate` to run councils
+> without an IDE. Run `eldercouncil models check` before `--orchestrate` so every lens has a real model.
 
 ## Pinning, continuity, and fallback
 

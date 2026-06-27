@@ -25,7 +25,7 @@ def test_each_role_references_a_role_key():
     for c in catalog.load_councils().values():
         for r in c.roles:
             assert r.role_key, f"{c.id}:{r.name} missing role_key"
-            assert r.variant in ("frontier", "open", "local")
+            assert r.variant is None or r.variant in ("frontier", "open", "local")
 
 
 def test_at_most_one_arbitrator():
