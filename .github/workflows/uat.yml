@@ -42,37 +42,89 @@ jobs:
           "$VBIN/pip" install --quiet "$(ls dist/*.whl)"
           echo "$VBIN" >> "$GITHUB_PATH"
 
-      - name: Real CLI user journey
+      - name: Real CLI user journey (all supported journeys)
         run: |
           set -e
+          # ---- A. introspection ----
           eldercouncil version | tee ver.txt | grep -q "0.1.0"
           eldercouncil list | grep -q "code-council"
+          eldercouncil list | grep -q "business-decision"
           for c in code-council threat-hunting supply-chain compliance cyber-risk platform-architecture business-decision; do
             eldercouncil show "$c" >/dev/null
           done
 
-          work=$(mktemp -d); cd "$work"
-          export COUNCIL_DIR="$work/.council"
+          work=$(mktemp -d)
 
-          eldercouncil install claude-code --all
-          test -f .claude/settings.json
-          test -f .council/council-models.json
-          eldercouncil install kiro --all
-          test -f .kiro/specs/compliance.md
+          # ---- B. install journeys (every IDE x lane) ----
+          eldercouncil install claude-code --all --dir "$work/cc"
+          test -f "$work/cc/.claude/settings.json"
+          test -f "$work/cc/.council/council-models.json"
+          grep -rq "model: claude-opus-4-8" "$work/cc/.claude/agents"      # frontier pins a real tag
 
-          # the demo is an illustration (exit 0); it must show a contested BLOCK verdict
-          eldercouncil convene code-council --demo --question "merge a hardcoded secret" > out.txt
-          cat out.txt
-          grep -q "block" out.txt
-          grep -q "dissent preserved" out.txt
-          # a real (gating) convene of a blocked decision exits 2:
+          eldercouncil install claude-code --all --lane local --dir "$work/ccl"
+          grep -rq "model: inherit" "$work/ccl/.claude/agents"             # --lane local -> inherit
+          if grep -rq "model: claude-" "$work/ccl/.claude/agents"; then echo "local lane leaked a hosted tag"; exit 1; fi
+
+          eldercouncil install opencode --all --dir "$work/oc"
+          test -f "$work/oc/.opencode/plugins/eldercouncil.js"
+          test -f "$work/oc/opencode.json"
+
+          eldercouncil install kiro --all --dir "$work/ki"
+          test -f "$work/ki/.kiro/specs/compliance.md"
+
+          eldercouncil install cursor --council code-council --dir "$work/cu"
+          grep -qi "advisory" "$work/cu/.cursor/rules/code-council.mdc"
+          test -f "$work/cu/.cursor/mcp.json"
+
+          eldercouncil install copilot --council code-council --dir "$work/cp"
+          grep -qi "advisory" "$work/cp/.github/copilot-instructions.md"
+          grep -q '"servers"' "$work/cp/.vscode/mcp.json"                  # VS Code key, NOT mcpServers
+
+          # ---- C. models journeys (lane-aware) ----
+          eldercouncil models list | grep -q "cross_family_critic"
+          COUNCIL_DIR="$work/cc/.council" eldercouncil models resolve security_sme --lane frontier | grep -q "claude-opus-4-8"
           set +e
-          eldercouncil convene code-council --demo --no-audit --question "x" >/dev/null; demo_rc=$?
+          COUNCIL_DIR="$work/cc/.council" eldercouncil models check > mf.txt 2>&1; mfrc=$?
           set -e
-          test "$demo_rc" -eq 0   # --demo never "fails" as an onboarding command
+          grep -q "configured lane: frontier" mf.txt
+          test "$mfrc" -eq 2                                               # frontier ships unpinned -> exit 2
+          COUNCIL_DIR="$work/ccl/.council" eldercouncil models check | grep -q "inherit your agent"   # local lane healthy -> exit 0
 
+          # ---- D. convene / run modes ----
+          export COUNCIL_DIR="$work/cc/.council"
+          eldercouncil convene code-council --demo --question "merge a hardcoded secret" > demo.txt
+          grep -q "block" demo.txt
+          grep -q "dissent preserved" demo.txt
+          eldercouncil convene code-council --demo --scenario monoculture --no-audit --question "x" 2>&1 | grep -q "does NOT catch"
+          eldercouncil convene business-decision --demo --no-audit --question "acquire X" >/dev/null
+          eldercouncil convene code-council --no-audit --question "x" | grep -q '"tasks"'        # default task-pack JSON
+          eldercouncil convene code-council --demo --json --no-audit --question "x" | grep -q '"verdict"'
+          for c in code-council threat-hunting supply-chain compliance cyber-risk platform-architecture business-decision; do
+            eldercouncil convene "$c" --demo --no-audit --question "x" >/dev/null
+          done
+          set +e
+          eldercouncil convene code-council --orchestrate --no-audit --question "x" > orch.txt 2>&1; orc=$?
+          set -e
+          test "$orc" -eq 2                                               # no models pinned -> every lens unavailable
+          grep -q "unavailable" orch.txt
+
+          # ---- E. gate / audit / gates (incl. fail-closed) ----
+          printf '%s' '{"action":"bash","target":"git push --force"}' | eldercouncil gate claude-code >/dev/null
+          printf '%s' '{"action":"bash","target":"ls"}' | eldercouncil gate claude-code >/dev/null
+          printf '%s' '{"tool":"bash","target":"x","decision":"ask"}' | eldercouncil audit claude-code
+          eldercouncil gates list | grep -qi "offensive"
+          set +e
+          printf '%s' '{"action": not valid json' | eldercouncil gates check >/dev/null 2>&1; badc=$?
+          printf '%s' '{not json either' | eldercouncil risk-gate >/dev/null 2>&1; badr=$?
+          printf '%s' 'read a file' | eldercouncil gates check >/dev/null 2>&1; okc=$?
+          set -e
+          test "$badc" -eq 2     # malformed JSON object -> fail CLOSED (block), not a confident allow
+          test "$badr" -eq 2     # same guard on risk-gate
+          test "$okc" -eq 0      # a bare benign action string still proceeds
+
+          # ---- F. verify (audit chain) ----
           eldercouncil verify
-          echo "UAT journey passed on ${{ matrix.os }}"
+          echo "Full-journey UAT passed on ${{ matrix.os }}"
 
       - name: Upload UAT artifacts
         if: always()
