@@ -35,7 +35,7 @@ Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 `.github/workflows/uat.yml`: build the wheel → install it into a **fresh venv** (not editable) → run
 **every supported journey** on Ubuntu / macOS / Windows — install per IDE × lane (incl. `--lane local`
 → inherit), lane-aware `models check`, all convene run-modes (`--demo`, monoculture, default task-pack,
-`--json`, `--orchestrate`, all 7 councils), `gate`/`audit`/`gates`/`risk-gate` (incl. the fail-closed
+`--json`, `--orchestrate`, all 8 councils), `gate`/`audit`/`gates`/`risk-gate` (incl. the fail-closed
 guard), and `verify`. This catches packaging, entry-point, and encoding bugs the editable-install
 regression cannot see.
 
