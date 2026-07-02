@@ -26,8 +26,8 @@ Bring-your-own-LLM; ships no keys.
   governance fail-closed tally), `audit` (hash-chained, tamper-evident decision records + dissent),
   `schema`/`catalog` (council loading + validation), `models` (role→model registry resolution).
 - **Six SME lenses** + specialised roles, with role-based model resolution (`council-models.json`,
-  `frontier`/`open`/`local` lanes; ships only verified-real Anthropic tags, the rest as `REPLACE_ME`
-  sentinels).
+  `frontier`/`open`/`local` lanes; verified-real defaults only — Anthropic on frontier, a
+  cross-family open-weight set on open, local unpinned = inherit).
 - **IDE adapters:** Claude Code, OpenCode (hard-block); Kiro (best-effort hard-block); Cursor, GitHub
   Copilot + any MCP client (advisory). Generic renderer — councils are data, no per-council code branches.
 - **CLI:** `init`, `install`, `list`, `show`, `convene` (`--demo` / `--orchestrate`), `gate`, `audit`,
@@ -38,6 +38,43 @@ Bring-your-own-LLM; ships no keys.
 - **Three-tier testing:** deterministic regression, clean-install UAT, and full agentic UAT (+ nightly
   agentic regression). CI honesty + leak + secret + determinism gates.
 - Full docs suite, dual licensing (Apache-2.0 + CC BY 4.0), and governance.
+
+### Security & honesty (external-review remediation)
+
+An external review made substantive critiques; every one was verified against the code and fixed —
+plus one more defect found by our own follow-up audit:
+
+- **The "deterministic tool lens" now IS deterministic in `--orchestrate`.** It previously sent a
+  prompt to an LLM asking it to act like a scanner. It now runs REAL checks — built-in
+  secret/injection/PII detectors plus your `[tools]` commands from `.council/config.toml`
+  (argv-parsed, timeout, fail-safe abstain; a clean scan abstains rather than approving). Votes carry
+  **`provenance`** (`tool` / `host-asserted` / `demo`), and a CRITICAL's rationale states tool vs
+  host-asserted provenance.
+  Authority stays role-based (stripping host-run tool votes would fail open).
+- **Out-of-the-box monoculture reduced + detected at decision time.** The **open lane now ships a
+  verified-real cross-family default** (Alibaba / DeepSeek / Mistral / Google / OpenAI lineages,
+  `ollama/` form). Every decision record carries a **`diversity`** field (which provider families
+  actually voted) and the CLI warns at verdict time on a real single-family council — detection +
+  warning, not enforcement. The local lane intentionally stays unpinned (= inherit, the on-device
+  journey); `cross_family_critic.frontier` stays a sentinel (no verified-real non-Anthropic frontier
+  tag to ship).
+- **Audit redacts what the built-in detectors flag.** Secrets/PII are redacted at persistence time by
+  default (`[audit] redact`, shared detector regexes) across decision records, dissent files, and
+  gate events — decision ids and the hash chain are unaffected. Redaction is conservative (common
+  credential/PII shapes), not a guarantee — see THREAT_MODEL.md.
+- **Human approval is provenance-checked.** `human_approver` is recorded as `asserted — unverified`
+  by default; an optional `[signals] approval_verify_command` verifies it (non-zero/timeout strips
+  the assertion → the gates escalate, fail-closed). `convene --signals '<json>'` plumbs asserted
+  signals from the CLI (malformed → exit 2).
+- **Vote parsing hardened.** Markdown-bolded protocol lines, "my vote is …", numeric/percent
+  confidence, and spaced multi-word outcomes now parse; ambiguous containment resolves to the MOST
+  RESTRICTIVE outcome (never permissively).
+- **Risk-gate keyword precision.** Word-boundary matching (no more `rm ` inside `charm `, `prod`
+  inside `reproduce`); `isolate` removed from the destructive list (it is a threat-hunting outcome);
+  the cry-wolf failure mode is now documented alongside the bypass limit.
+- **Provider routing fixed (found by our own audit).** `ollama/<tag>` mis-routed to OpenRouter in
+  `--orchestrate` (the generic `/` rule matched first) and explicit Ollama pins could fall back to
+  Anthropic; both fixed, with prefix stripping on both clients.
 
 ### Fixed
 
@@ -56,10 +93,17 @@ Bring-your-own-LLM; ships no keys.
   convene run-mode incl. `--orchestrate` fail-closed and `--profile`, `gate`/`audit` per IDE, `gates`,
   `risk-gate` routing, usage errors, `init` defaults, `serve`); and `uat.yml` (clean-install, 3 OS)
   now runs **every** journey — install per IDE × lane, lane-aware `models check`, all run-modes, the
-  gate fail-closed guard, and `verify`. **141 tests**; UAT green on Ubuntu / macOS / Windows.
+  gate fail-closed guard, and `verify`. **194 tests**; UAT green on Ubuntu / macOS / Windows.
 
 ### Docs & UX
 
+- **New [OPENROUTER](docs/OPENROUTER.md)** — the cross-family-with-one-key journey: headless
+  `--orchestrate`, OpenCode per-agent, Cursor/Copilot BYOK — and the honest limit that Claude Code
+  cannot use OpenRouter in-session (Anthropic Messages API vs OpenAI schema).
+- **New [AGENT-SETUP](docs/AGENT-SETUP.md)** — a machine-followable guide your coding agent reads to
+  understand the harness, elicit your needs, install with the right flags, customise councils/models/
+  config, and report back in plain language (one paste-able prompt for the user).
+- **Prerequisites stated up front** in every journey doc (what you need — and what you don't).
 - **New [GET-STARTED](docs/GET-STARTED.md)** — a task-oriented, non-developer walkthrough: install →
   what changed → how you actually *use* a council (the gate asks → run `/<council>` → read the verdict
   and preserved dissent → you decide). Linked as the front door from the README and START-HERE.

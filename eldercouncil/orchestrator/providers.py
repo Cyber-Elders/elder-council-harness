@@ -46,6 +46,9 @@ class OpenRouterClient:
         if not key:
             raise ProviderError("OPENROUTER_API_KEY not set")
         import httpx
+        # An explicit `openrouter/` routing prefix is ours, not part of the slug
+        # (OpenRouter ids are already `vendor/model`).
+        model = model.removeprefix("openrouter/")
         r = httpx.post(
             "https://openrouter.ai/api/v1/chat/completions",
             headers={"Authorization": f"Bearer {key}"},
@@ -63,6 +66,9 @@ class OllamaClient:
 
     def query(self, model: str, system: str, prompt: str) -> str:
         import httpx
+        # `ollama/qwen3:32b` is the registry/OpenCode pin form; Ollama itself
+        # wants the bare tag (`-cloud` suffixed tags pass through untouched).
+        model = model.removeprefix("ollama/").removeprefix("ollama:")
         host = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
         r = httpx.post(
             f"{host}/api/chat",
@@ -77,13 +83,19 @@ class OllamaClient:
 
 def select_client(model: str):
     """Route a model tag to a provider. `inherit`/unpinned -> the default provider
-    chain (Anthropic if keyed, else Ollama local)."""
+    chain (Anthropic if keyed, else Ollama local). An explicit `ollama/` prefix
+    ALWAYS routes to Ollama — it must be checked before the generic `/` rule
+    (OpenRouter slugs are `vendor/model`) and never falls back to Anthropic."""
     m = (model or "").lower()
     if m.startswith("claude") or m.startswith("anthropic"):
         return AnthropicClient()
+    if m.startswith("ollama/") or m.startswith("ollama:"):
+        return OllamaClient()
+    if m.startswith("hf.co/") or m.startswith("huggingface.co/"):
+        return OllamaClient()   # Ollama's HuggingFace pull namespace — NOT an OpenRouter slug
     if "/" in m or m.startswith("openrouter"):
         return OpenRouterClient()
-    if m in ("", "inherit") or m.startswith("ollama"):
+    if m in ("", "inherit"):
         return AnthropicClient() if os.environ.get("ANTHROPIC_API_KEY") else OllamaClient()
     # bare local-style tags (e.g. gemma:27b) -> Ollama
     return OllamaClient()

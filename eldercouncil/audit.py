@@ -30,10 +30,44 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import paths
+from . import detectors, paths
 
 _GENESIS = "EC-GENESIS"
 _SCHEMA = "eldercouncil/decision/v1"
+
+
+def _redact_on() -> bool:
+    from .config import load_config
+    return load_config().redact
+
+
+def _redact_record(rec: dict) -> dict:
+    """Mask secrets/PII in the free-text fields of a decision record before it
+    touches disk. The gates DETECT these patterns; without this step the audit
+    would persist the very value the gate flagged (see THREAT_MODEL residual
+    risk 1). Applied at persistence time only — the in-memory record (and the
+    decision_id, computed earlier) are untouched."""
+    out = dict(rec)
+    for key in ("question", "rationale"):
+        out[key] = detectors.redact(out.get(key, ""))
+    out["verdicts"] = [dict(v, reason=detectors.redact(v.get("reason", ""))) for v in out.get("verdicts", [])]
+    out["dissent"] = [dict(v, reason=detectors.redact(v.get("reason", ""))) for v in out.get("dissent", [])]
+    out["context"] = _redact_deep(out.get("context") or {})
+    if out.get("approval"):
+        out["approval"] = dict(out["approval"], basis=detectors.redact(out["approval"].get("basis", "")))
+    return out
+
+
+def _redact_deep(value):
+    """Redact every string in an arbitrarily nested structure (the MCP path
+    accepts host-supplied context of any shape)."""
+    if isinstance(value, str):
+        return detectors.redact(value)
+    if isinstance(value, dict):
+        return {k: _redact_deep(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_redact_deep(v) for v in value]
+    return value
 
 
 def _jsonl_path() -> Path:
@@ -119,10 +153,12 @@ def _disposition(outcome, gate_report: dict | None) -> str:
 
 def build_record(council_id: str, question: str, outcome, *, mode: str = "",
                  risk: dict | None = None, context: dict | None = None,
-                 gate_report: dict | None = None, profile: str = "") -> dict:
+                 gate_report: dict | None = None, profile: str = "",
+                 diversity: dict | None = None, approval: dict | None = None) -> dict:
     """Assemble the deterministic decision record (no timestamp — that is added
     only when persisted). This is what `convene` returns and the determinism
-    check compares."""
+    check compares. `diversity` and `approval` are recorded verbatim and are NOT
+    part of the decision_id inputs (ids stay stable across their introduction)."""
     did = decision_id(council_id, question, outcome, (gate_report or {}).get("result", ""))
     return {
         "schema": _SCHEMA,
@@ -137,6 +173,8 @@ def build_record(council_id: str, question: str, outcome, *, mode: str = "",
         "verdicts": list(getattr(outcome, "votes", []) or []),
         "dissent": list(getattr(outcome, "dissent", []) or []),
         "gate_report": gate_report or {},
+        "diversity": diversity or {},
+        "approval": approval or {},
         "disposition": _disposition(outcome, gate_report),
         "decision_id": did,
         "context": context or {},
@@ -145,26 +183,32 @@ def build_record(council_id: str, question: str, outcome, *, mode: str = "",
 
 def record(council_id: str, question: str, outcome, *, mode: str = "",
            risk: dict | None = None, context: dict | None = None,
-           gate_report: dict | None = None, profile: str = "") -> str:
+           gate_report: dict | None = None, profile: str = "",
+           diversity: dict | None = None, approval: dict | None = None) -> str:
     """Persist a decision: full record file + dissent file + chained index line.
     Returns the decision_id."""
     rec = build_record(council_id, question, outcome, mode=mode, risk=risk, context=context,
-                       gate_report=gate_report, profile=profile)
+                       gate_report=gate_report, profile=profile,
+                       diversity=diversity, approval=approval)
     did = rec["decision_id"]
     ts = datetime.now(timezone.utc)
     stamp = ts.strftime("%Y%m%dT%H%M%S")
     fname = f"{stamp}-{did[3:11]}.json"
 
+    # Redact secrets/PII at the persistence boundary (decision_id was computed
+    # over the ORIGINAL record above, so redaction never changes an id).
+    persisted = _redact_record(rec) if _redact_on() else rec
+
     decisions = paths.decisions_dir()
     decisions.mkdir(parents=True, exist_ok=True)
-    full = dict(rec, ts=ts.isoformat())
+    full = dict(persisted, ts=ts.isoformat())
     (decisions / fname).write_text(json.dumps(full, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    if rec["dissent"]:
+    if persisted["dissent"]:
         dissent = paths.dissent_dir()
         dissent.mkdir(parents=True, exist_ok=True)
         (dissent / fname).write_text(
-            json.dumps({"decision_id": did, "council": council_id, "dissent": rec["dissent"]},
+            json.dumps({"decision_id": did, "council": council_id, "dissent": persisted["dissent"]},
                        indent=2, ensure_ascii=False), encoding="utf-8")
 
     _append_chain({
@@ -229,7 +273,13 @@ def _append_chain(core: dict) -> str:
 def record_gate(action: str, target: str, score: int, route: str, verdict: str,
                 context: dict | None = None) -> None:
     """Append a lightweight gate event (a routing decision, not a council
-    decision) to the same hash chain — a trail of what the risk gate saw."""
+    decision) to the same hash chain — a trail of what the risk gate saw.
+    The pre-tool hook feeds raw command lines through here, so the same
+    redaction that protects decision records applies to `action`/`target`."""
+    if _redact_on():
+        action = detectors.redact(action)
+        target = detectors.redact(target or "")
+        context = _redact_deep(context or {})
     _append_chain({
         "ts": datetime.now(timezone.utc).isoformat(),
         "kind": "gate",

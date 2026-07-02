@@ -154,9 +154,12 @@ def _role_body(council: Council, role: Role) -> str:
     outcomes = ", ".join(council.decision_outcomes)
     if role.is_tool:
         return (
-            f"You are the **{role.name}** lens of the {council.name}. You are NOT a reasoning model — "
-            f"run deterministic checks (SAST, dependency/secret scan, tests, policy) and report findings "
-            f"as evidence, then vote among {{{outcomes}}} based only on what the tools found."
+            f"You are executing the **{role.name}** of the {council.name}. This lens is NOT a reasoning "
+            f"opinion — its value is REAL tool output. ACTUALLY RUN the relevant deterministic checks "
+            f"(SAST, dependency/secret scan, tests, policy) and report only their raw findings as "
+            f"evidence; if you cannot run a tool, say so and abstain — never imagine what a scanner "
+            f"would say. Then vote among {{{outcomes}}} based only on what the tools found, stating "
+            f"which tools you ran (the harness records this vote as host-asserted)."
         )
     return (
         f"You are the **{role.name}** lens of the {council.name}. Reason INDEPENDENTLY from the other "
@@ -184,10 +187,19 @@ def _render_claude_council(root: Path, c: Council, reg, lane: str, changes: list
     )
     _write_text(root / ".claude" / "commands" / f"{c.id}.md", cmd, changes, f"{c.id} slash command")
     for r in c.roles:
+        model = _model_for(reg, r, lane)
+        if model != "inherit" and not model.lower().startswith("claude"):
+            # Claude Code is single-provider per session — a non-Claude tag in a
+            # sub-agent 404s. Fail-safe: inherit the session model, and SAY so
+            # (the verdict-time diversity field then reports the truth).
+            changes.append(f"! {c.id}-{_slug(r.name)}: '{model}' is not runnable in Claude Code "
+                           f"(single-provider) — rendered as model: inherit. For a cross-family "
+                           f"council use OpenCode or --orchestrate (docs/OPENROUTER.md).")
+            model = "inherit"
         body = (
             f"---\nname: {c.id}-{_slug(r.name)}\n"
             f"description: {r.name} lens of the {c.name}.\n"
-            f"tools: Read, Grep, Glob, Bash\nmodel: {_model_for(reg, r, lane)}\n---\n"
+            f"tools: Read, Grep, Glob, Bash\nmodel: {model}\n---\n"
             + _role_body(c, r) + "\n"
         )
         _write_text(root / ".claude" / "agents" / f"{c.id}-{_slug(r.name)}.md", body, changes, f"{c.id} role agent")
@@ -359,13 +371,35 @@ def _ensure_project_config(root: Path, lane: str, tier: str, profile: str, chang
         body = (
             "# Elder Council Harness — project config\n"
             f"[governance]\ntier = \"{tier}\"\nmode = \"enforce\"\nprofile = \"{profile}\"  # lite | standard | regulated\n\n"
-            f"[council]\nlane = \"{lane}\"\nconvene_threshold = 5\n"
+            f"[council]\nlane = \"{lane}\"\nconvene_threshold = 5\n\n"
+            "[audit]\n"
+            "# Secrets/PII are masked before decision records touch disk (default on).\n"
+            "redact = true\n\n"
+            "# [tools]  — REAL deterministic checks the tool lens runs in --orchestrate\n"
+            "# (exit 0 = clean; non-zero = finding; unavailable/timeout = fail-safe abstain).\n"
+            "# secret_scan_cmd = \"gitleaks detect --no-banner -s .\"\n"
+            "# sast_cmd = \"semgrep scan --error --quiet\"\n"
+            "# test_cmd = \"pytest -q\"\n\n"
+            "# [signals]\n"
+            "# Verify an asserted human_approver before the gates accept it (exit 0 = verified;\n"
+            "# anything else strips the assertion and the gates escalate, fail-closed).\n"
+            "# approval_verify_command = \"./scripts/check-approval.sh\"\n"
         )
         cdir.mkdir(parents=True, exist_ok=True)
         cfg.write_text(body, encoding="utf-8")
         changes.append(f"+ {cfg} (project config)")
     else:
         changes.append(f"= {cfg} (config already present)")
+    # Keep decision records (user data, conservatively redacted) out of version
+    # control: idempotently add .council/ to the TARGET project's .gitignore.
+    gi = root / ".gitignore"
+    gi_text = gi.read_text(encoding="utf-8") if gi.exists() else ""
+    if ".council/" not in gi_text.splitlines() and ".council" not in gi_text.splitlines():
+        gi.write_text((gi_text + ("\n" if gi_text and not gi_text.endswith("\n") else "")
+                       + ".council/\n"), encoding="utf-8")
+        changes.append(f"+ {gi} (.council/ git-ignored — decision records are user data)")
+    else:
+        changes.append(f"= {gi} (.council/ already ignored)")
     # Drop a copy of the default model registry the user can pin.
     dest = cdir / "council-models.json"
     if not dest.exists():
@@ -400,6 +434,14 @@ def install(ide: str, councils: list[str] | None = None, target_dir: str | None 
             selected.append(available[cid])
 
     root = _project_dir(target_dir)
+    # The #1 install mistake: running `install` from the harness clone itself
+    # (the docs say `git clone … && cd … && pip install -e .` — and then the user
+    # forgets to cd into THEIR project). Warn loudly; it still proceeds (a dev
+    # may genuinely want a demo install here).
+    pyproject = root / "pyproject.toml"
+    if pyproject.exists() and 'name = "eldercouncil"' in pyproject.read_text(encoding="utf-8"):
+        print("! You are installing into the elder-council-harness repo itself — did you mean your")
+        print("  own project? cd into the project you open in your coding agent (or pass --dir).")
     reg = models.load_registry(root / ".council" / "council-models.json"
                                if (root / ".council" / "council-models.json").exists() else None)
     changes: list[str] = []
@@ -414,14 +456,16 @@ def install(ide: str, councils: list[str] | None = None, target_dir: str | None 
     for line in changes:
         print(f"  {line}")
     print("\nLegend: + created · ~ modified · = unchanged")
-    n_unresolved = len(models.unresolved(reg))
-    off_frontier = all((r.variant or lane) != "frontier" for c in selected for r in c.roles)
-    if off_frontier and n_unresolved:
+    non_tool = [r for c in selected for r in c.roles if not r.is_tool]
+    all_inherit = all(models.inherits(reg, r.role_key, r.variant or lane) for r in non_tool)
+    lane_missing = [m for m in models.unresolved(reg) if m.endswith(":" + lane)]
+    if all_inherit and lane != "frontier":
         # e.g. --lane local: every lens inherits the host model — that's the BYO/on-device setup.
         print("Models: every lens runs on your agent's own model (inherit) — nothing to pin "
               "(`eldercouncil models check` to confirm).")
-    elif any((r.variant or lane) != "frontier" for c in selected for r in c.roles):
-        print(f"Model lanes still unpinned (REPLACE_ME): {n_unresolved} — run `eldercouncil models check`.")
+    elif lane_missing:
+        print(f"Model lanes still unpinned on '{lane}' (REPLACE_ME): {len(lane_missing)} — "
+              f"run `eldercouncil models check`.")
 
     # The teachable moment — what to actually DO next, depending on whether the IDE enforces.
     council0 = selected[0].id if selected else "code-council"
@@ -435,6 +479,10 @@ def install(ide: str, councils: list[str] | None = None, target_dir: str | None 
         print("Verify:  eldercouncil convene code-council --demo   (advisory IDE — no pre-tool gate)")
     if lane == "local":
         print("       Local models: Claude Code + Ollama? see docs/CLAUDE-CODE-OLLAMA.md")
+    if lane == "open":
+        print("       Cross-family voices: shipped open-lane defaults run on local Ollama; one-key hosted")
+        print("       diversity via OpenRouter -> docs/OPENROUTER.md")
+    print("       Let your agent tailor the councils to your needs: docs/AGENT-SETUP.md")
     print("       New to councils? see docs/GET-STARTED.md")
     return 0
 

@@ -31,12 +31,16 @@ PROTOCOL = (
 def _role_prompt(council, role, question: str) -> str:
     if role.is_tool:
         return (
-            f"You are the '{role.name}' lens of the {council.name}. You are NOT a reasoning model — "
-            f"you run deterministic checks and report findings as evidence.\n"
+            f"You are executing the '{role.name}' of the {council.name}. This lens is NOT a "
+            f"reasoning opinion — its value is REAL tool output.\n"
             f"DECISION: {question}\n"
-            f"Run the relevant checks (SAST, dependency scan, secret scan, tests, policy) and report "
-            f"only what the tools found. Then cast a vote among {{{', '.join(council.decision_outcomes)}}} "
-            f"based solely on tool findings, with a one-line justification."
+            f"ACTUALLY RUN the relevant deterministic tools available to you (SAST, dependency scan, "
+            f"secret scan, tests, policy checks) and report only their raw findings as evidence. "
+            f"Do NOT imagine or summarise what a scanner would probably say — if you cannot run a "
+            f"tool, say so and abstain. Then cast a vote among "
+            f"{{{', '.join(council.decision_outcomes)}}} based solely on the tool findings, with a "
+            f"one-line justification, and mark the vote `provenance: host-asserted` (the harness "
+            f"cannot verify which tools you ran — say what you ran)."
         )
     return (
         f"You are the '{role.name}' lens of the {council.name}, an Elder Council convened because a "

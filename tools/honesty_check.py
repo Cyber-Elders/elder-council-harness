@@ -26,6 +26,8 @@ CLAIM_FILES = [
     "docs/IDE-SUPPORT.md", "docs/STANDARDS-MAP.md", "docs/FAQ.md", "docs/DOMAIN-ADAPTATION.md",
     "docs/ARCHITECTURE.md", "docs/LICENSING.md", "docs/BRAND.md", "docs/TESTING.md",
     "docs/DESIGN-REVIEW.md", "docs/GLOSSARY.md", "docs/GATES.md",
+    "docs/GET-STARTED.md", "docs/CLAUDE-CODE-OLLAMA.md", "docs/MODEL-GUIDANCE.md",
+    "docs/OPENROUTER.md", "docs/AGENT-SETUP.md", "docs/LOOP-ENGINEERING.md",
 ]
 # Bundled data that ships to users — also scanned (named-regulation discipline).
 DATA_GLOBS = ["eldercouncil/councils/*.yaml", "eldercouncil/lenses.yaml"]

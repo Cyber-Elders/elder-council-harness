@@ -16,10 +16,10 @@ Requires the optional dependency: pip install 'eldercouncil[mcp]'
 
 from __future__ import annotations
 
-from . import audit
+from . import audit, models
 from .catalog import get_council
 from .config import load_config
-from .consensus import tally
+from .consensus import coerce_host_provenance, tally
 from .convene import build_review
 from .models import load_registry
 from .risk_gate import assess
@@ -77,10 +77,13 @@ def audit_log(council: str, question: str, verdicts: list, context: dict | None 
         c = get_council(council)
     except SchemaError as exc:
         return {"error": str(exc)}
-    outcome = tally(verdicts, c)
-    did = audit.record(c.id, question, outcome, mode=c.mode, context=context or {})
+    outcome = tally(coerce_host_provenance(verdicts), c)
+    diversity = models.diversity_of(outcome.votes)
+    did = audit.record(c.id, question, outcome, mode=c.mode, context=context or {},
+                       diversity=diversity)
     return {"decision_id": did, "verdict": outcome.verdict, "route": outcome.route,
-            "rationale": outcome.rationale, "dissent": outcome.dissent}
+            "rationale": outcome.rationale, "dissent": outcome.dissent,
+            "diversity": diversity}
 
 
 @mcp.tool()

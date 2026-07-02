@@ -153,6 +153,18 @@ def cmd_convene(args) -> int:
         print(exc); return 1
     question = _read(args.question) or f"(no decision text supplied for {c.id})"
 
+    signals = {}
+    if getattr(args, "signals", None):
+        try:
+            signals = json.loads(args.signals)
+            if not isinstance(signals, dict):
+                raise ValueError("signals must be a JSON object")
+        except (json.JSONDecodeError, ValueError) as exc:
+            # Fail closed: malformed signals must NOT silently become "no signals
+            # asserted" on a run the operator believed carried approvals.
+            sys.stderr.write(f"invalid --signals JSON: {exc}\n")
+            return 2
+
     if args.demo or args.orchestrate:
         try:
             if args.orchestrate:
@@ -162,7 +174,8 @@ def cmd_convene(args) -> int:
             else:
                 votes = engine.demo_votes(c, scenario=args.scenario)
             rec = engine.convene_with_votes(c, question, votes, reg, lane=args.lane,
-                                            do_audit=not args.no_audit, profile=args.profile)
+                                            do_audit=not args.no_audit, profile=args.profile,
+                                            signals=signals)
         except RegistryError as exc:
             print(exc); return 1
         if args.json:
@@ -175,12 +188,26 @@ def cmd_convene(args) -> int:
                 "    blind spot (e.g. all one model/provider), they can be confidently wrong\n"
                 "    together. Diversify your model lanes — see THREAT_MODEL.md.\n"))
         if args.orchestrate and not args.json:
-            verdicts = rec.get("verdicts", [])
+            # The tool lens runs real local checks (it abstains rather than being
+            # "unavailable"), so gauge model reachability on the NON-tool lenses.
+            verdicts = [v for v in rec.get("verdicts", [])
+                        if (v.get("provenance") or "") != "tool" and v.get("model") != "tool"]
             unavail = [v for v in verdicts if v.get("vote") == "unavailable"]
             if verdicts and len(unavail) == len(verdicts):
                 sys.stderr.write(_c("33",
                     "\n  hint: no model lanes resolved — run `eldercouncil models check` and pin a real\n"
                     "        model per lane in .council/council-models.json before --orchestrate.\n"))
+        if not args.json and not args.demo:
+            div = rec.get("diversity") or {}
+            if div.get("monoculture"):
+                sys.stderr.write(_c("33", f"\n  ⚠ diversity: {div['note']}\n"))
+            elif div.get("families") == ["host"]:
+                sys.stderr.write(_c("36", f"\n  diversity: {div['note']}\n"))
+        app = rec.get("approval") or {}
+        if app and not args.json:
+            colour = "32" if app.get("status") == "verified" else "33"
+            hint = "" if app.get("status") == "verified" else "  (what this means: docs/GATES.md)"
+            sys.stderr.write(_c(colour, f"  approval: {app.get('approver')} — {app.get('status')}{hint}\n"))
         # `--demo` is an illustration, not a gate → always exit 0. Real runs
         # (`--orchestrate`) gate on the DISPOSITION (council route ∧ gate result).
         if args.demo:
@@ -263,6 +290,13 @@ def cmd_gates(args) -> int:
                 return 2
         else:
             action = raw
+        # Same approval provenance rule as the engine: verify or honestly label;
+        # a failed verification strips the assertion (gates escalate, fail-closed).
+        from .approval import check_approval
+        signals, approval = check_approval(signals)
+        if approval:
+            colour = "32" if approval.get("status") == "verified" else "33"
+            sys.stderr.write(_c(colour, f"approval: {approval.get('approver')} — {approval.get('status')}\n"))
         try:
             report = gates.evaluate(args.profile, signals, action=action)
         except GatePolicyError as exc:
@@ -297,7 +331,10 @@ def cmd_models(args) -> int:
     if args.models_cmd == "check":
         from .config import load_config
         cfg_lane = load_config().lane          # check the lane THIS project actually uses
-        miss = unresolved(reg)
+        # Scope the unpinned listing to the configured lane — the local lane's
+        # sentinels are INTENTIONAL (unpinned = inherit the host model), so an
+        # open-lane project must not fail forever on them.
+        miss = [m for m in unresolved(reg) if m.endswith(":" + cfg_lane)]
         mono = monoculture(reg, cfg_lane)
         # How many lenses will inherit the host model on this lane (sentinel/null → inherit)?
         inheriting = sum(
@@ -310,8 +347,9 @@ def cmd_models(args) -> int:
             # correlated blind spots. Warn, but don't fail (a user may intend it).
             print(_c("33", f"⚠ monoculture: every pinned lens on the '{cfg_lane}' lane maps to '{mono}'. "
                             f"The voices share one model's blind spots — the deterministic Tool lens and your "
-                            f"final decision stay independent, but pin a different-family voice (esp. "
-                            f"cross_family_critic) for real plural review. See THREAT_MODEL.md."))
+                            f"final decision stay independent, but repin a seated voice (e.g. "
+                            f"critic_challenge) to a different family for real plural review. "
+                            f"See docs/MODEL-GUIDANCE.md."))
         if cfg_lane in ("local", "open") and inheriting:
             # On a BYO/local lane, unpinned means "inherit your agent's own model" — that's the
             # intended setup (e.g. Claude Code on Ollama), not a misconfiguration. One model =
@@ -420,6 +458,8 @@ def build_parser() -> argparse.ArgumentParser:
     cv.add_argument("--scenario", default="default", choices=["default", "monoculture"],
                     help="'monoculture' shows the failure a council does NOT catch (shared blind spot)")
     cv.add_argument("--orchestrate", action="store_true", help="run with your own models ([orchestrator] extra)")
+    cv.add_argument("--signals", help='JSON object of asserted gate signals, e.g. '
+                    '\'{"human_approver":"jane","rollback_plan":true}\' (malformed -> exit 2)')
     cv.add_argument("--profile", default="standard", choices=["lite", "standard", "regulated"],
                     help="control-gate profile (default: standard)")
     cv.add_argument("--lane", default="frontier", choices=["frontier", "open", "local"],

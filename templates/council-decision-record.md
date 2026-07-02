@@ -52,6 +52,12 @@
 ## Review date
 <!-- When the outcome will be reviewed. -->
 
+## Diversity
+<!-- Which provider FAMILIES actually voted (the record's `diversity` field). A monoculture council
+     shares one lineage's blind spots — say so here if you ran one anyway, and why. -->
+
 ## Audit
-<!-- decision_id · profile · model versions · prompt/tool-arg hashes · human_approver + approval_basis · chain hash -->
+<!-- decision_id · profile · model versions · prompt/tool-arg hashes · human_approver + approval_basis
+     (+ its verification status: verified / asserted-unverified / stripped) · vote provenance
+     (tool / host-asserted / demo) · chain hash -->
 

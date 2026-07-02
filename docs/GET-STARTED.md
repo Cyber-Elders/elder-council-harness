@@ -48,9 +48,19 @@ pip install -e .
 This puts the `eldercouncil` command on your machine. It ships **no AI model and no API keys** — the
 councils run on the model your coding agent already uses.
 
-## Step 2 — wire the councils into your agent
+> **If the install command is refused:** on newer Macs/Linux, `pip` may say
+> `externally-managed-environment`. Use `pipx install -e .` instead (or
+> `python3 -m venv ~/.eldercouncil-env && ~/.eldercouncil-env/bin/pip install -e .`). And if a later
+> step says `eldercouncil: command not found`, the command isn't on your PATH — `pipx` avoids this;
+> with a venv, use its full path or activate it first.
+
+## Step 2 — go to YOUR project, then wire the councils in
+
+**This step matters:** `install` writes into the folder you run it from. Leave the harness download
+and go to **your own project** — the folder you open in your coding agent — then install:
 
 ```console
+cd /path/to/your/project
 eldercouncil install claude-code --all      # or: cursor / opencode / copilot / kiro
 ```
 
@@ -115,10 +125,25 @@ Decision is **advisory** — you convene it yourself; the gate won't pop it up f
 - **"Do I need API keys?"** No keys for the demo. For real runs, the councils use **whatever model your
   coding agent already runs** — so if your agent works, the councils work.
 - **"It said `block`. Now what?"** Read the dissenting lenses' reasons, then decide. `block` routes to a
-  human (you) on purpose — it's not a dead end, it's a "look before you leap."
+  human (you) on purpose — it's not a dead end, it's a "look before you leap." To proceed anyway *on
+  the record*, assert the approval signals — see [GATES.md](GATES.md) → "Asserting signals".
+- **"It printed `approval: … asserted — unverified`. Is that a problem?"** No — it means you asserted
+  an approver and the harness recorded it without confirming it (nothing is configured to check). To
+  have it actually checked against your ticket system, see [GATES.md](GATES.md).
+- **"Which model setup should I pick?"**
+
+  | You want | Pick | Trade-off |
+  |---|---|---|
+  | Private & simplest | [Ollama local](CLAUDE-CODE-OLLAMA.md) | one model family (monoculture — the CLI will say so) |
+  | Real cross-vendor argument, one paid key | [OpenRouter](OPENROUTER.md) | prompts go to a hosted service |
+  | Free cross-vendor, all local | open lane + OpenCode ([MODEL-GUIDANCE.md](MODEL-GUIDANCE.md)) | needs ~24 GB+ RAM and OpenCode |
 - **"Can I run it on my own local models (Ollama, etc.)?"** Yes — [CLAUDE-CODE-OLLAMA.md](CLAUDE-CODE-OLLAMA.md)
-  is a copy-paste, fully-local recipe; [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md) covers mixing models
-  (cross-family / hybrid).
+  is a copy-paste, fully-local recipe; [OPENROUTER.md](OPENROUTER.md) gets you a genuinely
+  **cross-family** council with one API key; [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md) is the
+  which-model-per-seat reference.
+- **"Can my coding agent just set this up for me?"** Yes — paste it the one-line prompt at the top of
+  [AGENT-SETUP.md](AGENT-SETUP.md); it asks you a few plain questions, installs, customises, and
+  reports back.
 
 ## Worked? Two things help a lot
 

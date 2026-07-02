@@ -28,8 +28,11 @@ ships **no model and no API keys** — councils run on the user's own LLM(s).
 ## Residual risks (the honest edges)
 
 1. **Audit records contain user data.** `.council/decisions/*.json` records the action, the votes, the
-   reasoning, and the dissent. If you convene a council on sensitive material, that material is written
-   to disk in plaintext. `.council/` is git-ignored by default — **do not commit it**, and treat it as
+   reasoning, and the dissent. Secret- and PII-shaped values are **redacted at persistence time by
+   default** (`[audit] redact`, shared regexes with the gates — the value a gate flags is masked
+   before it touches disk). Redaction is regex-based and conservative: it catches common credential
+   and PII shapes, **not everything sensitive**. The installer adds `.council/` to your project's
+   `.gitignore` (verify it survived your tooling) — **do not commit it**, and still treat it as
    user data.
 2. **BYO-LLM means prompts leave your boundary.** The harness ships no keys, but when you run a council
    (via your agent or the optional orchestrator), prompts go to **your configured provider**.
@@ -41,22 +44,36 @@ ships **no model and no API keys** — councils run on the user's own LLM(s).
 4. **The risk gate is keyword-based and bypassable by obfuscation.** It keys on visible tokens to
    *route* (escalate or not). An encoded or obfuscated destructive command can score low. The gate
    routes; it does not adjudicate. Pair it with deterministic tools and human judgement for high blast
-   radius.
+   radius. The **cry-wolf direction matters too**: an over-firing gate trains users to ignore it, which
+   is its own failure mode. Matching is word-boundary-precise (substrings inside ordinary words don't
+   fire) and the keyword lists are tuned for precision — accepting that **under-escalation stays the
+   pinned bypass limit** above.
 5. **On hard-block IDEs the gate enforces escalation, not council quality.** It can stop an action and
    require a council; it cannot make the host model reason well or run every lens faithfully.
 6. **Correlated error — the limit that matters most.** A council reduces *single*-model risk, not
    *correlated* error. If your lenses share a base model or training lineage, they share blind spots
    and can be confidently wrong together — the exact failure the tool exists to mitigate. The shipped
-   default pins only one provider (Anthropic) on the frontier slot, so an out-of-the-box council is a
-   **monoculture** until you diversify it. `eldercouncil models check` warns when every lens resolves
-   to one provider, and `convene <council> --demo --scenario monoculture` demonstrates the failure.
-   **Pin at least one lens (e.g. the cross-family critic) to a different model family.** The consensus
-   tally has no way to detect lens diversity — that is your responsibility.
-7. **Severity is lens-asserted, not authenticated.** A `CRITICAL` finding can force a block. To limit
-   abuse (a prompt-injected or over-eager reasoning lens forcing a denial-of-service), a council that
-   has a deterministic-tool lens honours `CRITICAL` **only** from that lens; a council without one
-   honours any lens's `CRITICAL` (fail-closed). Note the asymmetry: the *absence* of a severity field
-   does **not** mean "not critical" — it just means no lens asserted one.
+   default frontier lane pins one provider (Anthropic) — verified-real tags only — so a frontier-lane
+   council is a **monoculture** until you diversify it; the **open lane ships a cross-family default**
+   (Alibaba / DeepSeek / Mistral / Google / OpenAI lineages) for OpenCode and `--orchestrate`.
+   Every decision record now carries a **`diversity` field** (which provider families actually voted),
+   and the CLI **warns at verdict time** when every model lens resolved to one family. This is
+   detection + warning, **not enforcement** — the tally never rejects a monoculture council; whether
+   to run one remains your call. (On host-reported paths the model tags feeding `diversity` are
+   themselves asserted — a host could misreport them.) `eldercouncil models check` warns ahead of time, and
+   `convene <council> --demo --scenario monoculture` demonstrates the failure.
+   **Pin at least one SEATED lens (e.g. `critic_challenge`) to a different model family** — the `cross_family_critic` role exists for custom councils; no shipped council seats it.
+7. **Severity is lens-asserted, not authenticated — except the orchestrate tool lens.** A `CRITICAL`
+   finding can force a block. To limit abuse (a prompt-injected or over-eager reasoning lens forcing a
+   denial-of-service), a council that has a deterministic-tool lens honours `CRITICAL` **only** from
+   that lens; a council without one honours any lens's `CRITICAL` (fail-closed). In the
+   `--orchestrate` path the tool lens **actually runs deterministic checks** (built-in detectors +
+   your `[tools]` commands) and its votes carry `provenance: "tool"`; when the HOST agent runs the
+   tool lens (the in-IDE path), the harness cannot verify which tools ran — those votes are
+   `host-asserted` and the verdict rationale says so. Authority stays role-based either way (stripping
+   host-run tool votes would fail open); on the MCP path a host-claimed `tool`/`demo` label is coerced
+   to `host-asserted` — the harness cannot verify it, so it does not pretend to. Note the asymmetry: the *absence* of a severity field does
+   **not** mean "not critical" — it just means no lens asserted one.
 8. **Outage is reported as `inconclusive`, not a verdict.** If too many lenses are unreachable, the
    council returns `inconclusive` (routed to a human), never a deliberated-looking `block`/`allow` — so
    an infrastructure failure is not mistaken for a decision. Distinguishing the two is the honest design.
@@ -101,7 +118,10 @@ will not pretend to enforce what it cannot.
 ## Trust boundary
 
 Elder Council trusts: the local Python runtime, the policy/council/registry files in the package and
-`.council/`, and the user's own model access. It does **not** trust: tool inputs, fetched content,
+`.council/`, and the user's own model access. The optional `[tools]` commands and
+`[signals] approval_verify_command` are **operator-configured local commands** the harness executes
+(argv-parsed, never a shell, with timeouts) — treat `.council/config.toml` as code and protect it like
+`gate-policy.yaml`. It does **not** trust: tool inputs, fetched content,
 dependency manifests, or the contents of files it is asked to review. It assumes the operator wants
 the gate enforced — a user with write access to `.council/` can change the councils, the registry, or
 the audit, by design (it is their project).

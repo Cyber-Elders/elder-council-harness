@@ -11,6 +11,15 @@ every command is copy-pasteable.
 > makes every council voice run on *your* model. The steps below are from
 > [Ollama's own docs](https://docs.ollama.com/integrations/claude-code).
 
+## What you need
+
+- **Claude Code** installed (this recipe is specifically for it).
+- **[Ollama](https://ollama.com/download)** — free; runs as a desktop app on macOS/Windows.
+- **Python 3.11+** (for the one-time `eldercouncil` install below).
+- **RAM guide:** an 8–14B model fits ~16 GB; a 30B-class MoE wants ~24 GB — see the RAM table in
+  [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md).
+- You do **not** need: any API key, any cloud account, or an internet connection after the model pull.
+
 ## Step 1 — install Ollama and pull a model
 
 Install Ollama (ollama.com/download). On macOS and Windows it runs as a desktop app and **serves
@@ -44,6 +53,8 @@ export ANTHROPIC_API_KEY=""            # clear it so the auth-token path is used
 claude --model qwen3
 ```
 
+*(Windows PowerShell: use `$env:ANTHROPIC_BASE_URL="http://localhost:11434"` — same for the others.)*
+
 You're now running Claude Code on a local model — your prompts go to your local Ollama, not a cloud
 provider.
 
@@ -55,7 +66,8 @@ draw from; `local` means your own.)*
 
 ```console
 git clone https://github.com/Cyber-Elders/elder-council-harness && cd elder-council-harness
-pip install -e .
+pip install -e .          # pip refused? use pipx — see the fix box in GET-STARTED.md
+cd /path/to/your/project  # IMPORTANT: install writes into the CURRENT folder — your project
 eldercouncil install claude-code --all --lane local
 ```
 
@@ -78,13 +90,17 @@ In your Claude-Code-on-Ollama session, when the gate asks you to convene (or any
 Every lens runs on your local model; you get the verdict and the preserved dissent, all on-device. (New
 to the verdict/dissent output? See [GET-STARTED.md](GET-STARTED.md).)
 
+> **Want real disagreement instead of one local family?** A cross-family council (different vendors
+> arguing) needs per-seat models — that's [OPENROUTER.md](OPENROUTER.md) (one key, hosted) or the
+> OpenCode recipe in [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md) (all-local). This recipe and those compose.
+
 ## Honest note — one model means one set of blind spots
 
 Running all the lenses on your **single** local model is a **monoculture**: the voices share that
 model's blind spots, so they can be confidently wrong *together* — the very thing a council exists to
-prevent. It still helps (the deterministic **Tool lens** runs real scans, and **you** make the final
-call — both independent of the model), but you get the most value when the voices can genuinely
-disagree. To add a truly different voice, run a council on a **second** local model, or pin one lens to
+prevent. It still helps — **you** make the final call, and the Code council's **Tool lens** is
+instructed to run real scanners (in this in-IDE journey your agent runs them, so its report is
+recorded as `host-asserted`) — but you get the most value when the voices can genuinely disagree. To add a truly different voice, run a council on a **second** local model, or pin one lens to
 a hosted/cross-family model (see [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md)). `eldercouncil models check`
 will flag a single-model setup.
 
@@ -96,6 +112,7 @@ will flag a single-model setup.
 | Background tasks 404 on a Claude name | If you *didn't* use `--lane local`, Ollama can't find the pinned Claude tags — either re-install with `--lane local`, or alias them per Ollama's docs: `ollama cp qwen3 claude-opus-4-8` (repeat for each). `--lane local` avoids this entirely. |
 | First run hangs / times out | Large models are slow to cold-load — pre-warm once: `ollama run qwen3 "hi"`, then launch. |
 | Lenses give poor/garbled answers | Use a stronger tool-capable model and raise the context window (64k+). |
+| Verdict says `diversity: every lens inherited the host model — diversity unknown` | Expected on this recipe: all lenses run on your one Ollama model, so the harness can't see families disagreeing. It's the monoculture trade-off below — not an error. |
 
 > **Feature limits (Ollama's Anthropic shim):** tool-calling, streaming, system prompts, vision, and
 > extended thinking work; `tool_choice`, prompt caching, token-counting, and PDFs do not — none of

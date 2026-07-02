@@ -95,7 +95,9 @@ def _gate_overlay(action: str, target: str, cfg) -> tuple[str, str, bool]:
                                 only=["offensive_misuse", "data_sensitivity", "context_integrity"],
                                 affirmative=False)
     except Exception:  # noqa: BLE001 — gate policy issues must never crash the hook
-        return "allow", "", False
+        # Degraded, and SAY so: the base risk gate still applies, but the detector
+        # overlay (hard stop / secrets / injection) is out of action.
+        return "allow", " [detector-gate overlay unavailable — policy error; risk gate only]", False
     if report.hard_stopped:
         return "block", " ⛔ hard stop: offensive-cyber-misuse gate", True
     if report.result in ("block", "human_required"):
@@ -141,8 +143,8 @@ def _safe_gate_audit(action, target, d):
 
 
 def _gate_claude_code(event: dict) -> int:
-    action = _normalize_tool(event.get("tool_name", ""))
-    target = _target_from_input(event.get("tool_input", {}))
+    action = _normalize_tool(event.get("tool_name", event.get("action", "")))
+    target = _target_from_input(event.get("tool_input", event.get("target", {})))
     d = _decide(action, target)
     _safe_gate_audit(action, target, d)
     perm = {"allow": "allow", "ask": "ask", "block": "deny"}[d["verdict"]]
@@ -155,7 +157,7 @@ def _gate_claude_code(event: dict) -> int:
 
 def _gate_opencode(event: dict) -> int:
     action = _normalize_tool(event.get("tool", event.get("action", "")))
-    raw = event.get("args", event.get("tool_input", {}))
+    raw = event.get("args", event.get("tool_input", event.get("target", {})))
     target = raw if isinstance(raw, str) else _target_from_input(raw)
     d = _decide(action, target)
     _safe_gate_audit(action, target, d)
@@ -165,7 +167,7 @@ def _gate_opencode(event: dict) -> int:
 
 def _gate_kiro(event: dict) -> int:
     action = _normalize_tool(event.get("tool_name", event.get("tool", "")))
-    raw = event.get("tool_input", event.get("input", event.get("args", {})))
+    raw = event.get("tool_input", event.get("input", event.get("args", event.get("target", {}))))
     target = raw if isinstance(raw, str) else _target_from_input(raw)
     d = _decide(action, target)
     _safe_gate_audit(action, target, d)
@@ -214,7 +216,7 @@ def run_audit(ide: str, stdin_text: str) -> int:
     except json.JSONDecodeError:
         return 0  # post-tool logging is best-effort; never fail the turn
     action = _normalize_tool(event.get("tool_name", event.get("tool", "")))
-    raw = event.get("tool_input", event.get("args", {}))
+    raw = event.get("tool_input", event.get("args", event.get("target", {})))
     target = raw if isinstance(raw, str) else _target_from_input(raw)
     rs = assess(f"{action} {target}")
     try:

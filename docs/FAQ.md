@@ -21,6 +21,17 @@ No. Elder Council **ships no keys and no model** — it is bring-your-own-LLM. T
 coding agent's own model(s). The optional `[orchestrator]` extra can run councils headless using your
 own provider credentials (read from the environment), but that is opt-in.
 
+**Can my coding agent set all of this up for me?**
+Yes. Paste the one-line prompt at the top of **[AGENT-SETUP.md](AGENT-SETUP.md)** to your agent — it
+asks you a few plain-language questions (what to watch, how strict, private-or-not), installs with the
+matching flags, customises councils/models/config to your answers, and reports back in plain English.
+
+**How do I get a genuinely cross-family council (different vendors arguing)?**
+Three ways, by preference: **OpenRouter** (one key, hosted — [OPENROUTER.md](OPENROUTER.md)),
+**OpenCode on the open lane** (`install opencode --all --lane open` — the shipped default assigns five
+open-weight families via local Ollama), or **`--orchestrate`** headless with your own pins. Claude Code
+can't mix families in-session (single-provider) — see [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md) §1.
+
 **Can I run it entirely on my own local models (offline, nothing leaves the device)?**
 Yes. Point your coding agent at a local backend (e.g. **Claude Code → Ollama**) and install on the
 local lane: `eldercouncil install <ide> --all --lane local` makes **every lens run on your own model**
@@ -31,10 +42,11 @@ single local model is a monoculture — add a second/different-family voice for 
 
 **Which models should each lens use?**
 You choose. Each lens is mapped to a model (with separate slots for a hosted-frontier, an open-weight,
-and a local/offline option). The defaults ship only verified Anthropic models; the other slots are
-placeholders you fill in with whatever you run. `eldercouncil models check` tells you which are still
-unset — and warns if every lens resolves to a single provider (a correlated-blind-spot risk). Re-pin
-as models change. *(For cross-model diversity — the whole point — pin at least one lens to a different
+and a local/offline option). Shipped defaults are verified-real only: Anthropic on the frontier lane,
+a **cross-family open-weight set** on the open lane, and deliberate placeholders on the local lane
+(unpinned = inherit your agent's own on-device model). `eldercouncil models check` tells you what's
+unpinned on YOUR lane — and warns if every lens resolves to a single provider (a correlated-blind-spot
+risk); the verdict itself also records which families actually voted. Re-pin as models change. *(For cross-model diversity — the whole point — pin at least one lens to a different
 model family.)* See **[MODEL-GUIDANCE.md](MODEL-GUIDANCE.md)** for concrete per-role picks, what each
 IDE can actually run (Claude Code is single-provider per session; OpenCode/Copilot/Cursor can go
 cross-family), and privacy-first (all-local) vs hybrid (local + Ollama Cloud) setups.

@@ -124,3 +124,36 @@ def test_files_are_utf8(tmp_path):
     install.install("claude-code", councils=["code-council"], target_dir=str(tmp_path))
     # CLAUDE.md and a role agent must be valid UTF-8 (Windows cp1252 trap)
     (tmp_path / "CLAUDE.md").read_text(encoding="utf-8")
+
+
+def test_open_lane_claude_code_guards_to_inherit(tmp_path, capsys):
+    # Claude Code is single-provider: an ollama/ open-lane pin cannot run there.
+    # The renderer must fail SAFE (inherit) and say so loudly.
+    install.install("claude-code", councils=["code-council"], target_dir=str(tmp_path), lane="open")
+    out = capsys.readouterr().out
+    bodies = [a.read_text(encoding="utf-8") for a in (tmp_path / ".claude" / "agents").glob("*.md")]
+    assert not any("model: ollama/" in b for b in bodies), "non-Claude tag leaked into a Claude agent"
+    assert all("model: inherit" in b or "model: claude-" in b for b in bodies)
+    assert "not runnable in Claude Code" in out and "docs/OPENROUTER.md" in out
+
+
+def test_open_lane_opencode_renders_cross_family(tmp_path):
+    # OpenCode runs per-agent models: the open lane must render >= 2 distinct
+    # families verbatim (the diversified default doing its job).
+    from eldercouncil import models as m
+    install.install("opencode", councils=["code-council"], target_dir=str(tmp_path), lane="open")
+    fams = set()
+    for a in (tmp_path / ".opencode" / "agents").glob("*.md"):
+        for line in a.read_text(encoding="utf-8").splitlines():
+            if line.startswith("model: ") and line.split(": ", 1)[1] != "inherit":
+                fams.add(m.provider_of(line.split(": ", 1)[1]))
+    assert len(fams) >= 2, f"open-lane OpenCode council is not cross-family: {fams}"
+
+
+def test_install_gitignores_council_dir(tmp_path):
+    install.install("claude-code", councils=["code-council"], target_dir=str(tmp_path))
+    gi = (tmp_path / ".gitignore").read_text(encoding="utf-8")
+    assert ".council/" in gi.splitlines()
+    # idempotent
+    install.install("claude-code", councils=["code-council"], target_dir=str(tmp_path))
+    assert (tmp_path / ".gitignore").read_text(encoding="utf-8").count(".council/") == 1

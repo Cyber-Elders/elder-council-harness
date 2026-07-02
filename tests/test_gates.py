@@ -110,3 +110,12 @@ def test_cli_gate_fails_closed_on_malformed_json():
     assert cli.main(["gates", "check", "{action: not valid json"]) == 2  # malformed -> blocked
     assert cli.main(["risk-gate", "{not json either"]) == 2              # same guard on risk-gate
     assert cli.main(["gates", "check", '{"action": "read a file"}']) == 0  # valid benign still proceeds
+
+
+def test_confidence_word_form_does_not_crash_high_impact_eval():
+    # The deliberation protocol itself says "Confidence: <Low|Medium|High>" —
+    # asserting the documented word form must parse, not crash the evaluation.
+    r = gates.evaluate("standard", {"confidence": "High"}, action="deploy auth change to production")
+    assert r.result  # evaluated without raising
+    r2 = gates.evaluate("standard", {"confidence": "not-a-number"}, action="deploy auth change to production")
+    assert r2.result  # unparseable -> affirmation unsatisfied -> still evaluates (fail-closed)

@@ -14,11 +14,18 @@ from __future__ import annotations
 
 import asyncio
 
+from ..toollens import run_tool_lens
 from .client import parse_vote
 from .providers import ProviderError, select_client
 
 
-def _run_one(task: dict, outcomes: list[str]) -> dict:
+def _run_one(task: dict, outcomes: list[str], question: str = "") -> dict:
+    if task.get("is_tool"):
+        # The deterministic tool lens runs REAL checks (built-in detectors +
+        # configured [tools] commands) — it is never sent to a model. This is
+        # what makes its CRITICAL an authoritative finding rather than one more
+        # injectable opinion.
+        return run_tool_lens(task["role"], question, outcomes)
     model = task.get("model", "inherit")
     try:
         client = select_client(model)
@@ -37,9 +44,10 @@ def _run_one(task: dict, outcomes: list[str]) -> dict:
 
 async def _gather(review: dict) -> list[dict]:
     outcomes = review.get("decision_outcomes", [])
-    loop = asyncio.get_event_loop()
+    question = review.get("question", "")
+    loop = asyncio.get_running_loop()
     return await asyncio.gather(*[
-        loop.run_in_executor(None, _run_one, t, outcomes) for t in review["tasks"]
+        loop.run_in_executor(None, _run_one, t, outcomes, question) for t in review["tasks"]
     ])
 
 

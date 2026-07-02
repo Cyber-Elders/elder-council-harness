@@ -85,7 +85,10 @@ bodies unchanged. Run `eldercouncil models check` to find lanes you still need t
 **Which model for which lens?** See [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md) — it maps each role to
 concrete open-weight picks per IDE (note: **Claude Code is single-provider per session**; OpenCode /
 Copilot / Cursor can run cross-family), plus privacy-first all-local (Mac MLX / AI PC by RAM tier) and
-hybrid (local + Ollama Cloud) setups.
+hybrid (local + Ollama Cloud) setups. The **open lane ships a cross-family default** (`--lane open`,
+OpenCode/`--orchestrate`); for hosted cross-family with one key see [OPENROUTER.md](OPENROUTER.md).
+Installing on `--lane open` in Claude Code renders `model: inherit` with a warning — those tags can't
+run in a single-provider session (fail-safe, and the verdict's `diversity` field tells the truth).
 
 ## Adding an MCP-capable IDE
 

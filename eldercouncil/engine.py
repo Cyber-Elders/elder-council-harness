@@ -17,7 +17,7 @@ Three vote sources:
 
 from __future__ import annotations
 
-from . import audit, convene, gates
+from . import audit, convene, gates, models
 from .config import load_config
 from .consensus import tally
 from .models import ModelRegistry
@@ -35,20 +35,30 @@ def convene_with_votes(council, question: str, votes, registry: ModelRegistry,
     restrictive of the council route and the gate result)."""
     outcome = tally(votes, council)
     profile = profile or load_config().profile
+    # Any asserted human approval is verified (or honestly labeled unverified)
+    # BEFORE the gates see it; a failed verification strips the assertion, so the
+    # gates escalate exactly as if no approval existed (fail-closed).
+    from .approval import check_approval
+    signals, approval = check_approval(signals or {})
     try:
-        report = gates.evaluate(profile, signals or {}, action=question, target="",
+        report = gates.evaluate(profile, signals, action=question, target="",
                                 outcome=outcome, council=council)
         gate_report = report.to_dict()
     except gates.GatePolicyError:
         gate_report = {"result": "escalate", "error": "gate policy unavailable — fail closed"}
+    # Decision-time diversity: which provider families actually voted (the
+    # correlated-blind-spot check the tally itself deliberately does not enforce).
+    diversity = models.diversity_of(getattr(outcome, "votes", []) or [])
     rec = audit.build_record(council.id, question, outcome, mode=council.mode,
                              risk=risk or {}, context=context or {},
-                             gate_report=gate_report, profile=profile)
+                             gate_report=gate_report, profile=profile,
+                             diversity=diversity, approval=approval)
     if do_audit:
         try:
             audit.record(council.id, question, outcome, mode=council.mode,
                          risk=risk or {}, context=context or {},
-                         gate_report=gate_report, profile=profile)
+                         gate_report=gate_report, profile=profile,
+                         diversity=diversity, approval=approval)
         except OSError:
             pass  # never let an audit-write failure swallow the verdict
     return rec
@@ -163,14 +173,17 @@ def demo_votes(council, scenario: str = "default") -> list[dict]:
                            if o in ("merge", "approve", "recommend", "observe", "proceed-with-controls")),
                           council.decision_outcomes[0])
         return [{"role": r.name, "model": "demo", "vote": permissive, "confidence": 0.85,
+                 "provenance": "demo",
                  "reason": "looks fine to me (shared blind spot — no lens sees the flaw)"}
                 for r in council.roles]
     canned = _DEMO.get(council.id)
     if canned:
-        return canned
+        # Illustrative votes are labeled as such — a demo CRITICAL is canned, not
+        # a real scanner finding (the --orchestrate tool lens runs real checks).
+        return [dict(v, provenance="demo") for v in canned]
     outs = list(council.decision_outcomes)
     return [
         {"role": r.name, "model": "demo", "vote": outs[i % min(2, len(outs))], "confidence": 0.6,
-         "reason": "illustrative demo vote"}
+         "provenance": "demo", "reason": "illustrative demo vote"}
         for i, r in enumerate(council.roles)
     ]

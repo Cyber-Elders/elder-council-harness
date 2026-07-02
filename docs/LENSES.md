@@ -34,8 +34,8 @@ Task-specific roles used by particular councils; each maps to a canonical family
 | Incident Response Owner (`ir_owner`) | security | Threat Hunting | what to contain, preserve, escalate — and who owns it |
 | Cross-Family Critic (`cross_family_critic`) | critic | *(opt-in)* | an independent reviewer from a **different model family** — disagreement is signal |
 | Arbitrator (`arbitrator`) | strategic | *(opt-in)* | proposes the final recommendation; never overrides a fail-closed rule |
-| Synthesiser (`synthesiser`) | strategic | advisory councils | integrates the lenses into one record, preserving dissent |
-| Deterministic Tool (`deterministic_tool`) | engineering | Code | **not an LLM** — runs SAST/scans/tests and feeds findings as evidence |
+| Synthesiser (`synthesiser`) | strategic | custom councils (no shipped council seats it; the registry pins it for your own rosters) | integrates the lenses into one record, preserving dissent |
+| Deterministic Tool (`deterministic_tool`) | engineering | Code | **not an LLM** — in `--orchestrate` the harness itself runs real checks (built-in secret/injection/PII detectors + your `[tools]` commands; `provenance: tool`); in-IDE, your agent is instructed to run real tools and its report is `host-asserted` (the harness cannot verify it) |
 
 ## Model resolution
 
@@ -46,9 +46,10 @@ role_key (e.g. security_sme)  ──▶  council-models.json[role][lane]  ──
 ```
 
 - **Lanes:** `frontier` (hosted frontier models), `open` (open-weight), `local` (on-device/offline).
-- The shipped default pins **only verified-real Anthropic tags** on the `frontier` lane; every
-  cross-family, open-weight, and local lane ships as a `REPLACE_ME:<capability>` sentinel for you to
-  pin. `eldercouncil models check` flags any unpinned lane.
+- Shipped defaults are verified-real only: Anthropic tags on the `frontier` lane, and a
+  **cross-family open-weight set** (Alibaba / DeepSeek / Mistral / Google / OpenAI lineages,
+  `ollama/` form) on the `open` lane. The `local` lane deliberately ships unpinned (= inherit your
+  agent's own on-device model). `eldercouncil models check` flags anything unpinned on your lane.
 - **Cross-family diversity matters.** Independent reviewers drawn from *different* model families
   catch failure modes a same-family panel shares. The `cross_family_critic` lens exists for exactly
   this; pin it to a non-Anthropic model.

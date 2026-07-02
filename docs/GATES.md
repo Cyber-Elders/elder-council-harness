@@ -76,3 +76,28 @@ secrets, injection) so a blatant offensive request is stopped before the tool ru
 runs at decision time, where the council context and asserted signals exist. See
 [ARCHITECTURE.md](ARCHITECTURE.md) for where gates sit in the loop, and [../THREAT_MODEL.md](../THREAT_MODEL.md)
 for the adversarial threats to the gate layer itself.
+
+## Asserting signals (and verifying the human approval)
+
+Gates evaluate **signals**. The harness derives some (secret/PII/injection scans, dissent, budget);
+the rest are **asserted** by whoever convenes the council:
+
+```console
+eldercouncil convene code-council --orchestrate \
+  --signals '{"human_approver":"jane","approval_basis":"CAB-142","rollback_plan":true,"evidence_provided":true}' \
+  --question "deploy the auth change to production"
+```
+
+Malformed `--signals` JSON exits 2 (fail-closed — bad input must not become "no signals asserted").
+On a **high-impact** action, every `require_on_high_impact` affirmation your policy lists and you did
+NOT assert counts as missing → the gates **escalate to a human**. That is intentional: headless runs
+without asserted evidence are noisy by design; assert what is actually true, never more.
+
+**`human_approver` is provenance-checked, not blindly trusted.** Unverified assertions are recorded as
+`asserted — unverified`. Set `[signals] approval_verify_command` in `.council/config.toml` to a command
+that checks your ticket/approvals system (it receives `ELDERCOUNCIL_APPROVER` / `ELDERCOUNCIL_BASIS`
+in its environment): exit 0 = `verified`; anything else **strips the assertion** and the gates escalate
+as if no approval existed. Authenticating the human (SSO/MFA, out-of-band) remains the operator's
+responsibility — see THREAT_MODEL.md. Inside your verify script, treat `ELDERCOUNCIL_APPROVER` /
+`ELDERCOUNCIL_BASIS` as **untrusted input** (they are host-asserted strings — no eval, no unquoted
+interpolation).

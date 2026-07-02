@@ -168,3 +168,65 @@ def test_vote_dataclass_accepted():
     o = tally([Vote("r1", "m", "merge", 0.9), Vote("r2", "m", "merge", 0.9), Vote("r3", "m", "merge", 0.9)],
               mkcouncil(mode="action-gate", n_roles=3, outcomes=("merge", "block")))
     assert o.verdict == "merge"
+
+
+# --- provenance: labeled honestly; CRITICAL authority stays role-based --------
+
+def test_provenance_carried_and_tool_critical_annotated():
+    from types import SimpleNamespace
+    roles = [SimpleNamespace(name="Tool", arbitrator=False, is_tool=True),
+             SimpleNamespace(name="Eng", arbitrator=False, is_tool=False)]
+    c = SimpleNamespace(mode="action-gate", roles=roles, decision_outcomes=["merge", "block"], id="stub")
+    o = tally([
+        {"role": "Tool", "model": "tool", "vote": "block", "confidence": 0.9,
+         "severity": "CRITICAL", "provenance": "tool", "reason": "secret found"},
+        {"role": "Eng", "model": "test", "vote": "merge", "confidence": 0.8, "reason": ""},
+    ], c)
+    assert o.verdict == "block" and o.route == "human"
+    assert "[deterministic tool finding]" in o.rationale
+    assert any(v.get("provenance") == "tool" for v in o.votes)
+
+
+def test_host_asserted_tool_critical_STILL_blocks_with_honest_label():
+    # Fail-closed: a host-run tool lens keeps CRITICAL authority (gating on
+    # provenance would silently strip it), but the rationale says it is asserted.
+    from types import SimpleNamespace
+    roles = [SimpleNamespace(name="Tool", arbitrator=False, is_tool=True),
+             SimpleNamespace(name="Eng", arbitrator=False, is_tool=False)]
+    c = SimpleNamespace(mode="action-gate", roles=roles, decision_outcomes=["merge", "block"], id="stub")
+    o = tally([
+        {"role": "Tool", "model": "host", "vote": "block", "confidence": 0.9,
+         "severity": "CRITICAL", "provenance": "host-asserted", "reason": "gitleaks hit"},
+        {"role": "Eng", "model": "test", "vote": "merge", "confidence": 0.8, "reason": ""},
+    ], c)
+    assert o.verdict == "block" and o.route == "human"
+    assert "host-asserted" in o.rationale and "not machine-verified" in o.rationale
+
+
+def test_unlabeled_critical_unchanged_rationale():
+    # No provenance -> exact legacy rationale (demo GIF/docs pin this string).
+    from types import SimpleNamespace
+    roles = [SimpleNamespace(name="Tool", arbitrator=False, is_tool=True),
+             SimpleNamespace(name="Eng", arbitrator=False, is_tool=False)]
+    c = SimpleNamespace(mode="action-gate", roles=roles, decision_outcomes=["merge", "block"], id="stub")
+    o = tally([
+        {"role": "Tool", "model": "tool", "vote": "block", "confidence": 0.9,
+         "severity": "CRITICAL", "reason": "scan"},
+        {"role": "Eng", "model": "test", "vote": "merge", "confidence": 0.8, "reason": ""},
+    ], c)
+    assert o.rationale == "a lens rated this CRITICAL (Tool) — blocked pending human review"
+
+
+def test_host_reported_tool_provenance_is_coerced():
+    # The MCP audit_log path cannot verify a claimed provenance — a spoofed
+    # "tool" label must not buy the deterministic-finding annotation or drop
+    # the vote out of the diversity check.
+    from eldercouncil.consensus import coerce_host_provenance
+    out = coerce_host_provenance([
+        {"role": "Tool", "vote": "block", "provenance": "tool"},
+        {"role": "Eng", "vote": "merge", "provenance": "demo"},
+        {"role": "Ops", "vote": "merge"},
+    ])
+    assert out[0]["provenance"] == "host-asserted"
+    assert out[1]["provenance"] == "host-asserted"
+    assert "provenance" not in out[2]

@@ -2,6 +2,7 @@
   "schema": "eldercouncil/decision/v1",
   "council": "code-council",
   "mode": "action-gate",
+  "profile": "standard",
   "question": "Review before push: adds a hardcoded AWS key in config.py and builds a SQL query by string concatenation on a user-supplied id.",
   "risk": {},
   "verdict": "block",
@@ -13,7 +14,8 @@
       "model": "demo",
       "vote": "merge",
       "confidence": 0.6,
-      "reason": "Clean structure, tests pass."
+      "reason": "Clean structure, tests pass.",
+      "provenance": "demo"
     },
     {
       "role": "AppSec SME",
@@ -21,14 +23,16 @@
       "vote": "block",
       "confidence": 0.9,
       "reason": "Hardcoded secret + unparameterised SQL in the diff.",
-      "severity": "HIGH"
+      "severity": "HIGH",
+      "provenance": "demo"
     },
     {
       "role": "Reliability / Operations SME",
       "model": "demo",
       "vote": "merge",
       "confidence": 0.55,
-      "reason": "Rollback path exists."
+      "reason": "Rollback path exists.",
+      "provenance": "demo"
     },
     {
       "role": "Deterministic Tool Lens",
@@ -36,14 +40,16 @@
       "vote": "block",
       "confidence": 0.95,
       "reason": "secret-scan: AWS key detected; SAST: SQLi sink.",
-      "severity": "CRITICAL"
+      "severity": "CRITICAL",
+      "provenance": "demo"
     },
     {
       "role": "Critic / Challenge",
       "model": "demo",
       "vote": "request-changes",
       "confidence": 0.7,
-      "reason": "Auth check is assumed, not verified, on the new route."
+      "reason": "Auth check is assumed, not verified, on the new route.",
+      "provenance": "demo"
     }
   ],
   "dissent": [
@@ -66,6 +72,35 @@
       "reason": "Auth check is assumed, not verified, on the new route."
     }
   ],
-  "decision_id": "EC-bfce18271144",
+  "gate_report": {
+    "profile": "standard",
+    "result": "allow",
+    "hard_stopped": false,
+    "controls": [],
+    "gates": [],
+    "passed": [
+      "evidence",
+      "confidence_calibration",
+      "action_safety",
+      "data_sensitivity",
+      "tool_permission",
+      "legal_compliance",
+      "offensive_misuse",
+      "context_integrity",
+      "model_disagreement",
+      "cost_latency",
+      "production_change"
+    ]
+  },
+  "diversity": {
+    "families": [
+      "demo"
+    ],
+    "monoculture": null,
+    "note": "illustrative demo votes \u2014 no real models ran"
+  },
+  "approval": {},
+  "disposition": "human",
+  "decision_id": "EC-d024c9991b31",
   "context": {}
 }

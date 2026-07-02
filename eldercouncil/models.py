@@ -42,6 +42,7 @@ class ModelRegistry:
     version: str
     roles: dict  # role_key -> {frontier, open, local, ...}
     source: str  # path it was loaded from
+    verified_real: tuple = ()  # the registry's own list of tags vetted as real
 
 
 def load_registry(path: str | Path | None = None) -> ModelRegistry:
@@ -60,7 +61,8 @@ def load_registry(path: str | Path | None = None) -> ModelRegistry:
     roles = data.get("roles", {}) or {}
     if not isinstance(roles, dict):
         raise RegistryError("registry 'roles' must be an object")
-    return ModelRegistry(version=str(data.get("version", "unknown")), roles=roles, source=str(p))
+    return ModelRegistry(version=str(data.get("version", "unknown")), roles=roles, source=str(p),
+                         verified_real=tuple(data.get("verified_real", []) or ()))
 
 
 def is_sentinel(value: str | None) -> bool:
@@ -97,20 +99,66 @@ def resolve(reg: ModelRegistry, role_key: str, lane: str = "frontier") -> str:
     return value
 
 
+# model-name keyword -> provider FAMILY (the lineage whose blind spots correlate)
+_FAMILIES = (
+    ("claude", "anthropic"), ("anthropic", "anthropic"),
+    ("qwen", "alibaba"),
+    ("deepseek", "deepseek"),
+    ("magistral", "mistral"), ("mixtral", "mistral"), ("mistral", "mistral"),
+    ("gemma", "google"), ("gemini", "google"),
+    ("gpt-oss", "openai"), ("gpt", "openai"), ("openai", "openai"),
+    ("llama", "meta"), ("kimi", "moonshot"), ("glm", "zhipu"), ("phi", "microsoft"),
+)
+
+
 def provider_of(tag: str) -> str:
-    """Best-effort provider family for a model tag (for diversity checks)."""
-    t = (tag or "").lower()
+    """Best-effort provider FAMILY for a model tag (for diversity checks).
+
+    Routing/label prefixes (`ollama/`, `openrouter/`, `anthropic:`…) are
+    transport, not lineage — `ollama/qwen3:32b` and `qwen/qwen3-32b` are both
+    the Alibaba family. `demo`/`tool` label non-model votes; `inherit` is the
+    host session's (unknown) model."""
+    t = (tag or "").strip().lower()
     if t in ("", "inherit"):
         return "host"
-    if t.startswith("claude") or t.startswith("anthropic"):
-        return "anthropic"
-    if "/" in t or t.startswith("openrouter"):
-        return "openrouter"
-    if "gpt" in t or t.startswith("openai"):
-        return "openai"
-    if "gemini" in t or t.startswith("google"):
-        return "google"
+    if t in ("demo", "tool"):
+        return t
+    for prefix in ("ollama/", "openrouter/", "ollama:", "openrouter:", "anthropic:"):
+        t = t.removeprefix(prefix)
+    base = t.split("/", 1)[0] if "/" in t else t   # openrouter slug vendor segment
+    for kw, family in _FAMILIES:
+        if kw in base or (("/" in t) and kw in t):
+            return family
     return "other"
+
+
+def diversity_of(votes) -> dict:
+    """Decision-time diversity: which provider families actually voted.
+
+    Considers model lenses only (the deterministic tool lens is not a model
+    voice). Returns {families, monoculture, note} — `monoculture` names the one
+    family when EVERY model lens resolved to it (the correlated-blind-spot
+    condition); demo and all-inherit runs return monoculture=None with an
+    honest note. Detection + warning, not enforcement."""
+    fams: list[str] = []
+    for v in votes or []:
+        if (v.get("provenance") or "") == "tool" or str(v.get("model", "")) == "tool":
+            continue
+        fams.append(provider_of(str(v.get("model", ""))))
+    families = sorted(set(fams))
+    if not families:
+        return {"families": [], "monoculture": None, "note": "no model lenses voted"}
+    if families == ["demo"]:
+        return {"families": families, "monoculture": None,
+                "note": "illustrative demo votes — no real models ran"}
+    if families == ["host"]:
+        return {"families": families, "monoculture": None,
+                "note": "every lens inherited the host model — diversity unknown (single session)"}
+    real = [f for f in families if f not in ("demo", "host")]
+    mono = real[0] if (len(real) == 1 and families == real) else None
+    note = (f"every model lens resolves to one provider family ('{mono}') — "
+            f"correlated blind spots; diversify (docs/MODEL-GUIDANCE.md)" if mono else "")
+    return {"families": families, "monoculture": mono, "note": note}
 
 
 def monoculture(reg: ModelRegistry, lane: str = "frontier") -> str | None:

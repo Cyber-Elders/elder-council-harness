@@ -7,9 +7,12 @@
 > deployment styles — IDE-native, privacy-first (all local), and hybrid (local + cloud).
 >
 > **Model tags age fast.** Treat every specific tag below as an *example as of writing* — verify the
-> current release and **re-pin quarterly** (`eldercouncil models check`). The harness ships only
-> verified-real Anthropic tags as defaults; every open-weight and local lane ships as a
-> `REPLACE_ME:<capability>` sentinel **you** pin. This guide is how to pin them well.
+> current release and **re-pin quarterly** (`eldercouncil models check`). Shipped defaults are
+> verified-real tags only: Anthropic models on the **frontier** lane, and a **cross-family set of
+> open-weight models** (the §2 table, `ollama/` form) on the **open** lane — so `--lane open` is
+> diverse out of the box. The **local** lane deliberately ships as `REPLACE_ME` sentinels: unpinned
+> means *inherit your agent's own on-device model* (the [CLAUDE-CODE-OLLAMA](CLAUDE-CODE-OLLAMA.md)
+> journey). This guide is how to re-pin any of it well.
 
 > ### Just want councils on your own models — step by step?
 > - **Claude Code + Ollama (simplest, fully local):** → **[CLAUDE-CODE-OLLAMA.md](CLAUDE-CODE-OLLAMA.md)** — copy-paste recipe; every lens runs on one local model.
@@ -26,7 +29,9 @@ same model *family* — they tend to share the same blind spot, and a confident 
 through unanimously. That correlated failure is the exact thing a council exists to prevent (run
 `eldercouncil convene <c> --demo --scenario monoculture` to watch it happen). So the goal when pinning
 models is **spread the lenses across distinct model families/lineages**. `eldercouncil models check`
-warns you when every frontier lens resolves to one provider.
+warns ahead of time when every lens on your configured lane resolves to one provider — and every
+decision record now carries a `diversity` field, with a verdict-time warning when all the model
+lenses that actually voted share one family.
 
 ## Role → capability → family
 
@@ -51,7 +56,7 @@ Some agents lock every sub-agent in a session to one provider.
 
 | Agent | Cross-family in one session? | How to get diversity |
 |---|---|---|
-| **Claude Code** | **No — single provider per session.** A sub-agent's `model:` accepts only Claude values (`opus` / `sonnet` / `haiku` / a full Claude id / `inherit`). You can point the **whole session** at a local/3rd-party backend via `ANTHROPIC_BASE_URL` (Ollama, LM Studio, OpenRouter, …), but that swaps *every* agent at once — per-agent providers aren't supported. | Vary the **tier** (Opus for the hard lenses, Haiku for `pragmatic_ops`) for cost — but accept it's one family. Get real diversity from the **deterministic Tool lens + the human owner**, from **separate sessions** each on a different backend, or from the **`--orchestrate` / MCP path** running your own mixed models. |
+| **Claude Code** | **No — single provider per session.** A sub-agent's `model:` accepts only Claude values (`opus` / `sonnet` / `haiku` / a full Claude id / `inherit`). You can point the **whole session** at a local backend that speaks the Anthropic Messages API via `ANTHROPIC_BASE_URL` (e.g. Ollama), but that swaps *every* agent at once — per-agent providers aren't supported. **OpenRouter does NOT work here** (it speaks the OpenAI schema, not the Anthropic Messages API) — use `--orchestrate` or OpenCode for OpenRouter ([OPENROUTER.md](OPENROUTER.md)). | Vary the **tier** (Opus for the hard lenses, Haiku for `pragmatic_ops`) for cost — but accept it's one family. Get real diversity from the **deterministic Tool lens + the human owner**, from **separate sessions** each on a different backend, or from the **`--orchestrate` / MCP path** running your own mixed models. |
 | **OpenCode** | **Yes — per agent.** Each agent sets `model: provider/model-id` (e.g. `anthropic/…`, `openai/…`, `ollama/qwen3-coder:30b`); different families run concurrently. | Assign each `role_key` a model from a different family directly. Best in-IDE fit for a true cross-family council. |
 | **Cursor** | **Partly.** BYOK (OpenAI / Anthropic / Gemini / any OpenAI-compatible incl. local Ollama & LM Studio) works in **chat**, but **Agent mode doesn't take custom keys yet** — so the advisory/chat council can be cross-family; the autonomous agent is constrained. | Use the advisory council (Cursor is advisory-tier anyway) with BYOK models in chat; pin your mixed models there. |
 | **GitHub Copilot** | **Yes — via BYOK.** Add providers (OpenAI, Anthropic, Gemini, OpenRouter, LM Studio, Ollama, any OpenAI-compatible) in Settings → Model Providers. | Pin each lens to a model from a different provider you've added. |
@@ -63,9 +68,11 @@ Some agents lock every sub-agent in a session to one provider.
 
 ## 2. Open-weight picks per role (Ollama / OpenCode / BYOK)
 
-A worked **cross-family** assignment using current, openly-licensed models. The point isn't these exact
-tags — it's that **five different lineages** are represented (Alibaba · DeepSeek · Mistral · Google ·
-OpenAI), so the lenses don't fail together.
+A worked **cross-family** assignment using current, openly-licensed models — and, in `ollama/` form,
+**exactly what the open lane now ships as its default** (`install --lane open`). The point isn't these
+exact tags — it's that **five different lineages** are represented (Alibaba · DeepSeek · Mistral ·
+Google · OpenAI), so the lenses don't fail together. Prefer hosted-cloud diversity with one key?
+See [OPENROUTER.md](OPENROUTER.md).
 
 | Role | Example model (Ollama tag) | Family | Why |
 |---|---|---|---|
@@ -198,7 +205,7 @@ However you pin models, there are three ways to actually *run* a council — pic
 |---|---|---|
 | `eldercouncil convene <c> --demo` | **Keyless illustration** — deterministic sample votes, instant, no models. | You just want to *see* a council decide (trying it out, demos, CI). |
 | `eldercouncil convene <c>` *(no flag)* | Emits the **deliberation tasks** (JSON) for your **coding agent** to run on its own models — this is what the gate/slash-command flow uses inside your IDE. | Day-to-day, **inside an installed agent** (Claude Code, OpenCode, …). You normally trigger this with `/<council>`, not by hand. |
-| `eldercouncil convene <c> --orchestrate` | The **harness itself** runs your **pinned** models and returns a real verdict — **no IDE needed**. Requires the optional runner (`pip install "eldercouncil[orchestrator]"`) and pinned model lanes; unpinned lenses report `unavailable`. | **Headless / CI / no coding agent** — scheduled audits, pipelines, scripts. |
+| `eldercouncil convene <c> --orchestrate` | The **harness itself** runs your **pinned** models and returns a real verdict — **no IDE needed**. Requires the optional runner (`pip install -e ".[orchestrator]"` (from your clone; not yet on PyPI)) and pinned model lanes; unpinned lenses report `unavailable`. | **Headless / CI / no coding agent** — scheduled audits, pipelines, scripts. |
 
 > So: `--demo` to look, your agent (`/<council>`) for everyday use, `--orchestrate` to run councils
 > without an IDE. Run `eldercouncil models check` before `--orchestrate` so every lens has a real model.
@@ -213,9 +220,12 @@ However you pin models, there are three ways to actually *run* a council — pic
 - **Plan for cut-off.** An open-weight model from a single lab can become unavailable (export controls,
   sanctions, licensing). For critical councils, add a `fallback` list per role and keep a **local** lane
   pinned, so a provider going dark doesn't disable the process.
-- **The deterministic Tool lens needs no model** — it runs SAST / dependency / secret scans / tests and
-  feeds findings in as evidence. It's your most reliable non-model voice; lean on it, especially in
-  single-provider IDEs.
+- **The deterministic Tool lens needs no model.** In `--orchestrate` the harness itself runs real
+  deterministic checks (built-in secret/injection/PII detectors plus your `[tools]` commands in
+  `.council/config.toml`) and marks the vote `provenance: "tool"` — that's what makes its CRITICAL
+  authoritative. In-IDE, your agent is *instructed* to run real tools; the harness cannot verify it
+  did (`host-asserted`). Wire `[tools]` to your project's actual scanners and it is your most
+  reliable non-model voice, especially in single-provider IDEs.
 
 See also: [LENSES.md](LENSES.md) (what each lens does) · [IDE-SUPPORT.md](IDE-SUPPORT.md) (per-IDE
 install) · [THREAT_MODEL.md](../THREAT_MODEL.md) (why model diversity is a security property, not a

@@ -28,6 +28,16 @@ def votes(*specs):
     return out
 
 
+@pytest.fixture(autouse=True)
+def _isolate_council_dir(tmp_path_factory, monkeypatch):
+    """No test may write `.council/` into the developer's CWD — audit writes from
+    gate/audit CLI tests land in a session temp dir unless a test opts into its
+    own COUNCIL_DIR (the `council_dir` fixture overrides this)."""
+    if not os.environ.get("COUNCIL_DIR"):
+        monkeypatch.setenv("COUNCIL_DIR",
+                           str(tmp_path_factory.mktemp("council-isolation")))
+
+
 @pytest.fixture
 def council_dir(tmp_path, monkeypatch):
     """Point .council/ at a temp dir for audit/install tests."""

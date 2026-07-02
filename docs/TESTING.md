@@ -7,7 +7,7 @@ the network. Three tiers.
 
 ## Tier 1 — Deterministic regression (every PR, in-repo, keyless)
 
-`pytest tests/` — **141 tests across the files below**, all keyless. Runs on Ubuntu ×
+`pytest tests/` — **194 tests across the files below**, all keyless. Runs on Ubuntu ×
 Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 
 | File | Covers |
@@ -24,6 +24,9 @@ Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 | `test_journeys.py` | real `python -m eldercouncil.cli` journeys + the **cp1252 Windows-console** regression |
 | `test_cli_journeys.py` | every CLI subcommand's exit-code + output contract — `models list/resolve`, all convene run-modes (default task-pack, `--json`, `--orchestrate` fail-closed, `--profile`), `gate`/`audit` per IDE, `gates list`, `risk-gate` routing, usage errors, `init` defaults, `serve` |
 | `test_docs.py` | doc-as-test + the internal-leak guard + the no-fabricated-model-tags guard |
+| `test_detectors.py` | the shared secret/PII/injection patterns + redaction (runtime-assembled fixtures) |
+| `test_toollens.py` | the REAL deterministic tool lens: built-in detectors, `[tools]` commands, fail-safe abstain, provenance |
+| `test_approval.py` | approval provenance: verified / asserted-unverified / stripped fail-closed |
 | `test_server.py` | the advisory MCP tool surface (skipped without `[mcp]`) |
 | `test_known_bypasses.py` | the documented residual limits, pinned so they stay honest |
 

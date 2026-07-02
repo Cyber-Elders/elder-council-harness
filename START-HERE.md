@@ -10,6 +10,8 @@ high-stakes call, including executive business decisions. It stays out of the wa
 | **anyone — just show me a council decide** | run `eldercouncil convene code-council --demo` (keyless) | 5 min |
 | **security analyst / threat hunter** | [CONCEPT](docs/CONCEPT.md) → [Threat Hunting council](docs/COUNCILS.md#2-threat-hunting-council--threat-hunting--advisory) → [install](docs/IDE-SUPPORT.md) | 15 min |
 | **developer rolling councils into your agent** | [IDE-SUPPORT](docs/IDE-SUPPORT.md) → [MODEL-GUIDANCE](docs/MODEL-GUIDANCE.md) → [Code council](docs/COUNCILS.md#1-code-council--code-council--action-gate) | 20 min |
+| **"just have my AI set it up"** | paste the prompt in [For non-developers](#for-non-developers) — your agent follows [AGENT-SETUP](docs/AGENT-SETUP.md) | 10 min |
+| **cross-family council, one API key** | [OPENROUTER](docs/OPENROUTER.md) — DeepSeek vs Qwen vs Mistral behind one endpoint | 15 min |
 | **risk / compliance owner** | [METHODOLOGY](docs/METHODOLOGY.md) (routing + governance) → [Compliance](docs/COUNCILS.md#4-multi-jurisdictional-compliance-council--compliance--advisory--scheduled) / [Cyber Risk](docs/COUNCILS.md#5-cyber-risk-council--cyber-risk--advisory) | 30 min |
 | **security owner / skeptic** | [THREAT_MODEL](THREAT_MODEL.md) → [STANDARDS-MAP](docs/STANDARDS-MAP.md) | 20 min |
 | **executive / leadership (a high-stakes business call)** | try `eldercouncil convene business-decision --demo` → [Business Decision council](docs/COUNCILS.md#7-business-decision-council--business-decision--advisory) | 10 min |
@@ -30,9 +32,13 @@ You'll see five independent lenses vote, a verdict, the **preserved dissent**, a
 keyless. Then wire it into your agent:
 
 ```console
+cd /path/to/your/project                # install writes into the CURRENT folder — your project!
 eldercouncil init                       # guided: pick your agent + councils
 eldercouncil install claude-code --all  # or non-interactive
 ```
+
+*(Install snags — `externally-managed-environment`, `command not found`? See the fix box in
+[GET-STARTED](docs/GET-STARTED.md).)*
 
 ## For non-developers
 
@@ -47,9 +53,12 @@ Copilot) and **Python 3.11+**. If you have them, you don't have to touch the ter
 this to your coding agent (replace `claude-code` with whichever you use — `cursor`, `opencode`,
 `copilot`):
 
-> *"Check that Python 3.11+ is installed, then install Elder Council from source
-> (github.com/Cyber-Elders/elder-council-harness), run `eldercouncil install claude-code`, and show me
-> the output of `eldercouncil convene business-decision --demo`."*
+> *"Read docs/AGENT-SETUP.md in github.com/Cyber-Elders/elder-council-harness, ask me the needs
+> questions in it, then install and customise Elder Council for me and explain what you set up."*
+
+Your agent will check the prerequisites, ask you a few plain-language questions (what to watch, how
+strict, private-or-not, which agent), install accordingly, and report back — that flow is defined in
+[docs/AGENT-SETUP.md](docs/AGENT-SETUP.md) so the agent follows tested steps rather than improvising.
 
 **Does your agent run on local models (e.g. Claude Code on Ollama)?** Tell it to add `--lane local` to
 that install, or it'll error — see [docs/CLAUDE-CODE-OLLAMA.md](docs/CLAUDE-CODE-OLLAMA.md). Then read

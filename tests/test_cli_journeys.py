@@ -79,6 +79,19 @@ def test_gate_claude_code_cli(capsys, monkeypatch):
     assert json.loads(capsys.readouterr().out)["hookSpecificOutput"]["permissionDecision"] in ("ask", "deny")
 
 
+def test_gate_generic_action_target_payload(capsys, monkeypatch):
+    # The DOCUMENTED generic verify form {"action":..,"target":..} must actually
+    # exercise the gate on every hard-block IDE (it used to be silently dropped
+    # and return a confident "allow" — a no-op verification).
+    _stdin(monkeypatch, '{"action":"bash","target":"git push --force origin main"}')
+    assert cli.main(["gate", "claude-code"]) == 0
+    assert json.loads(capsys.readouterr().out)["hookSpecificOutput"]["permissionDecision"] in ("ask", "deny")
+    _stdin(monkeypatch, '{"action":"bash","target":"git push --force origin main"}')
+    assert cli.main(["gate", "opencode"]) == 2
+    _stdin(monkeypatch, '{"action":"bash","target":"git push --force origin main"}')
+    assert cli.main(["gate", "kiro"]) == 2
+
+
 def test_gate_kiro_failsafe_cli(monkeypatch):
     # opencode/kiro read the command from {"tool":..,"args":{"command":..}} and block via exit 2.
     _stdin(monkeypatch, '{"tool":"bash","args":{"command":"ls -la"}}')
@@ -134,3 +147,27 @@ def test_serve_help_exits_zero():
     with pytest.raises(SystemExit) as exc:
         cli.main(["serve", "--help"])
     assert exc.value.code == 0
+
+
+# ---- convene --signals contract ----
+
+def test_convene_signals_plumbed_and_recorded(tmp_path, capsys, monkeypatch):
+    _install(tmp_path, monkeypatch)
+    capsys.readouterr()
+    rc = cli.main(["convene", "code-council", "--demo", "--json", "--no-audit", "--question", "x",
+                   "--signals", '{"human_approver":"jane","rollback_plan":true}'])
+    assert rc == 0
+    rec = json.loads(capsys.readouterr().out)
+    assert rec["approval"]["approver"] == "jane"           # asserted approval is recorded...
+    assert "unverified" in rec["approval"]["status"]       # ...and honestly labeled
+
+
+def test_convene_malformed_signals_fails_closed(tmp_path, capsys, monkeypatch):
+    _install(tmp_path, monkeypatch)
+    capsys.readouterr()
+    rc = cli.main(["convene", "code-council", "--demo", "--no-audit", "--question", "x",
+                   "--signals", '{not json'])
+    assert rc == 2                                          # malformed must NOT become "no signals"
+    rc = cli.main(["convene", "code-council", "--demo", "--no-audit", "--question", "x",
+                   "--signals", '["a","list"]'])
+    assert rc == 2                                          # a non-object is rejected too

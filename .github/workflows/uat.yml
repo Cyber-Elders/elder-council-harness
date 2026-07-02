@@ -109,8 +109,9 @@ jobs:
           grep -q "unavailable" orch.txt
 
           # ---- E. gate / audit / gates (incl. fail-closed) ----
-          printf '%s' '{"action":"bash","target":"git push --force"}' | eldercouncil gate claude-code >/dev/null
-          printf '%s' '{"action":"bash","target":"ls"}' | eldercouncil gate claude-code >/dev/null
+          printf '%s' '{"action":"bash","target":"git push --force origin main"}' | eldercouncil gate claude-code > gate.json
+          grep -Eq '"permissionDecision": "(ask|deny)"' gate.json     # the generic payload REALLY trips the gate
+          printf '%s' '{"action":"bash","target":"ls"}' | eldercouncil gate claude-code | grep -q '"allow"' 
           printf '%s' '{"tool":"bash","target":"x","decision":"ask"}' | eldercouncil audit claude-code
           eldercouncil gates list | grep -qi "offensive"
           set +e
@@ -121,6 +122,47 @@ jobs:
           test "$badc" -eq 2     # malformed JSON object -> fail CLOSED (block), not a confident allow
           test "$badr" -eq 2     # same guard on risk-gate
           test "$okc" -eq 0      # a bare benign action string still proceeds
+
+          # ---- G. open lane: cross-family default + single-provider guard ----
+          eldercouncil install opencode --all --lane open --dir "$work/oco"
+          fams=$(grep -rh "^model: " "$work/oco/.opencode/agents" | sort -u | grep -v inherit | wc -l)
+          test "$fams" -ge 2                                               # >=2 distinct model pins = cross-family
+          eldercouncil install claude-code --all --lane open --dir "$work/cco" > cco.txt
+          if grep -rq "model: ollama/" "$work/cco/.claude/agents"; then echo "ollama tag leaked into Claude agents"; exit 1; fi
+          grep -q "not runnable in Claude Code" cco.txt                    # loud fail-safe warning
+          COUNCIL_DIR="$work/oco/.council" eldercouncil models check | grep -q "configured lane: open"   # open lane pinned -> exit 0
+
+          # ---- H. signals + approval provenance ----
+          eldercouncil convene code-council --demo --json --no-audit --question "x" \
+            --signals '{"human_approver":"jane","rollback_plan":true}' > sig.json
+          grep -q '"approver": "jane"' sig.json
+          grep -q "unverified" sig.json                                    # honest label, no verifier configured
+          set +e
+          eldercouncil convene code-council --demo --no-audit --question "x" --signals '{not json' 2>/dev/null; sigrc=$?
+          set -e
+          test "$sigrc" -eq 2                                              # malformed signals fail CLOSED
+
+          # ---- I. audit redaction: a secret must never reach disk ----
+          FAKE_KEY="sk-$(printf 'K%.0s' 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24)"
+          eldercouncil convene code-council --demo --question "rotate $FAKE_KEY in prod" >/dev/null
+          if grep -rq "$FAKE_KEY" "$COUNCIL_DIR"; then echo "secret persisted under .council/"; exit 1; fi
+          grep -rq "REDACTED:secret" "$COUNCIL_DIR/decisions"
+
+          # ---- J. keyless orchestrate: REAL tool lens (provenance, not an LLM) ----
+          set +e
+          eldercouncil convene code-council --orchestrate --json --no-audit \
+            --question "merge a diff containing $FAKE_KEY" > orch.json 2>/dev/null; orc=$?
+          set -e
+          test "$orc" -eq 2                                                # reasoning lenses unavailable -> fail closed
+          grep -q '"provenance": "tool"' orch.json                         # the tool lens RAN (built-in detectors)
+          grep -q '"severity": "CRITICAL"' orch.json                       # and caught the planted secret
+          grep -q '"diversity"' orch.json                                  # decision-time diversity recorded
+
+          # ---- K. agent-driven setup (AGENT-SETUP.md steps, non-interactive) ----
+          eldercouncil install claude-code --all --profile regulated --dir "$work/agent" >/dev/null
+          test -f "$work/agent/.council/config.toml"
+          grep -q 'profile = "regulated"' "$work/agent/.council/config.toml"
+          COUNCIL_DIR="$work/agent/.council" eldercouncil convene business-decision --demo --no-audit --question "acquire X" >/dev/null
 
           # ---- F. verify (audit chain) ----
           eldercouncil verify

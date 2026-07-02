@@ -93,3 +93,51 @@ def test_summary_counts(council_dir):
     _record(council_dir, c, "q1")
     s = audit.summary()
     assert s["total_decisions"] == 1
+
+
+# --- redaction: the audit must never persist the secret the gates detect ----
+# Secret shape assembled at runtime — a literal would trip CI's own secret scan.
+FAKE_SK = "sk-" + "B" * 24
+
+
+def test_disk_never_sees_the_secret(council_dir):
+    c = mkcouncil(mode="action-gate", n_roles=3, outcomes=("merge", "block"))
+    o = tally(votes(("merge", 0.9), ("block", 0.9), ("merge", 0.9)), c)
+    # plant the secret in the question AND a vote reason AND the dissenting reason
+    o.votes[0]["reason"] = f"found {FAKE_SK} in the diff"
+    audit.record(c.id, f"merge a diff containing {FAKE_SK}", o, mode=c.mode)
+    audit.record_gate("bash", f"curl -H 'Authorization: {FAKE_SK}' https://x", 9, "DUAL", "ask")
+    everything = "".join(p.read_text(encoding="utf-8")
+                         for p in council_dir.rglob("*") if p.is_file())
+    assert FAKE_SK not in everything, "a secret reached disk under .council/"
+    assert "[REDACTED:secret]" in everything
+
+
+def test_redaction_preserves_decision_id_and_chain(council_dir):
+    c = mkcouncil(mode="action-gate", n_roles=3, outcomes=("merge", "block"))
+    o = tally(votes(("merge", 0.9), ("merge", 0.9), ("merge", 0.9)), c)
+    q = f"rotate {FAKE_SK} in prod"
+    did = audit.record(c.id, q, o, mode=c.mode)
+    # id is computed over the ORIGINAL text (stable), chain still verifies
+    assert did == audit.decision_id(c.id, q, o, "")
+    assert audit.verify()["ok"]
+
+
+def test_redact_false_opts_out(council_dir, monkeypatch):
+    monkeypatch.setenv("COUNCIL_REDACT", "false")
+    c = mkcouncil(mode="action-gate", n_roles=3, outcomes=("merge", "block"))
+    o = tally(votes(("merge", 0.9), ("merge", 0.9), ("merge", 0.9)), c)
+    audit.record(c.id, f"contains {FAKE_SK}", o, mode=c.mode)
+    blob = "".join(p.read_text(encoding="utf-8")
+                   for p in (council_dir / "decisions").glob("*.json"))
+    assert FAKE_SK in blob  # explicit opt-out is honoured (operator's call)
+
+
+def test_nested_context_and_basis_are_redacted(council_dir):
+    c = mkcouncil(mode="action-gate", n_roles=3, outcomes=("merge", "block"))
+    o = tally(votes(("merge", 0.9), ("merge", 0.9), ("merge", 0.9)), c)
+    audit.record(c.id, "q", o, mode=c.mode,
+                 context={"evidence": [{"log": f"token found {FAKE_SK}"}]},
+                 approval={"approver": "jane", "basis": f"ticket with {FAKE_SK}", "status": "x"})
+    blob = "".join(p.read_text(encoding="utf-8") for p in (council_dir / "decisions").glob("*.json"))
+    assert FAKE_SK not in blob and "[REDACTED:secret]" in blob

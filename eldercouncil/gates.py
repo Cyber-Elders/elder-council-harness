@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 
 import yaml
 
-from . import paths, risk_gate
+from . import detectors, paths, risk_gate
 
 # Gate results, least → most restrictive.
 ALLOW = "allow"
@@ -38,17 +38,11 @@ _HIGH_IMPACT_SCORE = 10          # risk_gate score at/above which an action is "
 _CONFIDENCE_FLOOR = 0.6
 
 # --- conservative built-in detectors (derived signals) ---------------------
-_SECRET_RE = re.compile(
-    r"AKIA[0-9A-Z]{12,}|ASIA[0-9A-Z]{12,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|gho_[A-Za-z0-9]{20,}"
-    r"|xox[baprs]-[A-Za-z0-9-]{10,}|sk-[A-Za-z0-9]{20,}"
-    r"|(?:api[_-]?key|secret|password|passwd|token)\s*[:=]\s*\S+", re.IGNORECASE)
-_PII_RE = re.compile(
-    r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b|\b\d{13}\b|\b(?:\d[ -]?){15,16}\b"
-    r"|passport\s*(?:no|number)|id\s*number", re.IGNORECASE)
-_INJECTION_RE = re.compile(
-    r"ignore (?:all )?(?:the )?previous instructions|disregard (?:the )?(?:above|prior)"
-    r"|you are now|new instructions:|reveal your (?:system )?(?:prompt|instructions)"
-    r"|exfiltrate|send .* to https?://", re.IGNORECASE)
+# Secret / PII / injection patterns live in the shared `detectors` module so the
+# gates, the audit redaction, and the deterministic tool lens agree on them.
+_SECRET_RE = detectors.SECRET_RE
+_PII_RE = detectors.PII_RE
+_INJECTION_RE = detectors.INJECTION_RE
 # Narrow + generative-verb-gated, to avoid false-positives on DEFENSIVE discussion
 # (a threat-hunting council legitimately discusses attacker TTPs). The asserted
 # `offensive_intent` signal is the primary control; this is a blatant-case backstop.
@@ -173,7 +167,12 @@ def _affirmative_ok(req: str, signals: dict) -> bool:
         return bool(signals.get("evidence_provided") or signals.get("evidence_refs"))
     if req == "confidence_ok":
         c = signals.get("confidence")
-        return c is not None and float(c) >= _CONFIDENCE_FLOOR
+        if isinstance(c, str):
+            c = {"low": 0.3, "medium": 0.6, "high": 0.9}.get(c.strip().lower(), c)
+        try:
+            return c is not None and float(c) >= _CONFIDENCE_FLOOR
+        except (TypeError, ValueError):
+            return False  # unparseable affirmation = not satisfied (fail-closed)
     if req == "legal_cleared_if_regulated":
         return (not signals.get("regulated_data")) or bool(signals.get("legal_cleared"))
     return bool(signals.get(req))

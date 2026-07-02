@@ -52,7 +52,7 @@ data flow, or production stability may be affected.
 | Software Engineering SME | correctness, maintainability, testability, architecture fit |
 | AppSec SME | vulnerability classes, auth logic, secrets, injection, abuse cases (rates severity) |
 | Reliability / Operations SME | deployment risk, rollback, observability, failure modes |
-| Deterministic Tool Lens | runs SAST / dependency / secret scan / tests — evidence, not opinion |
+| Deterministic Tool Lens | runs SAST / dependency / secret scan / tests — evidence, not opinion (`provenance: tool` when the harness ran the checks; `host-asserted` when your agent did) |
 | Critic / Challenge | edge cases, implicit trust, unsafe defaults, missed data paths |
 
 **Outcomes:** `merge` · `request-changes` · `block` · `escalate`

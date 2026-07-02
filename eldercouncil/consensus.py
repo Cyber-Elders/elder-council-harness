@@ -78,6 +78,7 @@ class Vote:
     confidence: float = 0.5      # 0.0-1.0
     reason: str = ""
     severity: str | None = None  # optional, lens-asserted (e.g. CRITICAL|HIGH|MEDIUM|LOW)
+    provenance: str | None = None  # who produced it: tool | host-asserted | demo | None (asserted)
 
 
 @dataclass(frozen=True)
@@ -104,8 +105,28 @@ class Outcome:
         }
 
 
-def _restrictiveness(outcome: str) -> int:
-    return _RESTRICTIVENESS.get(outcome, 75)  # unknown -> cautious (errs toward withholding)
+def coerce_host_provenance(votes) -> list:
+    """For votes REPORTED BY THE HOST AGENT (the MCP `audit_log` path): the
+    harness cannot verify a claimed `tool`/`demo` provenance, so it is coerced
+    to `host-asserted` before tally/record — a spoofed label must not buy the
+    'deterministic tool finding' annotation or drop the vote out of the
+    decision-time diversity check. Authority is unaffected (it is role-based)."""
+    out = []
+    for v in votes or []:
+        if isinstance(v, dict) and v.get("provenance") in ("tool", "demo"):
+            v = dict(v, provenance="host-asserted")
+        out.append(v)
+    return out
+
+
+def restrictiveness(outcome: str) -> int:
+    """Public: how restrictive an outcome is (higher = more withholding).
+    Unknown outcomes score cautious. Used by the tally AND by the vote parser's
+    ambiguity fallback, so ambiguity always resolves toward withholding."""
+    return _RESTRICTIVENESS.get(outcome, 75)
+
+
+_restrictiveness = restrictiveness  # internal alias
 
 
 def _coerce_confidence(value) -> float:
@@ -138,6 +159,7 @@ def _normalize(votes, valid: set[str]) -> list[Vote]:
     for v in votes or []:
         if isinstance(v, Vote):
             role, model, vote, conf, reason, sev = v.role, v.model, v.vote, v.confidence, v.reason, v.severity
+            prov = v.provenance
             conf = _coerce_confidence(conf)
         elif isinstance(v, dict):
             role = str(v.get("role", "?"))
@@ -146,13 +168,14 @@ def _normalize(votes, valid: set[str]) -> list[Vote]:
             conf = _coerce_confidence(v.get("confidence", 0.5))
             reason = str(v.get("reason", ""))
             sev = v.get("severity")
+            prov = v.get("provenance")
         else:
             continue
         token = (vote or "").strip().lower()
         if valid and token not in valid and token not in _ABSTAIN and not _is_escalation(token):
             reason = (f"[unrecognised vote {token!r} → abstain] " + reason).strip()
             token = "abstain"
-        norm.append(Vote(role, model, token, conf, reason, sev))
+        norm.append(Vote(role, model, token, conf, reason, sev, prov))
     return norm
 
 
@@ -186,7 +209,8 @@ def tally(votes, council) -> Outcome:
     norm = _normalize(votes, valid)
     all_votes = [
         {"role": v.role, "model": v.model, "vote": v.vote, "confidence": v.confidence,
-         "reason": v.reason, **({"severity": v.severity} if v.severity else {})}
+         "reason": v.reason, **({"severity": v.severity} if v.severity else {}),
+         **({"provenance": v.provenance} if v.provenance else {})}
         for v in norm
     ]
 
@@ -202,9 +226,14 @@ def tally(votes, council) -> Outcome:
                  and (not tool_roles or v.role in tool_roles)), None)
     if crit:
         # "block" if the council has it (CRITICAL = stop); else its most-restrictive outcome.
+        # Authority stays ROLE-based (gating on provenance would silently strip
+        # host-run tool votes — fail-open); provenance is stated honestly instead.
         verdict = "block" if "block" in valid else _restrictive_valid(valid)
+        note = {"tool": " [deterministic tool finding]",
+                "host-asserted": " [severity host-asserted — not machine-verified]"}.get(
+            crit.provenance or "", "")
         return Outcome(verdict, "human",
-                       f"a lens rated this CRITICAL ({crit.role}) — blocked pending human review",
+                       f"a lens rated this CRITICAL ({crit.role}) — blocked pending human review{note}",
                        _dissent(norm, verdict), all_votes)
 
     # --- escalation wins ----------------------------------------------------

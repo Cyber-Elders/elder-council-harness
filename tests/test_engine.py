@@ -65,3 +65,51 @@ def test_convene_persists_when_audit_enabled(council_dir):
     c = catalog.get_council("supply-chain")
     engine.convene_with_votes(c, "add dep", engine.demo_votes(c), reg, do_audit=True)
     assert list((council_dir / "decisions").glob("*.json"))
+
+
+# --- decision-time diversity ---------------------------------------------------
+
+def test_diversity_field_present_and_demo_never_warns(council_dir):
+    from eldercouncil.catalog import load_councils
+    from eldercouncil.models import load_registry
+    c = load_councils()["code-council"]
+    rec = engine.convene_with_votes(c, "q", engine.demo_votes(c), load_registry(), do_audit=False)
+    div = rec["diversity"]
+    assert div["monoculture"] is None                       # demo must not false-warn
+    assert div["families"] == ["demo"]
+    assert "demo" in div["note"]
+
+
+def test_diversity_flags_real_single_family(council_dir):
+    from eldercouncil.catalog import load_councils
+    from eldercouncil.models import load_registry
+    c = load_councils()["code-council"]
+    fake = [{"role": r.name, "model": "anthropic:claude-opus-4-8", "vote": "merge",
+             "confidence": 0.8, "reason": ""} for r in c.roles if not r.is_tool]
+    rec = engine.convene_with_votes(c, "q", fake, load_registry(), do_audit=False)
+    assert rec["diversity"]["monoculture"] == "anthropic"
+
+
+def test_diversity_cross_family_is_clean(council_dir):
+    from eldercouncil.catalog import load_councils
+    from eldercouncil.models import load_registry
+    c = load_councils()["code-council"]
+    tags = ["ollama:qwen3:32b", "ollama:deepseek-r1:32b", "ollama:magistral:24b",
+            "ollama:gemma3:12b", "ollama:gpt-oss:20b"]
+    fake = [{"role": r.name, "model": tags[i % len(tags)], "vote": "merge",
+             "confidence": 0.8, "reason": ""} for i, r in enumerate(c.roles) if not r.is_tool]
+    rec = engine.convene_with_votes(c, "q", fake, load_registry(), do_audit=False)
+    div = rec["diversity"]
+    assert div["monoculture"] is None and len(div["families"]) >= 3
+
+
+def test_all_inherit_reports_diversity_unknown(council_dir):
+    from eldercouncil.catalog import load_councils
+    from eldercouncil.models import load_registry
+    c = load_councils()["code-council"]
+    fake = [{"role": r.name, "model": "inherit", "vote": "merge",
+             "confidence": 0.8, "reason": ""} for r in c.roles if not r.is_tool]
+    rec = engine.convene_with_votes(c, "q", fake, load_registry(), do_audit=False)
+    div = rec["diversity"]
+    assert div["families"] == ["host"] and div["monoculture"] is None
+    assert "diversity unknown" in div["note"]
