@@ -1,0 +1,6 @@
+{
+  "council": "eng-team",
+  "question": "Build the new checkout flow per the one-paragraph spec in the ticket — no acceptance criteria for payment failures, and the async confirmation step has no test hooks.",
+  "expect": { "route": "human", "verdicts": ["request-changes", "defer"], "dissent": true },
+  "note": "An everyday design review where the analyst and QA lenses catch an unspecified failure path and untestable flow must NOT be auto-approved on the developer lens's confidence — it recommends changes and the feature owner decides."
+}

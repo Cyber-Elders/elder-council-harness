@@ -76,9 +76,10 @@ Elder Mind governs the **action** ("should this tool call run?"); Elder Council 
 **decision** ("is one model's judgement enough here?"). They compose, and neither requires the other.
 
 **Is it only for cyber?**
-Cyber is the natural starting point (adversarial, local-context-heavy, regulated), and six of the
-seven councils are cyber. But the pattern is general — a seventh **Business Decision** council ships
-for high-stakes executive calls (M&A, market entry, big spend), and you can add your own; see
+Cyber is the natural starting point (adversarial, local-context-heavy, regulated) and six of the
+eight councils are cyber. But the pattern is general — a **Business Decision** council ships for
+high-stakes executive calls (M&A, market entry, big spend) and an **Engineering Team** council for
+everyday design reviews (developer + analyst + QA + critic), and you can add your own; see
 [DOMAIN-ADAPTATION.md](DOMAIN-ADAPTATION.md).
 
 **Which IDEs does it support?**

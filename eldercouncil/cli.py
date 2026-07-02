@@ -170,7 +170,21 @@ def cmd_convene(args) -> int:
             if args.orchestrate:
                 from .orchestrator import get_runner
                 review = build_review(c, question, reg, args.lane)
-                votes = get_runner()(review)
+                progress = None
+                if not args.json:
+                    # Realtime visibility: stream each lens's vote as it lands and
+                    # point at the full per-lens transcripts (tail them — or run
+                    # tools/watch-council.sh for a one-command tmux view).
+                    sys.stderr.write(_c("2",
+                        f"  convening {len(review['tasks'])} lenses in parallel — "
+                        f"full deliberations stream to .council/last-run/\n"))
+
+                    def progress(v):  # noqa: ANN001 — vote dict
+                        sev = f" [{v['severity']}]" if v.get("severity") else ""
+                        sys.stderr.write(
+                            f"  ⋮ {v.get('role', '?'):<32} {v.get('vote', '?')}{sev} "
+                            f"({v.get('confidence', 0)})\n")
+                votes = get_runner()(review, progress=progress)
             else:
                 votes = engine.demo_votes(c, scenario=args.scenario)
             rec = engine.convene_with_votes(c, question, votes, reg, lane=args.lane,

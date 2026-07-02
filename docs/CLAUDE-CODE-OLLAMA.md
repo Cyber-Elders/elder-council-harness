@@ -90,6 +90,12 @@ In your Claude-Code-on-Ollama session, when the gate asks you to convene (or any
 Every lens runs on your local model; you get the verdict and the preserved dissent, all on-device. (New
 to the verdict/dissent output? See [GET-STARTED.md](GET-STARTED.md).)
 
+> **Want to WATCH the voices deliberate in realtime?** In your agent the lenses run inline, but the
+> headless runner streams: `eldercouncil convene <council> --orchestrate` prints each lens's vote as
+> it lands and writes every voice's full deliberation to `.council/last-run/<lens>.md` (redacted,
+> live-tailable). One command for a tmux view — one pane per lens plus the verdict:
+> `tools/watch-council.sh eng-team "your question"`. Same models, same fail-closed tally and audit.
+
 > **Want real disagreement instead of one local family?** A cross-family council (different vendors
 > arguing) needs per-seat models — that's [OPENROUTER.md](OPENROUTER.md) (one key, hosted) or the
 > OpenCode recipe in [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md) (all-local). This recipe and those compose.

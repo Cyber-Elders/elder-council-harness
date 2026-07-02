@@ -113,7 +113,7 @@ def test_secret_scan_pattern_has_no_self_match():
 # Doc-as-test — docs cannot drift from the product.
 # --------------------------------------------------------------------------
 COUNCILS = ["code-council", "threat-hunting", "supply-chain", "compliance", "cyber-risk",
-            "platform-architecture", "business-decision"]
+            "platform-architecture", "business-decision", "eng-team"]
 
 
 def test_all_councils_documented():

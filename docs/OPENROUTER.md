@@ -56,7 +56,9 @@ eldercouncil convene code-council --lane open --orchestrate \
 You get a real verdict: each lens runs on its pinned model, the Code council's deterministic tool
 lens runs **real built-in checks** (not a model — other councils don't seat a tool lens), the votes
 are tallied fail-closed, dissent is preserved, and the record lands in `.council/decisions/`. `eldercouncil models check` first confirms your pins;
-`eldercouncil verify` checks the audit chain after.
+`eldercouncil verify` checks the audit chain after. Each lens's vote streams live as it lands, and
+the full deliberations land in `.council/last-run/` — `tools/watch-council.sh` shows every voice in
+its own tmux pane while the run happens.
 
 ## Journey B — inside OpenCode: a different family per lens, in your IDE
 

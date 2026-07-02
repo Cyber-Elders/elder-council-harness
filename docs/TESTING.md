@@ -7,7 +7,7 @@ the network. Three tiers.
 
 ## Tier 1 — Deterministic regression (every PR, in-repo, keyless)
 
-`pytest tests/` — **194 tests across the files below**, all keyless. Runs on Ubuntu ×
+`pytest tests/` — **196 tests across the files below**, all keyless. Runs on Ubuntu ×
 Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 
 | File | Covers |
@@ -17,7 +17,7 @@ Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 | `test_gates.py` | the 11 control gates, profiles, the offensive-misuse hard stop, fail-closed defaults, and a **gate blocking even when the council approved** |
 | `test_orchestrator.py` | BYO-LLM vote parsing — garbled/ambiguous replies abstain (never guess) |
 | `test_audit.py` | hash chain, mid-entry tamper detected, **full rewrite NOT detected** (tamper-evident-not-proof), stale-head recovery, concurrency, determinism |
-| `test_councils.py` | all seven councils validate; malformed council fails closed |
+| `test_councils.py` | all eight councils validate; malformed council fails closed |
 | `test_registry.py` | role resolution, only-verified-real defaults, unpinned sentinels flagged, fail-loud on unknown role |
 | `test_install.py` | per-IDE × per-council render, idempotency, re-pin changes only the model line, fail-safes |
 | `test_engine.py` | mocked-vote fan-out → tally → audit; same votes+council → identical record |

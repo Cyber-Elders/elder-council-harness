@@ -205,7 +205,7 @@ However you pin models, there are three ways to actually *run* a council — pic
 |---|---|---|
 | `eldercouncil convene <c> --demo` | **Keyless illustration** — deterministic sample votes, instant, no models. | You just want to *see* a council decide (trying it out, demos, CI). |
 | `eldercouncil convene <c>` *(no flag)* | Emits the **deliberation tasks** (JSON) for your **coding agent** to run on its own models — this is what the gate/slash-command flow uses inside your IDE. | Day-to-day, **inside an installed agent** (Claude Code, OpenCode, …). You normally trigger this with `/<council>`, not by hand. |
-| `eldercouncil convene <c> --orchestrate` | The **harness itself** runs your **pinned** models and returns a real verdict — **no IDE needed**. Requires the optional runner (`pip install -e ".[orchestrator]"` (from your clone; not yet on PyPI)) and pinned model lanes; unpinned lenses report `unavailable`. | **Headless / CI / no coding agent** — scheduled audits, pipelines, scripts. |
+| `eldercouncil convene <c> --orchestrate` | The **harness itself** runs your **pinned** models and returns a real verdict — **no IDE needed**. Streams each lens's vote live and writes full per-lens transcripts to `.council/last-run/` (`tools/watch-council.sh` gives a one-command tmux view, one pane per voice). Requires the optional runner (`pip install -e ".[orchestrator]"` (from your clone; not yet on PyPI)) and pinned model lanes; unpinned lenses report `unavailable`. | **Headless / CI / no coding agent** — scheduled audits, pipelines, scripts. |
 
 > So: `--demo` to look, your agent (`/<council>`) for everyday use, `--orchestrate` to run councils
 > without an IDE. Run `eldercouncil models check` before `--orchestrate` so every lens has a real model.

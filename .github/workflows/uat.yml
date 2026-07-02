@@ -49,7 +49,7 @@ jobs:
           eldercouncil version | tee ver.txt | grep -q "0.1.0"
           eldercouncil list | grep -q "code-council"
           eldercouncil list | grep -q "business-decision"
-          for c in code-council threat-hunting supply-chain compliance cyber-risk platform-architecture business-decision; do
+          for c in code-council threat-hunting supply-chain compliance cyber-risk platform-architecture business-decision eng-team; do
             eldercouncil show "$c" >/dev/null
           done
 
@@ -99,7 +99,7 @@ jobs:
           eldercouncil convene business-decision --demo --no-audit --question "acquire X" >/dev/null
           eldercouncil convene code-council --no-audit --question "x" | grep -q '"tasks"'        # default task-pack JSON
           eldercouncil convene code-council --demo --json --no-audit --question "x" | grep -q '"verdict"'
-          for c in code-council threat-hunting supply-chain compliance cyber-risk platform-architecture business-decision; do
+          for c in code-council threat-hunting supply-chain compliance cyber-risk platform-architecture business-decision eng-team; do
             eldercouncil convene "$c" --demo --no-audit --question "x" >/dev/null
           done
           set +e

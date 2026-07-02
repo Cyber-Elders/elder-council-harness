@@ -44,6 +44,7 @@ _SUGGEST = [
     (("accept risk", "risk acceptance", "vulnerability", "remediation"), "cyber-risk"),
     (("architecture", "redesign", "platform", "migration", "adr"), "platform-architecture"),
     (("acquisition", "acquire", "m&a", "merger", "market entry", "budget", "investment", "reorg", "pricing"), "business-decision"),
+    (("feature spec", "design review", "user story", "acceptance criteria", "implementation plan"), "eng-team"),
 ]
 
 

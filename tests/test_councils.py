@@ -8,7 +8,7 @@ from eldercouncil.schema import SchemaError, parse_council
 
 # Six cyber councils + one general business council.
 COUNCILS = {"code-council", "threat-hunting", "supply-chain", "compliance", "cyber-risk",
-            "platform-architecture", "business-decision"}
+            "platform-architecture", "business-decision", "eng-team"}
 
 
 def test_all_councils_load_and_validate():
@@ -40,6 +40,7 @@ def test_action_gate_vs_advisory_split():
     assert cs["cyber-risk"].mode == "advisory"
     assert cs["compliance"].mode == "advisory"
     assert cs["business-decision"].mode == "advisory"  # exec decisions never auto-decided
+    assert cs["eng-team"].mode == "advisory"           # design reviews recommend; the owner decides
 
 
 def test_cyber_risk_has_accept_outcome():

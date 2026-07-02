@@ -7,7 +7,7 @@ The canonical home for Elder Council terms and the two disambiguations newcomers
 
 - **Lenses ≠ councils.** A **lens** is a single perspective (Security SME, Critic, …). A **council**
   is a *roster of lenses* convened for one class of decision. The same lens appears in several
-  councils. There are six lenses and seven councils — don't conflate the two.
+  councils. There are six lens archetypes and eight councils — don't conflate the two.
 - **Advisory (council mode) ≠ advisory (enforcement tier).** The same word covers two things: an
   *advisory council* never auto-decides (a human synthesises), while an *advisory IDE tier* (Cursor /
   Copilot / MCP) means the agent is *asked* to consult the gate and can decline. A hard-block IDE can
@@ -46,8 +46,8 @@ route, applying the minimum-governance rules. Same votes + same council → same
 **Convene threshold** — the risk score (default 5) at or above which a council is convened. Below it,
 a single agent or a deterministic tool handles the decision.
 
-**Council** — a roster of lenses convened for one class of high-stakes decision. Seven ship by default
-(six cyber + one business); see [COUNCILS.md](COUNCILS.md).
+**Council** — a roster of lenses convened for one class of high-stakes decision. Eight ship by
+default (six cyber + business decision + engineering team); see [COUNCILS.md](COUNCILS.md).
 
 **Decision outcomes** — the set of verdicts a council can return (e.g. Code: merge / request-changes
 / block / escalate). Declared per council in its YAML.

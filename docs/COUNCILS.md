@@ -1,7 +1,8 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # The councils
 
-Six cyber councils plus a general **Business Decision** council for executive calls. Each council is
+Six cyber councils, a general **Business Decision** council for executive calls, and an
+**Engineering Team** council for everyday product-engineering reviews. Each council is
 pure data (`eldercouncil/councils/<id>.yaml`) and installs into every supported IDE via the same
 generic renderer. A council declares its **lenses**, its **decision outcomes**, its **fail-closed
 rule**, and the **triggers** (with a minimum risk score) that should convene it.
@@ -13,18 +14,18 @@ can gate the action behind the risk gate). See [CONCEPT.md](CONCEPT.md).
 
 ## Lens × council matrix
 
-| Lens \ Council | Code | Threat Hunting | Supply Chain | Compliance | Cyber Risk | Platform Arch | Business |
-|---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-| Strategic / Risk Owner | | | ● | ● | ● | | ● |
-| Engineering SME | ● | ● | ● | ● | ● | ● | |
-| Security SME | ● | ● | ● | ● | ● | ● | |
-| Compliance / Legal SME | | | | ● | | ● | ● |
-| Critic / Challenge | ● | | ● | | ● | | ● |
-| Pragmatic Operations | ● | | ● | | | ● | ● |
-| *Detection Engineer* | | ● | | | | | |
-| *Adversary / Red-Team* | | ● | | | | | |
-| *Incident Response Owner* | | ● | | | | | |
-| *Deterministic Tool* | ● | | | | | | |
+| Lens \ Council | Code | Threat Hunting | Supply Chain | Compliance | Cyber Risk | Platform Arch | Business | Eng Team |
+|---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| Strategic / Risk Owner | | | ● | ● | ● | | ● | ● |
+| Engineering SME | ● | ● | ● | ● | ● | ● | | ● |
+| Security SME | ● | ● | ● | ● | ● | ● | | |
+| Compliance / Legal SME | | | | ● | | ● | ● | |
+| Critic / Challenge | ● | | ● | | ● | | ● | ● |
+| Pragmatic Operations | ● | | ● | | | ● | ● | |
+| *Detection Engineer* | | ● | | | | | | ● |
+| *Adversary / Red-Team* | | ● | | | | | | |
+| *Incident Response Owner* | | ● | | | | | | |
+| *Deterministic Tool* | ● | | | | | | | ● |
 
 *(Italic lenses are specialised roles that map to a canonical lens family for model assignment.)*
 
@@ -171,6 +172,26 @@ an AI system — the council informs; a named, accountable executive owns and ma
 
 > **Not professional advice.** Council output is model-generated and may be wrong or stale; the
 > Legal/Compliance lens is illustrative, not legal, financial, or regulatory advice.
+
+---
+
+## 8. Engineering Team Council — `eng-team` · advisory
+
+**Convene for:** a feature design, user story, or implementation plan **before build** — the everyday
+"is this ready to code?" review. Requirements fit, implementation feasibility, and testability are
+challenged together, before code exists to argue about.
+
+| Lens | Role |
+|---|---|
+| Full-Stack Developer | implementation feasibility, API/UI coherence, data flow, architecture fit |
+| Business / Requirements Analyst | does the design meet the stated requirement; where is the spec silent? |
+| Test / QA Engineer | testability, failure-path specification, regression surface, missing hooks |
+| Deterministic Tool Lens | tests, coverage, lint, dependency/secret scans — evidence, not opinion |
+| Critic / Challenge | unstated assumptions, hidden dependencies, the cheaper design nobody proposed |
+
+**Outcomes:** `approve` · `request-changes` · `defer` · `escalate`
+**Fail-closed:** unclear or untestable requirements defer to the feature owner rather than proceeding
+on model confidence. Advisory — the council recommends; a human owns the build/no-build call.
 
 ---
 

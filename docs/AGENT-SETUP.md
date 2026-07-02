@@ -20,7 +20,7 @@ exact commands given; report back in plain language.
 Elder Council convenes several independent AI perspectives ("lenses") on decisions too consequential
 for one model to make alone, tallies their votes fail-closed, preserves dissent, and records a
 tamper-evident audit trail. You are wiring it into THIS project. Read, in order:
-[CONCEPT.md](CONCEPT.md) (why), [COUNCILS.md](COUNCILS.md) (the seven councils),
+[CONCEPT.md](CONCEPT.md) (why), [COUNCILS.md](COUNCILS.md) (the eight councils),
 [GLOSSARY.md](GLOSSARY.md) (terms). Honest scope you must relay to your user: councils are decision
 support, not a guarantee; a named human owns critical calls; the audit is tamper-evident, not
 tamper-proof; the harness ships no keys.
@@ -31,7 +31,7 @@ Ask conversationally; every question has a safe default.
 
 | # | Question | Maps to |
 |---|---|---|
-| 1 | "What should the councils watch — code and cyber decisions, business decisions, or both?" | which councils: code-council + supply-chain (code) · business-decision (exec) · `--all` (both/unsure — the gate only wakes the relevant one) |
+| 1 | "What should the councils watch — code and cyber decisions, business decisions, everyday feature/design reviews, or everything?" | which councils: code-council + supply-chain (code) · business-decision (exec) · eng-team (design reviews: dev + analyst + QA) · `--all` (everything/unsure — the gate only wakes the relevant one) |
 | 2 | "How heavy should the safety-gate set be — light-touch (fewer gates), standard, or regulated-environment strict?" | `--profile lite` / `standard` (default) / `regulated` — NOTE: every profile still blocks on a hard-block agent; advise-vs-enforce is decided by Q4's agent tier, not the profile |
 | 3 | "May council deliberations use your normal AI model, or must everything stay on-device/private?" | lane: default (agent's own model) / `--lane local` (on-device, see [CLAUDE-CODE-OLLAMA.md](CLAUDE-CODE-OLLAMA.md)) / `--lane open` (cross-family open-weight — OpenCode/`--orchestrate` only) |
 | 4 | "Which coding agent are you in day-to-day?" | `claude-code` / `opencode` / `kiro` / `cursor` / `copilot` (tell the user: the first three can hard-block; the last two are advisory — asked, not forced) |

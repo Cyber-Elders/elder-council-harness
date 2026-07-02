@@ -74,3 +74,36 @@ def test_whitespace_command_fails_safe(monkeypatch):
     monkeypatch.setattr(toollens, "tool_commands", lambda: {"sast_cmd": "   "})
     v = toollens.run_tool_lens("Tool", "clean question", OUTCOMES)
     assert v["vote"] == "abstain" and "unavailable" in v["reason"]
+
+
+def test_runner_streams_progress_and_writes_transcripts(monkeypatch, tmp_path):
+    # Realtime visibility: progress fires per lens (completion order) and each
+    # lens's full deliberation lands redacted in .council/last-run/.
+    from eldercouncil.orchestrator import runner
+    monkeypatch.setenv("COUNCIL_DIR", str(tmp_path / ".council"))
+    monkeypatch.setattr(toollens, "tool_commands", lambda: {})
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    review = {"question": f"merge a diff with {FAKE_SK}", "decision_outcomes": OUTCOMES,
+              "tasks": [
+                  {"role": "Deterministic Tool Lens", "is_tool": True, "model": "inherit", "prompt": "x"},
+                  {"role": "Some Reasoning Lens", "model": "claude-opus-4-8", "prompt": "x"},  # no key -> unavailable
+              ]}
+    seen = []
+    votes = runner.run_council(review, progress=seen.append)
+    assert len(votes) == 2 and len(seen) == 2
+    assert votes[0]["role"] == "Deterministic Tool Lens"        # task order preserved
+    d = tmp_path / ".council" / "last-run"
+    files = sorted(f.name for f in d.glob("*.md"))
+    assert files == ["deterministic-tool-lens.md", "some-reasoning-lens.md"]
+    blob = "".join(f.read_text(encoding="utf-8") for f in d.glob("*.md"))
+    assert FAKE_SK not in blob                                   # transcripts are redacted too
+    assert "unavailable" in blob
+
+
+def test_unavailable_lenses_do_not_count_toward_diversity():
+    from eldercouncil import models
+    div = models.diversity_of([
+        {"role": "A", "model": "anthropic:claude-opus-4-8", "vote": "unavailable"},
+        {"role": "B", "model": "anthropic:claude-sonnet-4-6", "vote": "unavailable"},
+    ])
+    assert div["families"] == [] and div["monoculture"] is None

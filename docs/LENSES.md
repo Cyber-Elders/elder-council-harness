@@ -29,13 +29,13 @@ Task-specific roles used by particular councils; each maps to a canonical family
 
 | Lens (`role_key`) | Family | Used by | Job |
 |---|---|---|---|
-| Detection Engineer (`detection_engineer`) | engineering | Threat Hunting | do our detections actually see this? |
+| Detection Engineer (`detection_engineer`) | engineering | Threat Hunting, Eng Team (as Test/QA) | do our detections actually see this? (in Eng Team: can this design be asserted in a test?) |
 | Adversarial / Red-Team (`adversary_redteam`) | security | Threat Hunting | how would an attacker evade, persist, pivot? |
 | Incident Response Owner (`ir_owner`) | security | Threat Hunting | what to contain, preserve, escalate — and who owns it |
 | Cross-Family Critic (`cross_family_critic`) | critic | *(opt-in)* | an independent reviewer from a **different model family** — disagreement is signal |
 | Arbitrator (`arbitrator`) | strategic | *(opt-in)* | proposes the final recommendation; never overrides a fail-closed rule |
 | Synthesiser (`synthesiser`) | strategic | custom councils (no shipped council seats it; the registry pins it for your own rosters) | integrates the lenses into one record, preserving dissent |
-| Deterministic Tool (`deterministic_tool`) | engineering | Code | **not an LLM** — in `--orchestrate` the harness itself runs real checks (built-in secret/injection/PII detectors + your `[tools]` commands; `provenance: tool`); in-IDE, your agent is instructed to run real tools and its report is `host-asserted` (the harness cannot verify it) |
+| Deterministic Tool (`deterministic_tool`) | engineering | Code, Eng Team | **not an LLM** — in `--orchestrate` the harness itself runs real checks (built-in secret/injection/PII detectors + your `[tools]` commands; `provenance: tool`); in-IDE, your agent is instructed to run real tools and its report is `host-asserted` (the harness cannot verify it) |
 
 ## Model resolution
 

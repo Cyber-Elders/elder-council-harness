@@ -9,9 +9,9 @@ from eldercouncil import install
 def test_install_claude_code_renders_all_artifacts(tmp_path):
     rc = install.install("claude-code", target_dir=str(tmp_path), all_councils=True)
     assert rc == 0
-    # 7 slash commands, 35 role agents (7 councils x 5 lenses), hooks, MCP, config
-    assert len(list((tmp_path / ".claude" / "commands").glob("*.md"))) == 7
-    assert len(list((tmp_path / ".claude" / "agents").glob("*.md"))) == 35
+    # 8 slash commands, 40 role agents (8 councils x 5 lenses), hooks, MCP, config
+    assert len(list((tmp_path / ".claude" / "commands").glob("*.md"))) == 8
+    assert len(list((tmp_path / ".claude" / "agents").glob("*.md"))) == 40
     assert (tmp_path / ".claude" / "settings.json").exists()
     assert (tmp_path / ".mcp.json").exists()
     assert (tmp_path / "CLAUDE.md").exists()

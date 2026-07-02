@@ -144,6 +144,18 @@ _DEMO = {
         {"role": "Pragmatic Implementation", "model": "demo", "vote": "recommend-with-guardrails", "confidence": 0.55,
          "reason": "Deliverable this quarter with the guardrails."},
     ],
+    "eng-team": [
+        {"role": "Full-Stack Developer", "model": "demo", "vote": "approve", "confidence": 0.6,
+         "reason": "Maps cleanly onto the existing service boundaries; no new infra."},
+        {"role": "Business / Requirements Analyst", "model": "demo", "vote": "request-changes", "confidence": 0.7,
+         "reason": "Acceptance criteria for the failure path are missing — 'what happens on timeout' is unspecified."},
+        {"role": "Test / QA Engineer", "model": "demo", "vote": "request-changes", "confidence": 0.75,
+         "reason": "The async flow has no observable hooks; the main behaviour can't be asserted in a test."},
+        {"role": "Deterministic Tool Lens", "model": "tool", "vote": "request-changes", "confidence": 0.8,
+         "reason": "coverage on the touched module is 41% and the plan adds untested branches; lint clean."},
+        {"role": "Critic / Challenge", "model": "demo", "vote": "defer", "confidence": 0.6,
+         "reason": "The rollout quietly depends on a data backfill nobody has scoped or owned."},
+    ],
     "business-decision": [
         {"role": "Strategy / Executive Owner", "model": "demo", "vote": "proceed-with-guardrails", "confidence": 0.6,
          "reason": "Strategic fit is real if we ring-fence the downside and stage the spend."},

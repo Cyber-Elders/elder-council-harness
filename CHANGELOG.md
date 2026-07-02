@@ -19,9 +19,10 @@ Bring-your-own-LLM; ships no keys.
   of the council route and the gate result). Offensive-cyber-misuse is a non-overridable **hard stop**.
   `eldercouncil gates list|check`, a `--profile` flag, and the pre-tool detector overlay. Decision
   records and the hash-chained audit now capture gate outcomes + profile.
-- **Seven councils** (pure-data YAML, installable into every supported IDE): six cyber — Code, Threat
+- **Eight councils** (pure-data YAML, installable into every supported IDE): six cyber — Code, Threat
   Hunting, Supply Chain Audit, Multi-Jurisdictional Compliance, Cyber Risk, Platform Architecture —
-  plus a general **Business Decision** council for high-stakes, non-cyber executive calls.
+  plus a general **Business Decision** council for high-stakes executive calls and an **Engineering
+  Team** council (developer + analyst + QA + tool + critic) for everyday design/feature reviews.
 - **Deterministic core:** `risk_gate` (impact × likelihood, 1–25 routing), `consensus` (minimum-
   governance fail-closed tally), `audit` (hash-chained, tamper-evident decision records + dissent),
   `schema`/`catalog` (council loading + validation), `models` (role→model registry resolution).
@@ -93,7 +94,17 @@ plus one more defect found by our own follow-up audit:
   convene run-mode incl. `--orchestrate` fail-closed and `--profile`, `gate`/`audit` per IDE, `gates`,
   `risk-gate` routing, usage errors, `init` defaults, `serve`); and `uat.yml` (clean-install, 3 OS)
   now runs **every** journey — install per IDE × lane, lane-aware `models check`, all run-modes, the
-  gate fail-closed guard, and `verify`. **194 tests**; UAT green on Ubuntu / macOS / Windows.
+  gate fail-closed guard, and `verify`. **196 tests**; UAT green on Ubuntu / macOS / Windows.
+
+### Added (post-review)
+
+- **Engineering Team council (`eng-team`)** — the everyday design/feature review: Full-Stack
+  Developer + Business/Requirements Analyst + Test/QA + Deterministic Tool + Critic, advisory
+  (the feature owner decides). `eldercouncil convene eng-team --demo` shows a contested design review.
+- **Realtime council visibility.** `--orchestrate` now streams each lens's vote as it completes and
+  writes every voice's FULL deliberation (redacted) to `.council/last-run/<lens>.md`;
+  `tools/watch-council.sh <council> "<question>"` opens a tmux view — one live pane per lens — while
+  the harness still runs the fail-closed tally and hash-chained audit.
 
 ### Docs & UX
 

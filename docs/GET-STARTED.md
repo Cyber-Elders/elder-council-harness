@@ -115,8 +115,9 @@ eldercouncil convene code-council --demo --question "merge a diff with a hardcod
 You'll see five lenses vote, a verdict, and the **preserved dissent** — all keyless (deterministic
 sample votes). That's exactly what a real run looks like; the only difference is a real run uses *your*
 agent's model on *your* decision. **Not a cyber person?** Try
-`eldercouncil convene business-decision --demo` — same machinery, on a $40M business call. (Business
-Decision is **advisory** — you convene it yourself; the gate won't pop it up for you.)
+`eldercouncil convene business-decision --demo` — same machinery, on a $40M business call. **A
+developer?** `eldercouncil convene eng-team --demo` reviews a feature design with a dev + analyst +
+QA + critic panel. (Both are **advisory** — you convene them yourself; the gate won't pop them up.)
 
 ## Common questions
 

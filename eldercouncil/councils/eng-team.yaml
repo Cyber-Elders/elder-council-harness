@@ -1,0 +1,61 @@
+id: eng-team
+name: Engineering Team Council
+purpose: >
+  Review a feature design, user story, or implementation plan before build —
+  requirements fit, implementation feasibility, and testability challenged
+  together, before code exists to argue about.
+description: >
+  An advisory council for everyday product engineering: a developer, an
+  analyst, and a test engineer reviewing the same plan through different
+  disciplines, with a deterministic tool seat for the measurable parts and a
+  critic for the assumptions nobody wrote down. It recommends; the feature
+  owner decides.
+mode: advisory
+
+roles:
+  - name: Full-Stack Developer
+    lens: >
+      Review implementation feasibility, API/UI coherence, data flow, and fit
+      with the existing architecture. Could you build and own this as specified,
+      and what would you push back on before starting?
+    role_key: engineering_sme
+  - name: Business / Requirements Analyst
+    lens: >
+      Review whether the design actually meets the stated requirement: scope,
+      acceptance criteria, edge-case behaviour the business cares about, and
+      what the user gets that they asked for. Where is the spec silent?
+    role_key: strategic_risk_owner
+  - name: Test / QA Engineer
+    lens: >
+      Review testability: can each behaviour be asserted, are failure paths
+      specified, what is the regression surface, and what test hooks or
+      observability are missing from the design?
+    role_key: detection_engineer
+  - name: Deterministic Tool Lens
+    lens: >
+      Run the measurable checks available at design/branch time — tests,
+      coverage, lint, dependency and secret scans. Report findings as evidence —
+      this lens does not reason, it measures.
+    role_key: deterministic_tool
+    is_tool: true
+  - name: Critic / Challenge
+    lens: >
+      Look for unstated assumptions, hidden dependencies, unscoped work the plan
+      quietly relies on, and the cheaper design nobody proposed. What are we
+      assuming that may be false?
+    role_key: critic_challenge
+
+decision_outcomes: [approve, request-changes, defer, escalate]
+
+fail_closed: >
+  Unclear or untestable requirements defer to the feature owner rather than
+  proceeding on model confidence. Advisory: the council recommends; a human
+  owns the build/no-build call.
+
+triggers:
+  - condition: "feature spec | design review | user story | acceptance criteria | implementation plan"
+    min_risk_score: 5
+
+output:
+  path: ".council/decisions/eng-team-{ts}.json"
+  format: json

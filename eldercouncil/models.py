@@ -144,6 +144,8 @@ def diversity_of(votes) -> dict:
     for v in votes or []:
         if (v.get("provenance") or "") == "tool" or str(v.get("model", "")) == "tool":
             continue
+        if str(v.get("vote", "")) == "unavailable":
+            continue  # an unreachable lens never voted — it is an outage, not a voice
         fams.append(provider_of(str(v.get("model", ""))))
     families = sorted(set(fams))
     if not families:
