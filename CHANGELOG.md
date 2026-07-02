@@ -94,13 +94,19 @@ plus one more defect found by our own follow-up audit:
   convene run-mode incl. `--orchestrate` fail-closed and `--profile`, `gate`/`audit` per IDE, `gates`,
   `risk-gate` routing, usage errors, `init` defaults, `serve`); and `uat.yml` (clean-install, 3 OS)
   now runs **every** journey — install per IDE × lane, lane-aware `models check`, all run-modes, the
-  gate fail-closed guard, and `verify`. **196 tests**; UAT green on Ubuntu / macOS / Windows.
+  gate fail-closed guard, and `verify`. **197 tests**; UAT green on Ubuntu / macOS / Windows.
 
 ### Added (post-review)
 
 - **Engineering Team council (`eng-team`)** — the everyday design/feature review: Full-Stack
   Developer + Business/Requirements Analyst + Test/QA + Deterministic Tool + Critic, advisory
   (the feature owner decides). `eldercouncil convene eng-team --demo` shows a contested design review.
+- **Ollama journeys for every agent, honestly.** `install opencode --lane open` now **auto-wires
+  OpenCode's Ollama provider block** (localhost:11434, exactly the pinned models) so the cross-family
+  default runs without hand-written config; a per-agent Ollama matrix documents the rest — Copilot
+  via the official Ollama extension (chat only; VS Code's built-in provider is deprecated), **Cursor
+  cannot reach a localhost endpoint** (custom-key requests route through Cursor's servers), Kiro has
+  no local option.
 - **Realtime council visibility.** `--orchestrate` now streams each lens's vote as it completes and
   writes every voice's FULL deliberation (redacted) to `.council/last-run/<lens>.md`;
   `tools/watch-council.sh <council> "<question>"` opens a tmux view — one live pane per lens — while

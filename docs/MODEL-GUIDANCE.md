@@ -58,8 +58,8 @@ Some agents lock every sub-agent in a session to one provider.
 |---|---|---|
 | **Claude Code** | **No — single provider per session.** A sub-agent's `model:` accepts only Claude values (`opus` / `sonnet` / `haiku` / a full Claude id / `inherit`). You can point the **whole session** at a local backend that speaks the Anthropic Messages API via `ANTHROPIC_BASE_URL` (e.g. Ollama), but that swaps *every* agent at once — per-agent providers aren't supported. **OpenRouter does NOT work here** (it speaks the OpenAI schema, not the Anthropic Messages API) — use `--orchestrate` or OpenCode for OpenRouter ([OPENROUTER.md](OPENROUTER.md)). | Vary the **tier** (Opus for the hard lenses, Haiku for `pragmatic_ops`) for cost — but accept it's one family. Get real diversity from the **deterministic Tool lens + the human owner**, from **separate sessions** each on a different backend, or from the **`--orchestrate` / MCP path** running your own mixed models. |
 | **OpenCode** | **Yes — per agent.** Each agent sets `model: provider/model-id` (e.g. `anthropic/…`, `openai/…`, `ollama/qwen3-coder:30b`); different families run concurrently. | Assign each `role_key` a model from a different family directly. Best in-IDE fit for a true cross-family council. |
-| **Cursor** | **Partly.** BYOK (OpenAI / Anthropic / Gemini / any OpenAI-compatible incl. local Ollama & LM Studio) works in **chat**, but **Agent mode doesn't take custom keys yet** — so the advisory/chat council can be cross-family; the autonomous agent is constrained. | Use the advisory council (Cursor is advisory-tier anyway) with BYOK models in chat; pin your mixed models there. |
-| **GitHub Copilot** | **Yes — via BYOK.** Add providers (OpenAI, Anthropic, Gemini, OpenRouter, LM Studio, Ollama, any OpenAI-compatible) in Settings → Model Providers. | Pin each lens to a model from a different provider you've added. |
+| **Cursor** | **Partly — hosted endpoints only.** BYOK (OpenAI / Anthropic / Gemini / any OpenAI-compatible) works in **chat**, but Cursor **routes every custom-key request through its own servers** — a `localhost` Ollama endpoint is NOT reachable without a public tunnel (which defeats the privacy point). Agent mode doesn't take custom keys. | Use the advisory council with hosted BYOK models in chat (e.g. OpenRouter); for LOCAL Ollama run `--orchestrate` alongside Cursor instead. |
+| **GitHub Copilot** | **Yes — via BYOK** (`Chat: Manage Language Models` → Add Models; works even without a Copilot plan). For LOCAL Ollama, VS Code's built-in Ollama provider is **deprecated** — install the official **Ollama extension** from the VS Code Marketplace instead. Local models power chat, not inline suggestions. | Pin each lens to a model from a different provider you've added. |
 | **Kiro** | **Within its hosted catalog.** Closed, Kiro/AWS-hosted set spanning Claude plus several hosted open models — cross-family is possible but only from that catalog, and hosted-only (no local). | Pick lenses from different families in its catalog; no local/privacy option. |
 
 > **Takeaway.** If you live in **Claude Code**, your in-session lenses are one family — lean on the Tool
@@ -92,6 +92,17 @@ the reasoning and arbitrator seats if you have the memory. `gpt-oss` ships nativ
 gpt-oss are Apache-2.0; DeepSeek-R1 is MIT; Gemma uses Google's Gemma license (not OSI-approved) — pick
 Apache/MIT seats if you need clean commercial redistribution.
 
+## Which agents can run councils on LOCAL Ollama? (the honest matrix)
+
+| Agent | Local Ollama? | How |
+|---|---|---|
+| **Claude Code** | ✓ whole-session (one family) | [CLAUDE-CODE-OLLAMA.md](CLAUDE-CODE-OLLAMA.md) — `ollama launch claude` / `ANTHROPIC_BASE_URL`, then `install --lane local` |
+| **OpenCode** | ✓ per-lens, cross-family | the §3 recipe — `install opencode --all --lane open` auto-wires the Ollama provider |
+| **Headless (`--orchestrate`)** | ✓ no IDE at all | open/local-lane pins route straight to `localhost:11434`; live view via `tools/watch-council.sh` |
+| **GitHub Copilot** | ✓ chat only | the official **Ollama extension** from the VS Code Marketplace (the built-in provider is deprecated); advisory tier; local models don't power inline suggestions |
+| **Cursor** | ✗ localhost | custom-key requests route through **Cursor's servers** — a local endpoint isn't reachable without a public tunnel; run `--orchestrate` alongside instead |
+| **Kiro** | ✗ | hosted catalog only — no local model option |
+
 ## 3. Privacy-first — run the whole council locally
 
 Nothing leaves the device. On **Apple Silicon** use **MLX** (`mlx-lm`, models from the `mlx-community`
@@ -122,29 +133,32 @@ For a genuinely cross-family council with **nothing leaving the device**, **Open
 agent (it runs a different model per lens). On Claude Code you'd instead run every lens on one local
 model — see [CLAUDE-CODE-OLLAMA.md](CLAUDE-CODE-OLLAMA.md).
 
+*(What you need: OpenCode set up, [Ollama](https://ollama.com/download) running, Python 3.11+, and
+the RAM for your chosen models — see the table below.)*
+
 ```console
-# 1. Pull a few DIFFERENT-family models that fit your RAM (see the table above)
-ollama pull gpt-oss:20b          # MoE workhorse for most roles
-ollama pull magistral:24b        # a different lineage (Mistral) for the critic
-ollama pull qwen3:8b             # fast/light for pragmatic_ops   (on 16 GB: pull one, swap)
+# 1. Pull the shipped open-lane models that fit your RAM (or your own picks)
+ollama pull qwen3:32b            # reasoning seats        (on 16 GB: pull fewer, swap)
+ollama pull deepseek-r1:32b      # security/IR seats
+ollama pull magistral:24b        # the critic (different lineage)
+ollama pull gemma3:12b           # fast ops
+ollama pull gpt-oss:20b          # compliance (OpenAI lineage)
 
-# 2. Install Elder Council for OpenCode on the local lane
-git clone https://github.com/Cyber-Elders/elder-council-harness && cd elder-council-harness
-pip install -e .
-eldercouncil install opencode --all --lane local
-
-# 3. Pin each lens to a different family in .council/council-models.json (the `local` lane),
-#    using OpenCode's provider/model form, then re-install to apply:
-#      "security_sme":     { "local": "ollama/gpt-oss:20b" }
-#      "critic_challenge":  { "local": "ollama/magistral:24b" }
-#      "pragmatic_ops":     { "local": "ollama/qwen3:8b" }
-eldercouncil install opencode --all --lane local
-eldercouncil models check        # confirms diversity; flags a monoculture
+# 2. Install on the OPEN lane — pins the cross-family defaults AND auto-wires
+#    OpenCode's Ollama provider block (localhost:11434, exactly those models)
+#    into opencode.json. Run from YOUR project folder.
+git clone https://github.com/Cyber-Elders/elder-council-harness ~/tools/elder-council-harness
+pip install -e ~/tools/elder-council-harness
+cd /path/to/your/project
+eldercouncil install opencode --all --lane open
+eldercouncil models check        # open lane: exit 0, cross-family confirmed
 ```
 
-Any lens you leave unpinned simply **inherits** your agent's default model — so you can pin only the
-seats that matter (the critic + a couple of reasoning seats) and let the rest follow. That alone breaks
-the worst monoculture.
+Then convene as usual in OpenCode (or headless: `eldercouncil convene <c> --lane open --orchestrate`,
+with the live tmux view via `tools/watch-council.sh`). To swap any seat, edit the `open` lane in
+`.council/council-models.json` and re-run the install — the provider block updates with it; any lens
+you leave unpinned **inherits** your agent's default model. **Tool-calling caveat (OpenCode + Ollama):**
+if tool calls misbehave, raise the model's context — `num_ctx` around **16k–32k**.
 
 ## 4. Hybrid — local where it's cheap and private, cloud where it's hard
 

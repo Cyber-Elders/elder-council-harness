@@ -263,6 +263,31 @@ def _wire_opencode_hooks(root: Path, changes: list[str]) -> None:
     _register_mcp(root / "opencode.json", "mcp", _OPENCODE_MCP_ENTRY, changes)
 
 
+def _wire_opencode_ollama_provider(root: Path, ollama_tags: set[str], changes: list[str]) -> None:
+    """OpenCode resolves `ollama/<model>` refs through a provider block in
+    opencode.json (OpenAI-compatible endpoint) — without it, our rendered pins
+    would sit unresolved until the user hand-writes config. Merge one in,
+    idempotently, for exactly the models the install rendered."""
+    if not ollama_tags:
+        return
+    path = root / "opencode.json"
+    data = _load_json(path)
+    prov = data.setdefault("provider", {}).setdefault("ollama", {})
+    prov.setdefault("npm", "@ai-sdk/openai-compatible")
+    prov.setdefault("name", "Ollama (local)")
+    prov.setdefault("options", {"baseURL": "http://localhost:11434/v1"})
+    mdl = prov.setdefault("models", {})
+    before = dict(mdl)
+    for tag in sorted(ollama_tags):
+        mdl.setdefault(tag.removeprefix("ollama/"), {"name": tag.removeprefix("ollama/")})
+    if mdl != before or "provider" not in _load_json(path):
+        _write_json(path, data, changes, "Ollama provider for the pinned local models")
+        changes.append("! pull the pinned models first (`ollama pull <tag>`) and raise num_ctx to 16k+ "
+                       "for tool calls — see docs/MODEL-GUIDANCE.md")
+    else:
+        changes.append(f"= {path} (Ollama provider already wired)")
+
+
 # --------------------------------------------------------------------------
 # Kiro (best-effort)
 # --------------------------------------------------------------------------
@@ -450,6 +475,14 @@ def install(ide: str, councils: list[str] | None = None, target_dir: str | None 
     for c in selected:
         render(root, c, reg, lane, changes)
     wire(root, changes)
+    if ide == "opencode":
+        ollama_tags = set()
+        for c in selected:
+            for r in c.roles:
+                m = _model_for(reg, r, lane)
+                if m.startswith("ollama/"):
+                    ollama_tags.add(m)
+        _wire_opencode_ollama_provider(root, ollama_tags, changes)
 
     print(f"Elder Council installed for {ide} in {root}")
     print(f"  councils: {', '.join(c.id for c in selected)}")

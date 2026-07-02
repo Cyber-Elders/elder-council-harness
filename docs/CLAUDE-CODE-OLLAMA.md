@@ -127,5 +127,8 @@ will flag a single-model setup.
 Running fully local? **Star the repo** and tell us which models you paired ([open an issue](https://github.com/Cyber-Elders/elder-council-harness/issues)) —
 local model pairings are among the most useful things you can share.
 
+**Not on Claude Code?** The Ollama-per-agent matrix in [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md) covers
+every agent honestly (OpenCode ✓ cross-family · Copilot ✓ chat-only · Cursor ✗ localhost · Kiro ✗).
+
 Related: [GET-STARTED.md](GET-STARTED.md) · [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md) (local/hybrid model
 choices) · [IDE-SUPPORT.md](IDE-SUPPORT.md).

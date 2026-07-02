@@ -157,3 +157,18 @@ def test_install_gitignores_council_dir(tmp_path):
     # idempotent
     install.install("claude-code", councils=["code-council"], target_dir=str(tmp_path))
     assert (tmp_path / ".gitignore").read_text(encoding="utf-8").count(".council/") == 1
+
+
+def test_opencode_open_lane_wires_ollama_provider(tmp_path):
+    # OpenCode resolves ollama/<tag> refs via a provider block — the installer
+    # must wire it for the models it just pinned (else the pins sit dead).
+    install.install("opencode", councils=["code-council"], target_dir=str(tmp_path), lane="open")
+    oc = json.loads((tmp_path / "opencode.json").read_text())
+    prov = oc["provider"]["ollama"]
+    assert prov["options"]["baseURL"].endswith(":11434/v1")
+    assert "qwen3-coder:30b" in prov["models"] and "deepseek-r1:32b" in prov["models"]
+    # frontier install pins no ollama/ tags -> no provider block forced
+    other = tmp_path / "frontier"
+    install.install("opencode", councils=["code-council"], target_dir=str(other))
+    oc2 = json.loads((other / "opencode.json").read_text())
+    assert "provider" not in oc2 or "ollama" not in oc2.get("provider", {})

@@ -36,8 +36,9 @@ can't mix families in-session (single-provider) — see [MODEL-GUIDANCE.md](MODE
 Yes. Point your coding agent at a local backend (e.g. **Claude Code → Ollama**) and install on the
 local lane: `eldercouncil install <ide> --all --lane local` makes **every lens run on your own model**
 (no Claude tag to fail on, no model file to edit). Copy-paste recipe:
-**[CLAUDE-CODE-OLLAMA.md](CLAUDE-CODE-OLLAMA.md)**; for an all-local *cross-family* council or a hybrid
-(local + cloud) split, see **[MODEL-GUIDANCE.md](MODEL-GUIDANCE.md)**. One caveat: all lenses on a
+**[CLAUDE-CODE-OLLAMA.md](CLAUDE-CODE-OLLAMA.md)**; for an all-local *cross-family* council, a hybrid
+(local + cloud) split, or ANY other agent (OpenCode ✓, Copilot chat ✓, Cursor ✗ localhost, Kiro ✗),
+see the **Ollama-per-agent matrix in [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md)**. One caveat: all lenses on a
 single local model is a monoculture — add a second/different-family voice for genuine disagreement.
 
 **Which models should each lens use?**
