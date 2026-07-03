@@ -149,9 +149,12 @@ fixed with reproductions and regression tests:
 - **Non-participation is no longer counted as dissent.** An `unavailable`/`abstain` lens was recorded
   in the preserved-dissent list; the tally now excludes non-votes from dissent (they remain non-votes
   in the quorum math, unchanged).
-- **`convene --lane` with `--demo`** now notes that the demo output is lane-invariant (canned votes),
-  so `--lane` there is a no-op; and the demo collateral (GIF/PNG) header command matches the printed
-  decision id exactly.
+- **`convene --lane` with `--demo`** notes — **only when you actually pass `--lane`** — that the demo
+  output is lane-invariant (canned votes), so `--lane` there is a no-op. (A follow-up fixed a
+  regression where that note fired on *every* demo: the late stderr write could race a
+  `convene --demo … | grep -q` pipeline closing → `BrokenPipeError` / exit 120, which surfaced only on
+  the macOS CI runner. `uat.yml` now guards it.) The demo collateral (GIF/PNG) header command matches
+  the printed decision id exactly.
 
 ### Docs & UX
 
