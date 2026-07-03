@@ -132,6 +132,12 @@ verdict always goes to a human.)
 - **"It printed `approval: … asserted — unverified`. Is that a problem?"** No — it means you asserted
   an approver and the harness recorded it without confirming it (nothing is configured to check). To
   have it actually checked against your ticket system, see [GATES.md](GATES.md).
+- **"Where do the decisions go — and can I tell if the log was tampered with?"** Every decision is
+  written to `.council/decisions/` and chained in a tamper-evident log. Run **`eldercouncil verify`** to
+  check it's intact (it re-hashes each full record, so a changed vote/reason is caught) and to print the
+  chain **head** — record that head somewhere off the machine and re-run `eldercouncil verify
+  --expect-head <hash>` to also catch a wholesale rewrite. It's tamper-**evident**, not tamper-proof —
+  see [THREAT_MODEL.md](../THREAT_MODEL.md).
 - **"Which model setup should I pick?"**
 
   | You want | Pick | Trade-off |

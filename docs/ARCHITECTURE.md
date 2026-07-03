@@ -36,7 +36,7 @@ flowchart TD
 | `consensus` | `tally(votes, council)` — combine votes under the minimum-governance fail-closed rules |
 | `gates` | `evaluate(profile, signals, …)` — the 11 deterministic control gates (`gate-policy.yaml`); a gate can block/escalate even when the council approved. Offensive-misuse is a non-overridable hard stop |
 | `detectors` | the shared secret/PII/injection regexes + `redact()` — one definition for gates, audit redaction, and the tool lens |
-| `audit` | hash-chained, tamper-evident decision records + dissent + gate outcomes + `verify`; secrets/PII redacted at persistence (`[audit] redact`, default on) |
+| `audit` | hash-chained, tamper-evident decision records + dissent + gate outcomes. `verify` checks the chain **and** re-hashes each full record (`record_sha256` — substance-bound, not just the index), with an off-box `--expect-head` anchor for full-rewrite/truncation; secrets/PII redacted at persistence (`[audit] redact`, default on) |
 | `schema` | `Council` / `Role` dataclasses + strict validation (fail-closed on malformed) |
 | `catalog` | load + validate + merge council definitions (bundled + project overrides) |
 | `models` | `council-models.json` loader + role→model resolution + fallback + unresolved-sentinel reporting |
