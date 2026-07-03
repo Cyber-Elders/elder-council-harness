@@ -40,10 +40,9 @@ Q_ESC=$(printf '%q' "$QUESTION")
 ARGS_ESC=""
 for a in "$@"; do ARGS_ESC+=" $(printf '%q' "$a")"; done
 
-tmux new-session -d -s "$SESSION" -n council \
+MAIN_PANE=$(tmux new-session -d -P -F '#{pane_id}' -s "$SESSION" -n council \
   "eldercouncil convene $COUNCIL --orchestrate --question $Q_ESC$ARGS_ESC; \
-   printf '\n── council finished — press Enter to close ──\n'; read -r _"
-MAIN_PANE=$(tmux display -p -t "$SESSION:council" '#{pane_id}')
+   printf '\n── council finished — press Enter to close ──\n'; read -r _")
 for s in $SLUGS; do
   # tail -F (follow by NAME): survives truncation/recreation of the transcript.
   tmux split-window -t "$SESSION:council" "tail -F '$DIR/$s.md'"

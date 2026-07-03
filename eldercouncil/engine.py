@@ -152,7 +152,7 @@ _DEMO = {
         {"role": "Test / QA Engineer", "model": "demo", "vote": "request-changes", "confidence": 0.75,
          "reason": "The async flow has no observable hooks; the main behaviour can't be asserted in a test."},
         {"role": "Deterministic Tool Lens", "model": "tool", "vote": "request-changes", "confidence": 0.8,
-         "reason": "coverage on the touched module is 41% and the plan adds untested branches; lint clean."},
+         "reason": "test run: 2 failing on the touched module; the async path has no assertions; lint clean."},
         {"role": "Critic / Challenge", "model": "demo", "vote": "defer", "confidence": 0.6,
          "reason": "The rollout quietly depends on a data backfill nobody has scoped or owned."},
     ],

@@ -50,8 +50,10 @@ def _redact_record(rec: dict) -> dict:
     out = dict(rec)
     for key in ("question", "rationale"):
         out[key] = detectors.redact(out.get(key, ""))
-    out["verdicts"] = [dict(v, reason=detectors.redact(v.get("reason", ""))) for v in out.get("verdicts", [])]
-    out["dissent"] = [dict(v, reason=detectors.redact(v.get("reason", ""))) for v in out.get("dissent", [])]
+    # Redact EVERY free-text field of each vote/dissent dict (role and model can
+    # carry host-supplied secrets/PII via the MCP audit_log path), not just reason.
+    out["verdicts"] = [_redact_deep(v) for v in out.get("verdicts", [])]
+    out["dissent"] = [_redact_deep(v) for v in out.get("dissent", [])]
     out["context"] = _redact_deep(out.get("context") or {})
     if out.get("approval"):
         out["approval"] = dict(out["approval"], basis=detectors.redact(out["approval"].get("basis", "")))

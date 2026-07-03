@@ -141,3 +141,18 @@ def test_nested_context_and_basis_are_redacted(council_dir):
                  approval={"approver": "jane", "basis": f"ticket with {FAKE_SK}", "status": "x"})
     blob = "".join(p.read_text(encoding="utf-8") for p in (council_dir / "decisions").glob("*.json"))
     assert FAKE_SK not in blob and "[REDACTED:secret]" in blob
+
+
+def test_secret_in_role_or_model_field_is_redacted(council_dir):
+    # The MCP audit_log path accepts host-supplied {role, model}; a secret/PII
+    # there must not reach disk unredacted (field-coverage, not just `reason`).
+    c = mkcouncil(mode="action-gate", n_roles=3, outcomes=("merge", "block"))
+    o = tally([{"role": f"leaker {FAKE_SK}", "model": f"m api_key={FAKE_SK}", "vote": "block",
+                "confidence": 0.9, "reason": "clean"},
+               {"role": "b@corp.com", "model": "m", "vote": "merge", "confidence": 0.9, "reason": "y"},
+               {"role": "C", "model": "m", "vote": "merge", "confidence": 0.9, "reason": "z"}], c)
+    audit.record(c.id, "q", o, mode=c.mode)
+    everything = "".join(p.read_text(encoding="utf-8")
+                         for p in council_dir.rglob("*") if p.is_file())
+    assert FAKE_SK not in everything, "secret in a role/model field reached disk"
+    assert "b@corp.com" not in everything, "PII in a role field reached disk"

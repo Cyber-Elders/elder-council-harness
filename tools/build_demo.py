@@ -31,7 +31,7 @@ _VOTES = [
     ("    Critic / Challenge             request-changes             ( 0.7)", DIM),
 ]
 _HEAD = [
-    ("$ eldercouncil convene code-council --demo", FG),
+    ("$ eldercouncil convene code-council --demo --question \"merge a diff with a hardcoded AWS key\"", FG),
     ("", FG),
     ("  code-council  —  action-gate · can block automatically", CYAN),
 ]
@@ -61,7 +61,7 @@ def _font(size):
 
 
 def _render(lines):
-    w, h, pad, lh = 820, 420, 18, 24
+    w, h, pad, lh = 980, 420, 18, 24
     img = Image.new("RGB", (w, h), BG)
     d = ImageDraw.Draw(img)
     f = _font(15)

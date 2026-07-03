@@ -182,3 +182,15 @@ def test_convene_defaults_to_configured_lane(tmp_path, capsys, monkeypatch):
     pack = json.loads(capsys.readouterr().out)
     models = {t["model"] for t in pack["tasks"]}
     assert models == {"inherit"}, models
+
+
+def test_risk_gate_does_not_fail_open_on_alt_payload_schemas(monkeypatch):
+    # A destructive command carried in a NON-{action,target} JSON object (e.g. the
+    # harness's own {tool_name,tool_input}/{tool,args} hook payloads) must still
+    # route conservatively — never score empty -> SOLO_ALLOW (fail-open).
+    for payload in ('{"tool_name":"bash","tool_input":{"command":"rm -rf / --no-preserve-root --force"}}',
+                    '{"tool":"bash","args":"rm -rf /prod --force"}',
+                    '{"foo":"rm -rf / --force destroy production drop database"}'):
+        assert cli.main(["risk-gate", payload]) == 2, payload
+    # a benign object still proceeds
+    assert cli.main(["risk-gate", '{"note":"read a file"}']) == 0

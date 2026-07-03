@@ -171,6 +171,9 @@ def cmd_convene(args) -> int:
             sys.stderr.write(f"invalid --signals JSON: {exc}\n")
             return 2
 
+    if args.demo and args.lane is not None:
+        sys.stderr.write(_c("2", "  note: --lane has no effect with --demo (demo votes are canned, "
+                                 "lane-invariant); it applies to --orchestrate and in-agent runs.\n"))
     if args.demo or args.orchestrate:
         try:
             if args.orchestrate:
@@ -271,6 +274,12 @@ def cmd_risk_gate(args) -> int:
         try:
             d = json.loads(raw)
             action, target = d.get("action", ""), d.get("target", "")
+            if not action and not target:
+                # A JSON object in an UNRECOGNISED shape (e.g. a raw {tool_name,
+                # tool_input} / {tool,args} hook event) must NOT score an empty
+                # string -> SOLO_ALLOW (fail-open). Score the whole payload so a
+                # destructive command in any field still routes conservatively.
+                action, target = raw, ""
         except json.JSONDecodeError as exc:
             # Fail closed: don't evaluate an empty action on malformed JSON.
             sys.stderr.write(f"invalid action JSON: {exc}\n")

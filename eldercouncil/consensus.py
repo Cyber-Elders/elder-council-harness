@@ -180,9 +180,12 @@ def _normalize(votes, valid: set[str]) -> list[Vote]:
 
 
 def _dissent(norm: list[Vote], verdict: str) -> list[dict]:
+    # Genuine dissent = a lens that DELIBERATED to a different outcome. An
+    # abstention or an outage is non-participation, not disagreement — excluding
+    # it keeps "dissent preserved: N" honest on a run with unreachable lenses.
     return [
         {"role": v.role, "vote": v.vote, "confidence": v.confidence, "reason": v.reason}
-        for v in norm if v.vote != verdict
+        for v in norm if v.vote != verdict and v.vote not in _ABSTAIN
     ]
 
 

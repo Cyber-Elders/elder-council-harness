@@ -230,3 +230,14 @@ def test_host_reported_tool_provenance_is_coerced():
     assert out[0]["provenance"] == "host-asserted"
     assert out[1]["provenance"] == "host-asserted"
     assert "provenance" not in out[2]
+
+
+def test_unavailable_lens_is_not_counted_as_dissent():
+    from types import SimpleNamespace
+    roles = [SimpleNamespace(name=f"r{i}", arbitrator=False, is_tool=False) for i in range(3)]
+    c = SimpleNamespace(mode="action-gate", roles=roles, decision_outcomes=["merge", "block"], id="stub")
+    o = tally([{"role": "r0", "model": "m", "vote": "merge", "confidence": 0.8, "reason": ""},
+               {"role": "r1", "model": "m", "vote": "merge", "confidence": 0.8, "reason": ""},
+               {"role": "r2", "model": "m", "vote": "unavailable", "confidence": 0.0, "reason": "outage"}], c)
+    assert o.verdict == "merge"
+    assert o.dissent == [], "an outage must not be reported as dissent"

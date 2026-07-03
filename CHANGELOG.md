@@ -94,7 +94,7 @@ plus one more defect found by our own follow-up audit:
   convene run-mode incl. `--orchestrate` fail-closed and `--profile`, `gate`/`audit` per IDE, `gates`,
   `risk-gate` routing, usage errors, `init` defaults, `serve`); and `uat.yml` (clean-install, 3 OS)
   now runs **every** journey — install per IDE × lane, lane-aware `models check`, all run-modes, the
-  gate fail-closed guard, and `verify`. **199 tests**; UAT green on Ubuntu / macOS / Windows.
+  gate fail-closed guard, and `verify`. **202 tests**; UAT green on Ubuntu / macOS / Windows.
 
 ### Added (post-review)
 
@@ -131,6 +131,27 @@ A 37-agent adversarially-verified QA pass over every guide, template, example, a
   the current template incl. gates/disposition/diversity/audit; stale counts and module lists across
   pyproject/ARCHITECTURE/GLOSSARY/CONCEPT/DOMAIN-ADAPTATION/templates/adapters/CONTRIBUTING/
   GOVERNANCE/CODEOWNERS/BRAND/STANDARDS-MAP/METHODOLOGY.
+
+### Fixed (final adversarial pass)
+
+A closing devil's-advocate sweep (three independent break-it lenses, each finding reproduced or
+refuted before it counted) found two real fail-open/leak paths and two lower-severity issues — all
+fixed with reproductions and regression tests:
+
+- **Audit no longer persists a secret hidden in a `role`/`model` field.** Redaction only scrubbed the
+  `reason` of each verdict/dissent entry, so a secret or PII placed in the host-supplied `role` or
+  `model` field (e.g. via the MCP `audit_log` tool) reached disk unredacted. Records now redact the
+  **whole** verdict/dissent object; decision ids and the hash chain are unaffected.
+- **Risk-gate no longer fails open on unrecognised JSON payloads.** A pre-tool payload that was a JSON
+  object with neither `action` nor `target` (e.g. `{"tool_name":…,"tool_input":…}`) scored as empty →
+  `SOLO_ALLOW` (exit 0) even when it carried a destructive command; the whole raw payload is now scored
+  when those keys are absent, so the destructive content still routes to a human.
+- **Non-participation is no longer counted as dissent.** An `unavailable`/`abstain` lens was recorded
+  in the preserved-dissent list; the tally now excludes non-votes from dissent (they remain non-votes
+  in the quorum math, unchanged).
+- **`convene --lane` with `--demo`** now notes that the demo output is lane-invariant (canned votes),
+  so `--lane` there is a no-op; and the demo collateral (GIF/PNG) header command matches the printed
+  decision id exactly.
 
 ### Docs & UX
 

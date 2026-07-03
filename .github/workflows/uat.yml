@@ -118,10 +118,14 @@ jobs:
           printf '%s' '{"action": not valid json' | eldercouncil gates check >/dev/null 2>&1; badc=$?
           printf '%s' '{not json either' | eldercouncil risk-gate >/dev/null 2>&1; badr=$?
           printf '%s' 'read a file' | eldercouncil gates check >/dev/null 2>&1; okc=$?
+          # a JSON object with neither action nor target must score the WHOLE payload,
+          # not fail OPEN to a confident allow (regression: alt hook schemas)
+          printf '%s' '{"tool_name":"bash","tool_input":{"command":"rm -rf / --no-preserve-root"}}' | eldercouncil risk-gate >/dev/null 2>&1; altr=$?
           set -e
           test "$badc" -eq 2     # malformed JSON object -> fail CLOSED (block), not a confident allow
           test "$badr" -eq 2     # same guard on risk-gate
           test "$okc" -eq 0      # a bare benign action string still proceeds
+          test "$altr" -eq 2     # destructive command under an unrecognised schema still routes to a human
 
           # ---- G. open lane: cross-family default + single-provider guard ----
           eldercouncil install opencode --all --lane open --dir "$work/oco"
