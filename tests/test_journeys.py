@@ -69,8 +69,25 @@ def test_monoculture_demo_warns(tmp_path):
 
 def test_models_check_journey(tmp_path):
     r = _run(["models", "check"], tmp_path)
-    assert r.returncode == 2  # cross-family/open/local lanes ship unpinned by design
+    # frontier lane: cross_family_critic is an optional sentinel (no verified-real non-Anthropic
+    # frontier tag ships), so it is no longer treated as a misconfiguration.
+    assert r.returncode == 0
     assert "configured lane: frontier" in r.stdout
+
+
+def test_models_check_flags_real_unpinned_frontier(tmp_path):
+    # A deliberately unpinned seated role on frontier (other than the optional sentinel)
+    # should still exit 2.
+    import json
+    models_path = tmp_path / ".council" / "council-models.json"
+    models_path.parent.mkdir(parents=True)
+    reg = json.loads((ROOT / "eldercouncil" / "council-models.json").read_text(encoding="utf-8"))
+    reg["roles"]["security_sme"]["frontier"] = "REPLACE_ME:pick-a-frontier-model"
+    models_path.write_text(json.dumps(reg))
+    env = {"COUNCIL_DIR": str(tmp_path / ".council")}
+    r = _run(["models", "check"], tmp_path, env)
+    assert r.returncode == 2
+    assert "security_sme:frontier" in r.stdout
 
 
 def test_models_check_honours_local_lane(tmp_path):

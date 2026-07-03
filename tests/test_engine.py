@@ -113,3 +113,31 @@ def test_all_inherit_reports_diversity_unknown(council_dir):
     div = rec["diversity"]
     assert div["families"] == ["host"] and div["monoculture"] is None
     assert "diversity unknown" in div["note"]
+
+
+def test_gate_evaluation_exception_fails_closed(council_dir, monkeypatch):
+    from eldercouncil.catalog import load_councils
+    from eldercouncil.models import load_registry
+    from eldercouncil import gates
+    c = load_councils()["code-council"]
+    fake = [{"role": r.name, "model": "demo", "vote": "merge",
+             "confidence": 0.8, "reason": ""} for r in c.roles if not r.is_tool]
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("deliberate gate explosion")
+
+    monkeypatch.setattr(gates, "evaluate", _boom)
+    rec = engine.convene_with_votes(c, "deploy to prod", fake, load_registry(), do_audit=False)
+    assert rec["gate_report"]["result"] == "escalate"
+    assert "deliberate gate explosion" in rec["gate_report"]["error"]
+
+
+def test_profile_is_recorded_in_gate_report(council_dir):
+    from eldercouncil.catalog import load_councils
+    from eldercouncil.models import load_registry
+    c = load_councils()["code-council"]
+    fake = [{"role": r.name, "model": "demo", "vote": "merge",
+             "confidence": 0.8, "reason": ""} for r in c.roles if not r.is_tool]
+    rec = engine.convene_with_votes(c, "q", fake, load_registry(), do_audit=False, profile="lite")
+    assert rec["profile"] == "lite"
+    assert rec["gate_report"]["profile"] == "lite"

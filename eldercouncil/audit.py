@@ -255,6 +255,7 @@ def _chain_lock():
     lock = paths.council_dir() / "audit.lock"
     lock.parent.mkdir(parents=True, exist_ok=True)
     fd = None
+    lock_unsupported = False
     for _ in range(200):  # ~2s max
         try:
             fd = os.open(str(lock), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
@@ -262,7 +263,10 @@ def _chain_lock():
         except FileExistsError:
             time.sleep(0.01)
         except OSError:
+            lock_unsupported = True
             break  # locking unsupported here — proceed best-effort
+    if fd is None and not lock_unsupported:
+        raise OSError(f"could not acquire audit lock after 200 retries: {lock}")
     try:
         yield
     finally:

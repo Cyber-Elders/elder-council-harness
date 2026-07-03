@@ -21,7 +21,7 @@ Each gate is **policy over signals** (`eldercouncil/gate-policy.yaml`, copied to
 at install — editable, version-control it). A gate **trips** when any of its `fail_closed_if`
 conditions hold, or — on a high-impact action — when a required affirmation is missing. A tripped gate
 yields one of: `allow_with_controls` (affirmations satisfied) · `escalate` (→ a human tier) · `block` ·
-`human_required` (a non-overridable **hard stop**). **Unknown is never `allow`**: on a high-impact
+`human_required` (a non-overridable **hard stop**). **Unknown is never `allow_with_controls`**: on a high-impact
 action a gate that needs affirmative evidence and gets none **escalates**.
 
 > **Honest scope.** The harness applies the policy deterministically over **signals**. Some signals it
@@ -35,7 +35,7 @@ action a gate that needs affirmative evidence and gets none **escalates**.
 |---|---|---|---|
 | **Evidence** | material claim without a source; unresolved source conflict; not reproducible | escalate | asserted |
 | **Confidence / Calibration** | low confidence on a high-impact call; uncalibrated output | escalate | asserted |
-| **Action-Safety** | external/irreversible/destructive mutation (allowed *with controls* when an approver + rollback are supplied) | block / allow-with-controls | hybrid |
+| **Action-Safety** | external/irreversible/destructive mutation (allowed *with controls* when an approver + rollback are supplied) | block / allow_with_controls | hybrid |
 | **Data-Sensitivity** | secret/credential or PII detected; cross-border transfer unclear | escalate | hybrid |
 | **Tool-Permission** | tool not allow-listed; credential scope too broad; action outside role | block | hybrid |
 | **Legal / Compliance** | policy/jurisdiction/contract uncertainty; regulated-data handling | escalate | asserted |
@@ -43,7 +43,7 @@ action a gate that needs affirmative evidence and gets none **escalates**.
 | **Context-Integrity** | prompt-injection / context-rot / memory-poisoning suspected | escalate | hybrid |
 | **Model-Disagreement** | material disagreement between lenses on a high-impact decision | escalate | hybrid |
 | **Cost / Latency** | token/iteration/latency budget exceeded | escalate | hybrid |
-| **Production-Change** | production/CI-CD mutation without change ticket, rollback plan, or named approver | block / allow-with-controls | hybrid |
+| **Production-Change** | production/CI-CD mutation without change ticket, rollback plan, or named approver | block / allow_with_controls | hybrid |
 
 **Offensive-Cyber-Misuse is a non-overridable hard stop** and is **always on in every profile** — no
 approver can clear content that enables unauthorised access or exploitation. Its detector is

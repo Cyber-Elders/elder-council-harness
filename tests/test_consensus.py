@@ -241,3 +241,35 @@ def test_unavailable_lens_is_not_counted_as_dissent():
                {"role": "r2", "model": "m", "vote": "unavailable", "confidence": 0.0, "reason": "outage"}], c)
     assert o.verdict == "merge"
     assert o.dissent == [], "an outage must not be reported as dissent"
+
+
+def test_non_string_severity_is_coerced():
+    # Regression: _normalize used to call .upper() on ints/objects and crashed.
+    from types import SimpleNamespace
+    roles = [SimpleNamespace(name="Tool", arbitrator=False, is_tool=True),
+             SimpleNamespace(name="Eng", arbitrator=False, is_tool=False)]
+    c = SimpleNamespace(mode="action-gate", roles=roles, decision_outcomes=["merge", "block"], id="stub")
+    o = tally([
+        {"role": "Tool", "model": "tool", "vote": "block", "confidence": 0.9,
+         "severity": 1, "reason": "scan"},
+        {"role": "Eng", "model": "test", "vote": "merge", "confidence": 0.8, "reason": ""},
+    ], c)
+    assert o.verdict == "block" and o.route == "human"
+    assert "CRITICAL" not in o.rationale  # int 1 does not become CRITICAL
+
+
+def test_non_string_provenance_is_coerced():
+    from types import SimpleNamespace
+    roles = [SimpleNamespace(name="Eng", arbitrator=False, is_tool=False) for i in range(3)]
+    c = SimpleNamespace(mode="action-gate", roles=roles, decision_outcomes=["merge", "block"], id="stub")
+    o = tally([
+        {"role": "r0", "model": "m", "vote": "block", "confidence": 0.9,
+         "provenance": 404, "reason": "x"},
+        {"role": "r1", "model": "m", "vote": "block", "confidence": 0.8,
+         "provenance": 404, "reason": "x"},
+        {"role": "r2", "model": "m", "vote": "merge", "confidence": 0.8, "reason": ""},
+    ], c)
+    assert o.verdict == "block"
+    # Coercion target: provenance was a non-string; tally must not crash and must
+    # treat it as the string the audit / server paths later coerce further.
+    assert all(str(v.get("provenance", "")) == "404" for v in o.votes if "provenance" in v)

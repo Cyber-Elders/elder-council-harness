@@ -54,6 +54,9 @@ def convene_with_votes(council, question: str, votes, registry: ModelRegistry,
         gate_report = report.to_dict()
     except gates.GatePolicyError:
         gate_report = {"result": "escalate", "error": "gate policy unavailable — fail closed"}
+    except Exception as exc:  # noqa: BLE001 — any gate-evaluation failure must fail closed
+        gate_report = {"result": "escalate",
+                       "error": f"gate evaluation error — fail closed ({type(exc).__name__}: {exc})"}
     # Decision-time diversity: which provider families actually voted (the
     # correlated-blind-spot check the tally itself deliberately does not enforce).
     diversity = models.diversity_of(getattr(outcome, "votes", []) or [])

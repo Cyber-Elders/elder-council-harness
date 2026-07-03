@@ -30,7 +30,7 @@ A standing critique pass over the public face of the repo (README = landing page
 - 🟢 One-job-per-doc: METHODOLOGY is the reference, CONCEPT is the on-ramp. METHODOLOGY carries the
   canonical routing table (a doc-as-test asserts it is present there); CONCEPT, LOOP-ENGINEERING, and
   the README carry an abbreviated copy for context.
-- 🟢 GLOSSARY carries the two predictable confusions (lenses ≠ councils; council-mode ≠ risk-routing).
+- 🟢 GLOSSARY carries the three predictable confusions (lenses ≠ councils; advisory council ≠ enforcement tier; council-mode ≠ risk-routing).
 
 ## Product UI (the CLI)
 

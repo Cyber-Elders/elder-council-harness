@@ -3,6 +3,8 @@
 
 import json
 
+import pytest
+
 from eldercouncil import audit
 from eldercouncil.consensus import tally
 from conftest import mkcouncil, votes
@@ -162,3 +164,25 @@ def test_secret_in_role_or_model_field_is_redacted(council_dir):
                          for p in council_dir.rglob("*") if p.is_file())
     assert FAKE_SK not in everything, "secret in a role/model field reached disk"
     assert "b@corp.com" not in everything, "PII in a role field reached disk"
+
+
+def test_chain_lock_exhaustion_raises(council_dir, monkeypatch):
+    # Regression: lock exhaustion used to proceed silently; now it fails closed.
+    import os
+    from pathlib import Path
+    council_dir.mkdir(parents=True, exist_ok=True)
+    lock = council_dir / "audit.lock"
+    lock.touch()
+
+    original_open = os.open
+
+    def _block_exclusively(path, flags, mode=0o666):
+        if flags & os.O_EXCL:
+            raise FileExistsError(path)
+        return original_open(path, flags, mode)
+
+    monkeypatch.setattr(os, "open", _block_exclusively)
+    c = mkcouncil(mode="action-gate", n_roles=3, outcomes=("merge", "block"))
+    o = tally(votes(("merge", 0.9), ("merge", 0.9), ("merge", 0.9)), c)
+    with pytest.raises(OSError, match="could not acquire audit lock"):
+        audit.record(c.id, "q", o, mode=c.mode)

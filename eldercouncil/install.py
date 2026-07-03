@@ -20,6 +20,7 @@ from pathlib import Path
 
 from . import models, paths
 from .catalog import load_councils
+from .models import provider_of
 from .convene import PROTOCOL
 from .schema import Council, Role
 
@@ -188,8 +189,8 @@ def _render_claude_council(root: Path, c: Council, reg, lane: str, changes: list
     _write_text(root / ".claude" / "commands" / f"{c.id}.md", cmd, changes, f"{c.id} slash command")
     for r in c.roles:
         model = _model_for(reg, r, lane)
-        if model != "inherit" and not model.lower().startswith("claude"):
-            # Claude Code is single-provider per session — a non-Claude tag in a
+        if model != "inherit" and provider_of(model) != "anthropic":
+            # Claude Code is single-provider per session — a non-Anthropic tag in a
             # sub-agent 404s. Fail-safe: inherit the session model, and SAY so
             # (the verdict-time diversity field then reports the truth).
             changes.append(f"! {c.id}-{_slug(r.name)}: '{model}' is not runnable in Claude Code "
@@ -463,6 +464,10 @@ def install(ide: str, councils: list[str] | None = None, target_dir: str | None 
     # (the docs say `git clone … && cd … && pip install -e .` — and then the user
     # forgets to cd into THEIR project). Warn loudly; it still proceeds (a dev
     # may genuinely want a demo install here).
+    if not shutil.which("eldercouncil"):
+        print("! `eldercouncil` is not on your PATH — the generated hard-block IDE hooks and MCP "
+              "server config call it by name and will not launch unless you use pipx, keep this "
+              "venv activated, or edit the generated command paths. See docs/GET-STARTED.md.")
     pyproject = root / "pyproject.toml"
     if pyproject.exists() and 'name = "eldercouncil"' in pyproject.read_text(encoding="utf-8"):
         print("! You are installing into the elder-council-harness repo itself — did you mean your")
@@ -504,7 +509,8 @@ def install(ide: str, councils: list[str] | None = None, target_dir: str | None 
     council0 = selected[0].id if selected else "code-council"
     if ide in ("claude-code", "opencode", "kiro"):  # hard-block IDEs have a `gate <ide>` target
         print(f"\nNext:  work in your agent as usual — on a risky action the gate ASKS you to convene.")
-        print(f"       Run  /{council0}  (or any council), read the verdict + dissent, then you decide.")
+        print(f"       In your agent, type /{council0} (or any council), read the verdict + dissent, then decide.")
+        print(f"       Or try a sample verdict here:  eldercouncil convene {council0} --demo")
         print(f"Verify:  echo '{{\"action\":\"bash\",\"target\":\"git push --force\"}}' | eldercouncil gate {ide}")
     else:  # cursor / copilot / mcp are advisory — no pre-tool gate
         print(f"\nNext:  advisory — your agent is ASKED to convene on risky actions (it can decline, not forced).")

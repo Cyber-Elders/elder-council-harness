@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Council Decision Record
 
-## Decision
+## Decision under review
 Approve pushing a change that adds a hardcoded AWS access key in `config.py` and builds a SQL query by
 string concatenation on a user-supplied id.
 

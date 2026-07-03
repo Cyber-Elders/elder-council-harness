@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Glossary
 
-The canonical home for Elder Council terms and the two disambiguations newcomers trip on.
+The canonical home for Elder Council terms and the three disambiguations newcomers trip on.
 
-## Two things people conflate
+## Three things people conflate
 
 - **Lenses ≠ councils.** A **lens** is a single perspective (Security SME, Critic, …). A **council**
   is a *roster of lenses* convened for one class of decision. The same lens appears in several

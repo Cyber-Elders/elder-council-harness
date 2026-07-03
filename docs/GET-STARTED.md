@@ -45,6 +45,11 @@ git clone https://github.com/Cyber-Elders/elder-council-harness && cd elder-coun
 pip install -e .
 ```
 
+> **For hard-block IDEs (Claude Code, OpenCode, Kiro):** the generated hooks and MCP configs call
+> `eldercouncil` by name, so it needs to stay on your PATH. The easiest way is **`pipx install -e .`**
+> (or activate your venv in every shell where the agent runs). If `which eldercouncil` returns
+> nothing, the gate will fail to launch — see the install warning, or use a venv-aware setup.
+
 This puts the `eldercouncil` command on your machine. It ships **no AI model and no API keys** — the
 councils run on the model your coding agent already uses.
 
@@ -124,6 +129,8 @@ verdict always goes to a human.)
 
 - **"After install, is it done?"** Yes — your agent has the council commands and the gate. You'll see
   it work the next time you do something risky.
+- **"What councils / lenses do I have installed?"** `eldercouncil list` shows the councils;
+  `eldercouncil show <council>` shows a council's resolved roster for the current lane.
 - **"Do I need API keys?"** No keys for the demo. For real runs, the councils use **whatever model your
   coding agent already runs** — so if your agent works, the councils work.
 - **"It said `block`. Now what?"** Read the dissenting lenses' reasons, then decide. `block` routes to a
@@ -135,9 +142,10 @@ verdict always goes to a human.)
 - **"Where do the decisions go — and can I tell if the log was tampered with?"** Every decision is
   written to `.council/decisions/` and chained in a tamper-evident log. Run **`eldercouncil verify`** to
   check it's intact (it re-hashes each full record, so a changed vote/reason is caught) and to print the
-  chain **head** — record that head somewhere off the machine and re-run `eldercouncil verify
-  --expect-head <hash>` to also catch a wholesale rewrite. It's tamper-**evident**, not tamper-proof —
-  see [THREAT_MODEL.md](../THREAT_MODEL.md).
+  chain **head** and **entry count** — record both somewhere off the machine and re-run
+  `eldercouncil verify --expect-head <hash>` (catches a wholesale rewrite) and/or
+  `eldercouncil verify --expect-count <n>` (catches truncation or appended entries). It's tamper-**evident**,
+  not tamper-proof — see [THREAT_MODEL.md](../THREAT_MODEL.md).
 - **"Which model setup should I pick?"**
 
   | You want | Pick | Trade-off |

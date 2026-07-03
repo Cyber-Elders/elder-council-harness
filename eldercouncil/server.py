@@ -16,7 +16,8 @@ Requires the optional dependency: pip install 'eldercouncil[mcp]'
 
 from __future__ import annotations
 
-from . import audit, models
+from . import audit, gates, models
+from .audit import _disposition
 from .catalog import get_council
 from .config import load_config
 from .consensus import coerce_host_provenance, tally
@@ -51,8 +52,8 @@ def convene_council(council_id: str, question: str, lane: str = "") -> dict:
     """Return a BYO-LLM deliberation task for a named council — your model runs it.
 
     Pick `council_id` from: code-council, threat-hunting, supply-chain,
-    compliance, cyber-risk, platform-architecture, business-decision. Run each lens task with your
-    own model(s), collect one vote per lens, then call `audit_log` with the
+    compliance, cyber-risk, platform-architecture, business-decision, eng-team. Run each lens task
+    with your own model(s), collect one vote per lens, then call `audit_log` with the
     votes to get the tallied verdict and record the decision. Ships no keys.
     """
     try:
@@ -101,12 +102,29 @@ def audit_log(council: str, question: str, verdicts: list, context: dict | None 
     ctx = dict(context or {})
     if off_council:
         ctx["off_council_roles"] = off_council
+    # Councils without a deterministic tool lens cannot authenticate any reasoning
+    # votes on this host-reported path — record that limit honestly.
+    if tool_role is None:
+        ctx["host_reported_only"] = True
     outcome = tally(votes, c)
     diversity = models.diversity_of(outcome.votes)
-    did = audit.record(c.id, question, outcome, mode=c.mode, context=ctx, diversity=diversity)
+    # Apply the same fail-closed control gates as the engine/orchestrate paths so
+    # the MCP path's disposition is the most restrictive of council route and gate
+    # result. Gate failures escalate (fail closed).
+    profile = load_config().profile
+    try:
+        report = gates.evaluate(profile, ctx.get("signals", {}), action=question, target="",
+                                outcome=outcome, council=c)
+        gate_report = report.to_dict()
+    except Exception as exc:  # noqa: BLE001
+        gate_report = {"result": "escalate",
+                       "error": f"gate evaluation error — fail closed ({type(exc).__name__}: {exc})"}
+    disposition = _disposition(outcome, gate_report)
+    did = audit.record(c.id, question, outcome, mode=c.mode, context=ctx, diversity=diversity,
+                       gate_report=gate_report, profile=profile)
     return {"decision_id": did, "verdict": outcome.verdict, "route": outcome.route,
             "rationale": outcome.rationale, "dissent": outcome.dissent,
-            "diversity": diversity,
+            "diversity": diversity, "disposition": disposition, "gate_report": gate_report,
             **({"off_council_roles": off_council} if off_council else {})}
 
 

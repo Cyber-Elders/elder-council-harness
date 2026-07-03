@@ -49,7 +49,10 @@ cd <the user's project root>
 eldercouncil install <ide> --all --profile <profile> [--lane <lane>]
 eldercouncil models check  # lane sanity. NOTE: on the DEFAULT (frontier) lane this exits 2
                            # listing cross_family_critic:frontier — that one sentinel is expected
-                           # (an optional role for custom councils), NOT an install failure.
+                           # (an optional role for custom councils), NOT an install failure. You
+                           # may also see a "monoculture" warning (all pinned lenses map to one
+                           # provider family); that's the product working, not an error — repin a
+                           # seated voice to a different family if you want real plural review.
                            # local lane: "every lens inherits" = correct. open lane: exit 0.
 eldercouncil convene code-council --demo --question "merge a diff with a hardcoded AWS key"
 ```

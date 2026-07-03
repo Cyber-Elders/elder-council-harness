@@ -119,3 +119,25 @@ def test_confidence_word_form_does_not_crash_high_impact_eval():
     assert r.result  # evaluated without raising
     r2 = gates.evaluate("standard", {"confidence": "not-a-number"}, action="deploy auth change to production")
     assert r2.result  # unparseable -> affirmation unsatisfied -> still evaluates (fail-closed)
+
+
+def test_allow_with_controls_only_when_all_affirmations_met_and_high_impact():
+    # Missing an affirmation -> escalate, not allow_with_controls.
+    partial = gates.evaluate("standard",
+                             {"evidence_provided": True, "confidence": 0.9, "human_approver": "alice",
+                              "change_ticket": "JIRA-1"},  # rollback_plan missing
+                             action="kubectl apply -f prod.yaml to production")
+    assert not partial.permits_action(), "missing affirmation must not allow_with_controls"
+
+    # Low-impact action that trips a fail-closed condition -> escalate, not AWC.
+    low = gates.evaluate("standard", {"evidence_provided": True, "confidence": 0.9},
+                         action="commit a small doc fix", target="api_key=NOT_A_REAL_KEY")
+    assert not low.permits_action(), "low-impact trip must not be allowed_with_controls"
+
+
+def test_profile_passed_to_gate_report():
+    r = gates.evaluate("regulated", {"evidence_provided": True, "confidence": 0.9},
+                       action="read a file")
+    assert r.profile == "regulated"
+    assert r.to_dict()["profile"] == "regulated"
+    assert "immutable_logs" in r.to_dict()["controls"]

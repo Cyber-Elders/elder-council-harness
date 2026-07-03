@@ -101,7 +101,7 @@ it. The `frontier` / `open` / `local` model lanes exist to make this concrete.
 
 The deterministic tally (`eldercouncil/consensus.py`) applies these to **every** council:
 
-- **Ties block** for high-risk actions.
+- **Ties block** and route to a human.
 - **No quorum blocks** where a council requires multiple views.
 - **Escalation votes win** when a lens identifies higher risk.
 - **Empty / abstention → conservative block.**

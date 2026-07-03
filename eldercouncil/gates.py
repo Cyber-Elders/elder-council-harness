@@ -226,8 +226,10 @@ def evaluate(profile: str = "standard", signals: dict | None = None, *, action: 
         # A control gate whose required affirmations are ALL satisfied is "approved
         # with controls" — the mutation it detected is allowed because approval +
         # rollback (etc.) are in place. Only an unmet affirmation or a non-affirmable
-        # trip blocks/escalates.
-        affirmations_met = bool(affirmations) and not missing
+        # trip blocks/escalates. Controls only make sense for high-impact actions:
+        # a low-impact action that still triggers a fail-closed condition must ESCALATE,
+        # not be quietly permitted because no affirmation was required.
+        affirmations_met = bool(affirmations) and high_impact and not missing
         if hard:
             result = HUMAN_REQUIRED       # non-overridable hard stop
         elif affirmations_met and not missing:

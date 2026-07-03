@@ -198,6 +198,45 @@ the tally (`OverflowError` → 0.0); `--expect-count` is documented as truncatio
 honest limits of the MCP tool lens (it judges the decision **text**, not the working tree; only councils
 that seat a tool lens get the server-run check).
 
+### Fixed (multi-SME end-to-end review)
+
+A full end-to-end review across user journeys, UX, documentation, and implementation closed the
+remaining P1/P2 gaps from the external review and added regression coverage for every fix.
+
+- **Consensus coercion no longer crashes on non-string `severity`/`provenance`.** A host or model vote
+  carrying an integer/object in these fields used to hit `AttributeError` during normalization and abort
+  the tally; they are now coerced to strings before comparison. Regression tests cover both.
+- **Control-gate `allow_with_controls` is bounded correctly.** It now applies only to **high-impact**
+  actions whose required affirmations are **all** satisfied; a missing affirmation or a low-impact
+  fail-closed trip escalates instead of being silently permitted. The gate report carries the active
+  `profile`.
+- **Engine gate evaluation fails closed on any exception.** Any unexpected error during gate evaluation
+  now returns an `escalate` verdict with the error details, rather than bubbling up and leaving the caller
+  to decide. The decision record stores the profile and the gate report.
+- **Audit chain lock exhaustion now raises.** If the cross-process lock cannot be acquired after retries,
+  `audit.record()` raises `OSError` instead of proceeding unlocked and risking a forked/tampered chain.
+- **OpenCode pre-tool gate accepts the documented fallback shapes.** The handler now reads `tool`/`args`,
+  `tool_name`/`tool_input`, and `action`/`input`, so older or differently-shaped host events still score
+  the action rather than falling through as empty.
+- **Claude Code install keeps Anthropic-lineage tags under any prefix.** The eligibility check moved from
+  `startswith("claude")` to `provider_of(model) != "anthropic"`, so tags like `anthropic/claude-...` or
+  `openrouter/anthropic/claude-...` are recognised as runnable in Claude Code instead of being downgraded
+  to `inherit`.
+- **MCP `audit_log` records gate evaluation + disposition + provenance limits.** The advisory server path
+  now writes the gate report, effective disposition, off-council role warnings, and a `host_reported_only`
+  flag (for councils without a deterministic tool lens) into the decision record.
+- **`models check` distinguishes intentional sentinels from real misconfigurations.** The local lane's
+  `REPLACE_ME` entries are reported as intentional inherit; `cross_family_critic.frontier` is flagged as
+  an optional sentinel rather than a hard failure; only genuinely unpinned frontier roles exit non-zero.
+- **Docs aligned across the user journey.** README quick-start now warns about `pipx`/PATH; GET-STARTED
+  explains bare `convene`, `--expect-count`, and the `show` command; AGENT-SETUP notes the monoculture
+  warning; OPENROUTER's example uses the correct engineering role; METHODOLOGY/GATES/DESIGN-REVIEW/
+  GLOSSARY/THREAT_MODEL language and examples were tightened (e.g., "ties block", `allow_with_controls`,
+  three common confusions).
+
++13 regression tests added (consensus, gates, engine, audit, install, server, CLI journeys); total suite
+now **236 tests**.
+
 ### Docs & UX
 
 - **New [OPENROUTER](docs/OPENROUTER.md)** — the cross-family-with-one-key journey: headless

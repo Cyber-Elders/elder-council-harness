@@ -76,6 +76,7 @@ def cmd_show(args) -> int:
     print(f"  mode: {c.mode}   outcomes: {', '.join(c.decision_outcomes)}")
     print(f"  purpose: {c.purpose.strip()}")
     print("  lenses:")
+    failed = False
     for r in c.roles:
         try:
             model = resolve(reg, r.role_key, r.variant or args.lane)
@@ -83,10 +84,11 @@ def cmd_show(args) -> int:
             model = _c("33", "UNPINNED (REPLACE_ME)")
         except RegistryError:
             model = _c("31", "UNKNOWN ROLE KEY")
+            failed = True
         star = " *arbitrator" if r.arbitrator else (" (tool)" if r.is_tool else "")
         print(f"    - {r.name:32} {r.role_key:22} {args.lane}: {model}{star}")
     print(f"  fail-closed: {c.fail_closed.strip()}")
-    return 0
+    return 2 if failed else 0
 
 
 def _print_decision(rec: dict) -> None:
@@ -365,10 +367,16 @@ def cmd_models(args) -> int:
     if args.models_cmd == "check":
         from .config import load_config
         cfg_lane = load_config().lane          # check the lane THIS project actually uses
-        # Scope the unpinned listing to the configured lane — the local lane's
-        # sentinels are INTENTIONAL (unpinned = inherit the host model), so an
-        # open-lane project must not fail forever on them.
-        miss = [m for m in unresolved(reg) if m.endswith(":" + cfg_lane)]
+        # Scope the unpinned listing to the configured lane. The local lane is intentionally
+        # unpinned (REPLACE_ME means "inherit the host model"). cross_family_critic on frontier
+        # is an optional sentinel (no verified-real non-Anthropic frontier tag ships) — do not
+        # treat those as a misconfiguration.
+        _OPTIONAL_SENTINELS = {"cross_family_critic"}
+        if cfg_lane == "local":
+            miss = []  # local lane is BYO/on-device by design
+        else:
+            miss = [m for m in unresolved(reg)
+                    if m.endswith(":" + cfg_lane) and m.split(":")[0] not in _OPTIONAL_SENTINELS]
         mono = monoculture(reg, cfg_lane)
         # How many lenses will inherit the host model on this lane (sentinel/null → inherit)?
         inheriting = sum(
@@ -391,11 +399,10 @@ def cmd_models(args) -> int:
             print(_c("36", f"✓ lane '{cfg_lane}': {inheriting} lens(es) inherit your agent's own model "
                            f"(BYO / on-device — nothing to pin). All on one model = one set of blind "
                            f"spots; add a second/different-family voice for genuine disagreement."))
-            return 0
         if not miss:
             print("✓ all model lanes are pinned")
             return 0
-        print(f"✗ {len(miss)} unpinned lane(s) — pin a real model in {reg.source}:")
+        print(f"✗ {len(miss)} unpinned lane(s) on '{cfg_lane}' — pin a real model in {reg.source}:")
         for m in miss:
             print(f"    {m}")
         return 2
@@ -481,7 +488,8 @@ def build_parser() -> argparse.ArgumentParser:
     i.add_argument("--lane", default="frontier", choices=["frontier", "open", "local"],
                     help="model lane to resolve: frontier (hosted) / open (open-weight) / local (on-device)")
     i.add_argument("--tier", default="practitioner",
-                   help="maturity tier written to .council/config.toml (explorer/practitioner/governed/operator)")
+                   choices=["explorer", "practitioner", "governed", "operator"],
+                   help="maturity tier written to .council/config.toml")
     i.add_argument("--profile", default="standard", choices=["lite", "standard", "regulated"])
     i.add_argument("--dir")
     i.set_defaults(func=cmd_install)

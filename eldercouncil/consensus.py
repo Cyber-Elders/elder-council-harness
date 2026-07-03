@@ -179,7 +179,11 @@ def _normalize(votes, valid: set[str]) -> list[Vote]:
             conf = _coerce_confidence(v.get("confidence", 0.5))
             reason = str(v.get("reason", ""))
             sev = v.get("severity")
+            if sev is not None:
+                sev = str(sev)
             prov = v.get("provenance")
+            if prov is not None:
+                prov = str(prov)
         else:
             continue
         token = (vote or "").strip().lower()

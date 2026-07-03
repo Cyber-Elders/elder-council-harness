@@ -37,8 +37,8 @@ seats you care about — pick each from a **different vendor** on openrouter.ai/
 
 ```jsonc
 "security_sme":         { "open": "<a-deepseek-id-from-openrouter>" },
-"critic_challenge":     { "open": "<a-mistral-id-from-openrouter>" },
-"strategic_risk_owner": { "open": "<a-qwen-or-other-id>" }
+"engineering_sme":      { "open": "<a-qwen-or-other-id>" },
+"critic_challenge":     { "open": "<a-mistral-id-from-openrouter>" }
 ```
 
 *(The shipped open-lane defaults are cross-family already but run on **local Ollama** models — any

@@ -141,12 +141,13 @@ def _decide(action: str, target: str) -> dict:
     else:
         verdict, reason = real, base_reason
     return {"verdict": verdict, "observed": real, "reason": reason, "hard_stop": hard_stop,
-            "council": council, "risk": {"score": rs.score, "level": rs.level, "route": rs.route}}
+            "council": council, "risk": {"score": rs.score, "level": rs.level, "route": rs.route},
+            "profile": cfg.profile}
 
 
 def _safe_gate_audit(action, target, d):
     # Record the OBSERVED (real) verdict so observe-mode entries are not misleading.
-    ctx = {"reason": d.get("reason", ""), "enforced": d["verdict"]}
+    ctx = {"reason": d.get("reason", ""), "enforced": d["verdict"], "profile": d.get("profile", "")}
     ov = env_overrides()
     if ov:
         ctx["policy_overrides"] = ov   # enforcement downgraded at the environment layer — leave a trace
@@ -171,8 +172,8 @@ def _gate_claude_code(event: dict) -> int:
 
 
 def _gate_opencode(event: dict) -> int:
-    action = _normalize_tool(event.get("tool", event.get("action", "")))
-    raw = event.get("args", event.get("tool_input", event.get("target", {})))
+    action = _normalize_tool(event.get("tool", event.get("tool_name", event.get("action", ""))))
+    raw = event.get("args", event.get("tool_input", event.get("input", event.get("target", {}))))
     target = raw if isinstance(raw, str) else _target_from_input(raw)
     d = _decide(action, target)
     _safe_gate_audit(action, target, d)

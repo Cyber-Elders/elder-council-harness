@@ -172,3 +172,26 @@ def test_opencode_open_lane_wires_ollama_provider(tmp_path):
     install.install("opencode", councils=["code-council"], target_dir=str(other))
     oc2 = json.loads((other / "opencode.json").read_text())
     assert "provider" not in oc2 or "ollama" not in oc2.get("provider", {})
+
+
+def test_claude_install_keeps_anthropic_lineage_under_any_prefix(tmp_path, monkeypatch):
+    # Regression: the old `startswith("claude")` check forced `anthropic/claude-...`
+    # and `openrouter/anthropic/claude-...` to inherit. provider_of now correctly
+    # recognizes the Anthropic lineage and lets the pinned tag run in Claude Code.
+    custom = {
+        "version": "test",
+        "roles": {
+            "engineering_sme": {"frontier": "anthropic/claude-3.5-sonnet", "open": "REPLACE_ME:open", "local": "ollama/qwen3:32b"},
+            "security_sme": {"frontier": "anthropic/claude-3.5-sonnet", "open": "REPLACE_ME:open", "local": "ollama/qwen3:32b"},
+            "pragmatic_ops": {"frontier": "anthropic/claude-3.5-sonnet", "open": "REPLACE_ME:open", "local": "ollama/qwen3:32b"},
+            "deterministic_tool": {"frontier": None, "open": None, "local": None},
+            "critic_challenge": {"frontier": "anthropic/claude-3.5-sonnet", "open": "REPLACE_ME:open", "local": "ollama/qwen3:32b"},
+        }
+    }
+    (tmp_path / ".council").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".council" / "council-models.json").write_text(json.dumps(custom), encoding="utf-8")
+    monkeypatch.setenv("COUNCIL_DIR", str(tmp_path / ".council"))
+    install.install("claude-code", councils=["code-council"], target_dir=str(tmp_path), lane="frontier")
+    agent = (tmp_path / ".claude" / "agents" / "code-council-appsec-sme.md").read_text(encoding="utf-8")
+    assert "model: anthropic/claude-3.5-sonnet" in agent
+    assert "model: inherit" not in agent

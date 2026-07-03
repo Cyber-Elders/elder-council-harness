@@ -198,6 +198,22 @@ def test_convene_defaults_to_configured_lane(tmp_path, capsys, monkeypatch):
     assert models == {"inherit"}, models
 
 
+def test_gate_opencode_fallback_keys(capsys, monkeypatch):
+    # Regression: OpenCode plugin uses {"tool":..,"args":..}; older host events use
+    # {"tool_name":..,"tool_input":..} or {"action":..,"input":..}. All must score
+    # the same action, not silently allow because we didn't find the payload.
+    payload_variants = [
+        '{"tool":"bash","args":{"command":"git push --force origin main"}}',
+        '{"tool_name":"bash","tool_input":{"command":"git push --force origin main"}}',
+        '{"action":"bash","input":{"command":"git push --force origin main"}}',
+    ]
+    for payload in payload_variants:
+        _stdin(monkeypatch, payload)
+        assert cli.main(["gate", "opencode"]) == 2, f"opencode fallback failed for {payload}"
+        out = json.loads(capsys.readouterr().out)
+        assert out["verdict"] in ("ask", "block")
+
+
 def test_risk_gate_does_not_fail_open_on_alt_payload_schemas(monkeypatch):
     # A destructive command carried in a NON-{action,target} JSON object (e.g. the
     # harness's own {tool_name,tool_input}/{tool,args} hook payloads) must still
