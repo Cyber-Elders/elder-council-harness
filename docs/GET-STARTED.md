@@ -79,9 +79,9 @@ That's it. Nothing else to configure for the default setup (your agent's own mod
 
 A council starts one of two ways:
 
-**1. The gate asks you.** On a hard-block agent (Claude Code, OpenCode) when you're about to do
-something risky that an **action-gate** council covers (like **Code** — pushing, deploying, adding a
-dependency, changing auth), the gate **pauses and asks you to convene**. Run the command it names
+**1. The gate asks you.** On a hard-block agent (Claude Code, OpenCode), when you're about to do
+something risky the gate **pauses and asks you to convene**, naming whichever council best matches the
+action — that can be any of the eight, advisory ones included. Run the command it names
 (e.g. `/code-council`); the lenses weigh in and you see:
 
 ```
@@ -90,11 +90,11 @@ dissent preserved: 3 lens(es) disagreed
 DISPOSITION: human (the final call — a person decides)
 ```
 
-**2. You convene it yourself.** Advisory councils (like **Business Decision** or **Threat Hunting**) —
-and any council on an advisory agent (Cursor, Copilot) — are *not* popped up by the gate; you start
-them deliberately. Just tell your agent *"convene the business-decision council on this,"* or run its
-command (e.g. `/business-decision`). On an advisory agent the agent is *asked* to convene and honour
-the verdict but **can decline** — everything is still recorded.
+**2. You convene it yourself.** Anytime, for any council — just tell your agent *"convene the
+business-decision council on this,"* or run its command (e.g. `/business-decision`). **What "advisory"
+means:** an advisory *council* (Business Decision, Threat Hunting, Eng Team…) never auto-decides — its
+verdict always goes to a human, however it was convened; an advisory *agent* (Cursor, Copilot) is
+*asked* to convene and honour verdicts but **can decline**. Everything is still recorded.
 ([Which agents enforce vs only advise →](IDE-SUPPORT.md))
 
 Either way, you read the result and decide:
@@ -117,7 +117,8 @@ sample votes). That's exactly what a real run looks like; the only difference is
 agent's model on *your* decision. **Not a cyber person?** Try
 `eldercouncil convene business-decision --demo` — same machinery, on a $40M business call. **A
 developer?** `eldercouncil convene eng-team --demo` reviews a feature design with a dev + analyst +
-QA + critic panel. (Both are **advisory** — you convene them yourself; the gate won't pop them up.)
+QA + critic panel. (Both are **advisory** — whether the gate suggests them or you convene them, their
+verdict always goes to a human.)
 
 ## Common questions
 

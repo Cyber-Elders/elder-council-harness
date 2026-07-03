@@ -171,3 +171,14 @@ def test_convene_malformed_signals_fails_closed(tmp_path, capsys, monkeypatch):
     rc = cli.main(["convene", "code-council", "--demo", "--no-audit", "--question", "x",
                    "--signals", '["a","list"]'])
     assert rc == 2                                          # a non-object is rejected too
+
+
+def test_convene_defaults_to_configured_lane(tmp_path, capsys, monkeypatch):
+    # A local-lane project's convene must resolve the LOCAL lane (inherit), not
+    # silently fall back to frontier Claude tags.
+    _install(tmp_path, monkeypatch, "claude-code", "--lane", "local")
+    capsys.readouterr()
+    assert cli.main(["convene", "code-council", "--no-audit", "--question", "x"]) == 0
+    pack = json.loads(capsys.readouterr().out)
+    models = {t["model"] for t in pack["tasks"]}
+    assert models == {"inherit"}, models

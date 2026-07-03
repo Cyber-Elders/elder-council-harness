@@ -8,7 +8,7 @@
 <!-- What is being decided? -->
 
 ## Council type
-<!-- Code / Threat Hunting / Supply Chain Audit / Multi-Jurisdictional Compliance / Cyber Risk / Platform Architecture -->
+<!-- Code / Threat Hunting / Supply Chain Audit / Multi-Jurisdictional Compliance / Cyber Risk / Platform Architecture / Business Decision / Engineering Team -->
 
 ## Risk score
 - Impact (1–5):

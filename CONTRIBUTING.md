@@ -9,9 +9,10 @@ the standards it advocates: honesty, determinism, and a clear trust boundary.
    attacks / covers all 10 / best decision" claims. The honest caveats (councils can be wrong, not
    legal advice, tamper-evident not tamper-proof, ships no keys, selective plurality, continuity)
    must stay present. The `honesty` CI job enforces both lists.
-2. **The deterministic core stays pure.** `risk_gate`, `consensus`, `audit`, `schema`, `catalog`,
-   `models`, and `convene.build_review` must not call a model, the network, the clock (beyond the
-   audit timestamp), or randomness. Same inputs → same decision record + decision id.
+2. **The deterministic core stays pure.** `risk_gate`, `consensus`, `gates`, `detectors`, `audit`,
+   `schema`, `catalog`, `models`, and `convene.build_review` must not call a model, the network, the
+   clock (beyond the audit timestamp), or randomness. (`toollens`/`approval` run operator-configured
+   subprocesses by design — they live OUTSIDE this purity rule, behind explicit config.) Same inputs → same decision record + decision id.
 3. **Bring-your-own-LLM — ship no keys.** No API keys, no bundled model, no telemetry. Providers read
    credentials from the environment only (and only in the optional `[orchestrator]` extra).
 4. **Councils are data.** Add or change a council by editing/adding a YAML file in

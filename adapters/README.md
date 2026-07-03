@@ -12,6 +12,7 @@ here show the *fixed* parts (hooks, plugin, snippet shapes).
 | OpenCode | hard block | `.opencode/plugins/eldercouncil.js` `tool.execute.before` → `eldercouncil gate opencode` |
 | Kiro | hard block (best-effort) | `.kiro/agents/<c>.json` `pre_action` / `.kiro/specs/<c>.md`; exit-2 + stderr fallback |
 | Cursor / MCP | advisory | `.cursor/rules/<c>.mdc` + `eldercouncil serve` MCP tools (`risk_gate`, `convene_council`, `audit_log`) |
+| GitHub Copilot | advisory | `.github/copilot-instructions.md` sentinel blocks + `.vscode/mcp.json` (top-level `servers` key) — no reference-copy directory here; run `eldercouncil install copilot --dir <tmp>` to inspect |
 
 See [docs/IDE-SUPPORT.md](../docs/IDE-SUPPORT.md) for the full matrix and the "no native council mode"
 caveat.

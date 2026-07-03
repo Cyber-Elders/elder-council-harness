@@ -107,10 +107,12 @@ The deterministic tally (`eldercouncil/consensus.py`) applies these to **every**
 - **Empty / abstention → conservative block.**
 - **Critical actions require human approval.**
 - **Risk acceptance is always a human accountability decision** — never automated.
-- **Deterministic tools run first** where available.
 - **Advisory councils never auto-decide** — they recommend; a human owns the call.
-- **Critical councils keep fallback models and a local/offline lane** for continuity if a provider,
-  model, or region becomes unavailable.
+
+Two companion rules live outside the tally: **deterministic tools run first** where available (an
+ordering principle — the Code/Eng Team tool lens + the pre-tool gate embody it), and **critical
+councils keep fallback models and a local/offline lane** for continuity (a registry/config
+recommendation — see `fallback` lists in `council-models.json`).
 
 ## Control gates & profiles
 

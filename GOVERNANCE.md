@@ -10,9 +10,10 @@ seek co-maintainers as the project grows.
 
 - **Routine changes** (bug fixes, new tests, doc improvements, a new council definition that fits the
   schema and honesty rules) — normal PR review by a maintainer.
-- **Load-bearing changes** (the risk gate, the consensus tally, the audit chain, the council schema,
-  the model registry, the standards map, the threat model, the CI gates) — require maintainer review
-  per [CODEOWNERS](CODEOWNERS) and a short rationale in the PR. These are the files the tool's
+- **Load-bearing changes** (the risk gate, the consensus tally, the control gates + gate policy, the
+  shared detectors, the tool-lens and approval subprocess surfaces, the audit chain, the council
+  schema, the model registry, the standards map, the threat model, the CI gates) — require maintainer
+  review per [CODEOWNERS](CODEOWNERS) and a short rationale in the PR. These are the files the tool's
   guarantees rest on.
 - **Breaking changes** (CLI surface, council schema, decision-record format) — a brief RFC in an issue
   first, so adopters can weigh in.

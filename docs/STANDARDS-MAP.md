@@ -4,8 +4,10 @@
 > **The honest ceiling.** Elder Council is **OWASP-Agentic-2026-aware** and **aligned to the NIST AI
 > RMF** four-function structure. It is a **decision-process control, not a control set** — it is **not
 > compliant, not certified**, and claims neither. Most of what it does is **improve** (add multi-model
-> + human scrutiny) or **audit** (record the decision and its dissent). The only thing it **enforces**
-> is the deterministic risk-gate *routing* and the fail-closed consensus rules.
+> + human scrutiny) or **audit** (record the decision and its dissent). What it **enforces**
+> is deterministic: the risk-gate *routing*, the fail-closed consensus rules, and the 11 control
+> gates (which can block or escalate an action the council permitted — the offensive-misuse hard
+> stop is non-overridable).
 
 This product is a deliberation orchestrator, so its honest ceiling is **lower** than a deterministic
 policy engine's: a council cannot *enforce* an OWASP item — it can surface it, challenge it, and

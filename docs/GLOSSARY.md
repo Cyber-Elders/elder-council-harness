@@ -23,8 +23,8 @@ The canonical home for Elder Council terms and the two disambiguations newcomers
 Used by Code and Supply Chain. Contrast: *advisory*.
 
 **Advisory (council mode)** — a council that deliberates and recommends; a **human synthesises and
-decides**. Used by Threat Hunting, Compliance, Cyber Risk, Platform Architecture, and Business
-Decision. It never auto-decides.
+decides**. Used by Threat Hunting, Compliance, Cyber Risk, Platform Architecture, Business
+Decision, and Engineering Team. It never auto-decides.
 
 **Approval status** — how an asserted `human_approver` was treated: `verified` (your configured
 `approval_verify_command` confirmed it), `asserted — unverified` (recorded but not confirmed — the

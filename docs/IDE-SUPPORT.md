@@ -17,11 +17,12 @@ that asks you to convene the right council on high-stakes actions. The councils 
   5–15 it **asks you to convene** — run that council's slash command (e.g. `/code-council`,
   `/supply-chain`). Your agent fans out to the lenses, then shows the verdict + the preserved dissent;
   16+ also requires a named human. You can convene any council yourself anytime with its slash command.
-- **Advisory agents (Cursor, Copilot, any MCP client) — and advisory councils (Business Decision,
-  Threat Hunting) on any agent:** the gate won't pop up; you convene deliberately. Tell your agent
-  "convene the code council on this" (it calls the `convene_council` MCP tool), or run
-  `eldercouncil convene <council>` in a terminal. The agent is *asked* to honour the verdict but can
-  decline (no enforcement) — everything is still recorded.
+- **Advisory agents (Cursor, Copilot, any MCP client):** there is no pre-tool gate to pause anything;
+  you convene deliberately. Tell your agent "convene the code council on this" (it calls the
+  `convene_council` MCP tool), or run `eldercouncil convene <council>` in a terminal. The agent is
+  *asked* to honour the verdict but can decline (no enforcement) — everything is still recorded.
+  *(Advisory **councils** are a different thing: the gate on a hard-block agent may well name one —
+  their verdicts simply always route to a human.)*
 
 Slash-command and MCP names match the council ids (`eldercouncil list`). New to the verdict/dissent
 output? See [GET-STARTED.md](GET-STARTED.md). The engineering detail follows below.

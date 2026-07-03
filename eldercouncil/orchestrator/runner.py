@@ -60,9 +60,14 @@ def _reset_transcripts(review: dict) -> None:
     with contextlib.suppress(Exception):
         d = _transcript_dir()
         d.mkdir(parents=True, exist_ok=True)
-        for old in d.glob("*.md"):
-            old.unlink()
+        expected = {f"{_slug(t.get('role', ''))}.md" for t in review.get("tasks", [])}
+        for stale in d.glob("*.md"):
+            if stale.name not in expected:
+                stale.unlink()
         for t in review.get("tasks", []):
+            # write_text TRUNCATES IN PLACE — never unlink+recreate: a watcher's
+            # `tail` holds the inode, and a fresh inode would leave every pane
+            # frozen on stale content (tail -f follows the fd, not the name).
             (d / f"{_slug(t.get('role', ''))}.md").write_text(
                 f"# {t.get('role', '?')}\n\n⋯ deliberating\n", encoding="utf-8")
 

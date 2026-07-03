@@ -61,7 +61,8 @@ when a single agent's baseline accuracy is low, and can hurt when it is already 
 Councils come in two plain-English modes:
 
 - **Advisory** — the council deliberates and a **human synthesises and decides**. Used where the
-  decision is a human's to own: Compliance, Cyber Risk (risk acceptance), Platform Architecture.
+  decision is a human's to own — e.g. Compliance, Cyber Risk (risk acceptance), Platform
+  Architecture, Business Decision, Engineering Team.
 - **Action-gate** — the council's verdict can **gate an action** behind the risk gate (allow it
   through, block it, or send it back). Used where a clear, auditable gate adds value: Code,
   Supply Chain. Even here, blocking verdicts and any critical change route to a human.

@@ -53,12 +53,13 @@ eldercouncil convene code-council --lane open --orchestrate \
   --question "merge the auth-change diff currently on this branch"
 ```
 
-You get a real verdict: each lens runs on its pinned model, the Code council's deterministic tool
-lens runs **real built-in checks** (not a model — other councils don't seat a tool lens), the votes
-are tallied fail-closed, dissent is preserved, and the record lands in `.council/decisions/`. `eldercouncil models check` first confirms your pins;
+You get a real verdict: each lens runs on its pinned model, the deterministic tool lens runs **real
+built-in checks** (not a model — the Code and Eng Team councils seat it), the votes are tallied
+fail-closed, dissent is preserved, and the record lands in `.council/decisions/`. `eldercouncil models check` first confirms your pins;
 `eldercouncil verify` checks the audit chain after. Each lens's vote streams live as it lands, and
-the full deliberations land in `.council/last-run/` — `tools/watch-council.sh` shows every voice in
-its own tmux pane while the run happens.
+the full deliberations land in `.council/last-run/` (masked under the conservative `[audit]` redact
+rule). With **tmux** installed, `~/tools/elder-council-harness/tools/watch-council.sh` (it ships in
+the repo clone, not the wheel) shows each voice's deliberation in its own pane as that lens completes.
 
 ## Journey B — inside OpenCode: a different family per lens, in your IDE
 

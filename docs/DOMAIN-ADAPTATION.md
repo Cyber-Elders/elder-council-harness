@@ -39,5 +39,5 @@ The same risk gate, consensus tally, and tamper-evident audit apply unchanged. K
 ceiling: councils are decision support, a human owns the accountable call, and any regulatory framing
 is illustrative — not advice.
 
-*(The shipped set is cyber-first plus one general **Business Decision** council for executive calls;
+*(The shipped set is cyber-first plus two general councils — **Business Decision** for executive calls and **Engineering Team** for software-delivery design reviews —;
 further domain councils are a supported extension you add yourself with the rule above.)*

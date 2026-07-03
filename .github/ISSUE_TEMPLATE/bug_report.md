@@ -16,7 +16,7 @@ labels: bug
 **Environment**
 - `eldercouncil version`:
 - OS / Python:
-- IDE (claude-code / opencode / kiro / cursor / MCP):
+- IDE (claude-code / opencode / kiro / cursor / copilot / MCP):
 
 **Decision record (optional)**
 <!-- The relevant `.council/decisions/*.json` — redact anything sensitive first. -->

@@ -9,6 +9,11 @@
 /eldercouncil/councils/           @Cyberelders
 /eldercouncil/lenses.yaml         @Cyberelders
 /eldercouncil/council-models.json @Cyberelders
+/eldercouncil/gates.py            @Cyberelders
+/eldercouncil/gate-policy.yaml    @Cyberelders
+/eldercouncil/detectors.py        @Cyberelders
+/eldercouncil/toollens.py         @Cyberelders
+/eldercouncil/approval.py         @Cyberelders
 /docs/METHODOLOGY.md              @Cyberelders
 /docs/STANDARDS-MAP.md            @Cyberelders
 /THREAT_MODEL.md                  @Cyberelders

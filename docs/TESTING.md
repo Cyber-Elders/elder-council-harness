@@ -7,7 +7,7 @@ the network. Three tiers.
 
 ## Tier 1 — Deterministic regression (every PR, in-repo, keyless)
 
-`pytest tests/` — **197 tests across the files below**, all keyless. Runs on Ubuntu ×
+`pytest tests/` — **199 tests across the files below**, all keyless. Runs on Ubuntu ×
 Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 
 | File | Covers |
@@ -69,6 +69,6 @@ changed pre-tool contract is exactly the class clean-install UAT cannot catch.
   stale OWASP agentic taxonomy; requires the honest caveats (councils-can-be-wrong, not-legal-advice,
   tamper-evident-not-tamper-proof, ships-no-keys, selective plurality, continuity). Scans docs **and**
   the bundled councils/templates/lenses.
-- **secret-scan** — gitleaks over the tree.
+- **secret-scan** — a regex secret scan (credential-shaped tokens) over the tree.
 - **build** — the wheel bundles the councils, lens roster, registry, and schema.
 - **self-audit** — `pip-audit` on our own dependency tree.

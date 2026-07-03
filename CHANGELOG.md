@@ -94,7 +94,7 @@ plus one more defect found by our own follow-up audit:
   convene run-mode incl. `--orchestrate` fail-closed and `--profile`, `gate`/`audit` per IDE, `gates`,
   `risk-gate` routing, usage errors, `init` defaults, `serve`); and `uat.yml` (clean-install, 3 OS)
   now runs **every** journey — install per IDE × lane, lane-aware `models check`, all run-modes, the
-  gate fail-closed guard, and `verify`. **197 tests**; UAT green on Ubuntu / macOS / Windows.
+  gate fail-closed guard, and `verify`. **199 tests**; UAT green on Ubuntu / macOS / Windows.
 
 ### Added (post-review)
 
@@ -111,6 +111,26 @@ plus one more defect found by our own follow-up audit:
   writes every voice's FULL deliberation (redacted) to `.council/last-run/<lens>.md`;
   `tools/watch-council.sh <council> "<question>"` opens a tmux view — one live pane per lens — while
   the harness still runs the fail-closed tally and hash-chained audit.
+
+### Fixed (guides & collateral QA sweep)
+
+A 37-agent adversarially-verified QA pass over every guide, template, example, and visual asset
+(33 confirmed findings, all remediated):
+
+- **watch-council panes actually update now.** The runner unlinked+recreated transcripts (new inode),
+  so a watcher's `tail -f` stayed frozen on the placeholder forever; transcripts now truncate in
+  place and the script uses `tail -F` (+ a pane-id fix for non-zero pane-base-index). Wording
+  softened honestly: each voice appears as its lens completes, not token-by-token.
+- **`convene` honors the project's configured lane** — a local/open-lane project no longer silently
+  resolves frontier Claude tags when `--lane` is omitted.
+- **Demo collateral re-synced with the CLI**: the README/GIF decision id had been stale since launch
+  (a pre-squash relic) and the GIF's GATES/rationale lines were truncated — regenerated.
+- Gate-vs-advisory docs corrected (the gate CAN name an advisory council; "advisory" governs who
+  decides, not whether it's suggested); the §3 recipe's missing `qwen3-coder:30b` pull; the example
+  ledger's CRITICAL was mis-attributed to AppSec (it belongs to the tool lens) and is refilled from
+  the current template incl. gates/disposition/diversity/audit; stale counts and module lists across
+  pyproject/ARCHITECTURE/GLOSSARY/CONCEPT/DOMAIN-ADAPTATION/templates/adapters/CONTRIBUTING/
+  GOVERNANCE/CODEOWNERS/BRAND/STANDARDS-MAP/METHODOLOGY.
 
 ### Docs & UX
 

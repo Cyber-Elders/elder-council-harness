@@ -152,6 +152,12 @@ def cmd_convene(args) -> int:
     except (SchemaError, RegistryError) as exc:
         print(exc); return 1
     question = _read(args.question) or f"(no decision text supplied for {c.id})"
+    if args.lane is None:
+        # No explicit --lane: honor the PROJECT's configured lane (config.toml),
+        # like `models check` does — a local/open-lane project must not silently
+        # resolve frontier Claude tags on convene/orchestrate.
+        from .config import load_config
+        args.lane = load_config().lane
 
     signals = {}
     if getattr(args, "signals", None):
@@ -476,7 +482,7 @@ def build_parser() -> argparse.ArgumentParser:
                     '\'{"human_approver":"jane","rollback_plan":true}\' (malformed -> exit 2)')
     cv.add_argument("--profile", default="standard", choices=["lite", "standard", "regulated"],
                     help="control-gate profile (default: standard)")
-    cv.add_argument("--lane", default="frontier", choices=["frontier", "open", "local"],
+    cv.add_argument("--lane", default=None, choices=["frontier", "open", "local"],
                     help="model lane to resolve: frontier (hosted) / open (open-weight) / local (on-device)")
     cv.add_argument("--json", action="store_true", help="emit the decision record as JSON")
     cv.add_argument("--no-audit", action="store_true", help="do not write an audit record")

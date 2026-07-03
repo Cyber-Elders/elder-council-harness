@@ -10,9 +10,12 @@
 #   * runs `eldercouncil convene <council> --orchestrate` in the main pane
 #     (your pinned models; the tool lens runs real checks; tally + audit as usual)
 #   * opens one pane per lens tailing its live transcript in .council/last-run/
-# So you SEE every voice deliberating in parallel, and still get the fail-closed
-# verdict + hash-chained record at the end. Requires tmux + the [orchestrator]
-# extra. Transcripts are redacted like every persisted artifact.
+# Each voice's full deliberation appears in its pane as that lens completes
+# (per-lens, not token-by-token), and you still get the fail-closed verdict +
+# hash-chained record at the end. Requires tmux + the [orchestrator] extra
+# (pip install -e '<clone>[orchestrator]'); this script ships in the repo
+# clone's tools/, not with the wheel. Transcripts are masked under the same
+# conservative [audit] redact rule as every persisted artifact.
 set -euo pipefail
 
 command -v tmux >/dev/null 2>&1 || { echo "watch-council: tmux is required"; exit 1; }
@@ -40,9 +43,11 @@ for a in "$@"; do ARGS_ESC+=" $(printf '%q' "$a")"; done
 tmux new-session -d -s "$SESSION" -n council \
   "eldercouncil convene $COUNCIL --orchestrate --question $Q_ESC$ARGS_ESC; \
    printf '\n── council finished — press Enter to close ──\n'; read -r _"
+MAIN_PANE=$(tmux display -p -t "$SESSION:council" '#{pane_id}')
 for s in $SLUGS; do
-  tmux split-window -t "$SESSION:council" "tail -f '$DIR/$s.md'"
+  # tail -F (follow by NAME): survives truncation/recreation of the transcript.
+  tmux split-window -t "$SESSION:council" "tail -F '$DIR/$s.md'"
   tmux select-layout -t "$SESSION:council" tiled
 done
-tmux select-pane -t "$SESSION:council.0"
+tmux select-pane -t "$MAIN_PANE"
 exec tmux attach -t "$SESSION"

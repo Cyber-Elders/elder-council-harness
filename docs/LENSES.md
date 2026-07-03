@@ -52,7 +52,8 @@ role_key (e.g. security_sme)  ──▶  council-models.json[role][lane]  ──
   agent's own on-device model). `eldercouncil models check` flags anything unpinned on your lane.
 - **Cross-family diversity matters.** Independent reviewers drawn from *different* model families
   catch failure modes a same-family panel shares. The `cross_family_critic` lens exists for exactly
-  this; pin it to a non-Anthropic model.
+  this — but note **no shipped council seats it** (it's for custom rosters): to diversify a shipped
+  council, re-pin a SEATED lens such as `critic_challenge` to a different family.
 - **Model tags age.** Re-pin quarterly. Because a provider can become unavailable (export controls,
   sanctions, licensing changes), add a `fallback` list per role for critical councils and keep a
   `local` lane for sensitive workloads.

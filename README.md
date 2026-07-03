@@ -11,7 +11,7 @@
 [![Docs: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-green.svg)](LICENSE-DOCS)
 [![Version](https://img.shields.io/badge/version-0.1.0-orange.svg)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
-[![Tests](https://img.shields.io/badge/tests-197%20passing-brightgreen.svg)](docs/TESTING.md)
+[![Tests](https://img.shields.io/badge/tests-199%20passing-brightgreen.svg)](docs/TESTING.md)
 [![OWASP Agentic 2026: aware](https://img.shields.io/badge/OWASP%20Agentic%202026-aware-6f42c1.svg)](docs/STANDARDS-MAP.md)
 [![NIST AI RMF: aligned](https://img.shields.io/badge/NIST%20AI%20RMF-aligned-6f42c1.svg)](docs/STANDARDS-MAP.md)
 
@@ -60,7 +60,7 @@ $ eldercouncil convene code-council --demo --question "merge a diff with a hardc
   dissent preserved: 3 lens(es) disagreed
   GATES (standard): allow  — no safety gate tripped; the council sets the routing
   DISPOSITION: human (the final call — a person decides)
-  decision EC-9c65a3c2cd4f
+  decision EC-c00bdfa6906b
 ```
 
 Five independent lenses, each with a confidence; a verdict; the **dissent kept on the record**; and a
@@ -74,7 +74,9 @@ and **real deterministic checks behind the tool lens**. *(Want to see the failur
 
 > **Not a cyber call?** `eldercouncil convene business-decision --demo` runs the *same machinery* on a
 > $40M M&A decision — Finance defers on runway, the Critic rejects an unstressed synergy number — and
-> the verdict (`defer`) routes to a named human with the dissent preserved.
+> the verdict (`defer`) routes to a named human with the dissent preserved. **A product team?**
+> `eldercouncil convene eng-team --demo` reviews a feature design with a dev + analyst + QA + critic
+> panel (advisory — the feature owner decides).
 
 ## How it works
 

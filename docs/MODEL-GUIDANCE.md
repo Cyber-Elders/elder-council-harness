@@ -80,8 +80,9 @@ See [OPENROUTER.md](OPENROUTER.md).
 | `ir_owner` | `deepseek-r1:32b` | DeepSeek | put the second reasoning seat on a *different* family than the risk owner |
 | `engineering_sme` / `detection_engineer` | `qwen3-coder:30b` | Alibaba (Coder) | code/SAST/log-trace reasoning |
 | `security_sme` | `deepseek-r1:32b` | DeepSeek | explicit long chain-of-thought suits exploit-path / edge-case reasoning |
-| `compliance_legal_sme` | `qwen3:32b` (long-context build) | Alibaba | long regulations/contracts/evidence in one pass |
-| `critic_challenge` / `adversary_redteam` | `magistral:24b` | Mistral | a genuinely different lineage → surfaces flaws the others' shared training won't |
+| `compliance_legal_sme` | `gpt-oss:20b` (or a long-context `qwen3:32b`) | OpenAI (open) | the shipped open-lane pin — keeps a fifth lineage among the seated voices |
+| `critic_challenge` | `magistral:24b` | Mistral | a genuinely different lineage → surfaces flaws the others' shared training won't |
+| `adversary_redteam` | `deepseek-r1:32b` | DeepSeek | attacker-path reasoning (the shipped open-lane pin) |
 | `pragmatic_ops` | `gemma3:12b` (or `qwen3:8b`) | Google | fast, low-VRAM, yet another distinct family |
 | `synthesiser` | `gpt-oss:20b` | OpenAI (open) | coherent integrator from a non-Qwen/non-DeepSeek voice |
 | `cross_family_critic` | `gpt-oss:20b` (or `:120b`) | OpenAI (open) | **deliberately** a different lineage from every other seat |
@@ -134,11 +135,12 @@ agent (it runs a different model per lens). On Claude Code you'd instead run eve
 model — see [CLAUDE-CODE-OLLAMA.md](CLAUDE-CODE-OLLAMA.md).
 
 *(What you need: OpenCode set up, [Ollama](https://ollama.com/download) running, Python 3.11+, and
-the RAM for your chosen models — see the table below.)*
+the RAM for your chosen models — see the RAM table further down §3.)*
 
 ```console
 # 1. Pull the shipped open-lane models that fit your RAM (or your own picks)
 ollama pull qwen3:32b            # reasoning seats        (on 16 GB: pull fewer, swap)
+ollama pull qwen3-coder:30b      # code/QA seats (engineering, detection/test)
 ollama pull deepseek-r1:32b      # security/IR seats
 ollama pull magistral:24b        # the critic (different lineage)
 ollama pull gemma3:12b           # fast ops
@@ -219,7 +221,7 @@ However you pin models, there are three ways to actually *run* a council — pic
 |---|---|---|
 | `eldercouncil convene <c> --demo` | **Keyless illustration** — deterministic sample votes, instant, no models. | You just want to *see* a council decide (trying it out, demos, CI). |
 | `eldercouncil convene <c>` *(no flag)* | Emits the **deliberation tasks** (JSON) for your **coding agent** to run on its own models — this is what the gate/slash-command flow uses inside your IDE. | Day-to-day, **inside an installed agent** (Claude Code, OpenCode, …). You normally trigger this with `/<council>`, not by hand. |
-| `eldercouncil convene <c> --orchestrate` | The **harness itself** runs your **pinned** models and returns a real verdict — **no IDE needed**. Streams each lens's vote live and writes full per-lens transcripts to `.council/last-run/` (`tools/watch-council.sh` gives a one-command tmux view, one pane per voice). Requires the optional runner (`pip install -e ".[orchestrator]"` (from your clone; not yet on PyPI)) and pinned model lanes; unpinned lenses report `unavailable`. | **Headless / CI / no coding agent** — scheduled audits, pipelines, scripts. |
+| `eldercouncil convene <c> --orchestrate` | The **harness itself** runs your **pinned** models and returns a real verdict — **no IDE needed**. Streams each lens's vote live and writes full per-lens transcripts to `.council/last-run/` (masked under the conservative `[audit]` redact rule). With tmux, the repo clone's `tools/watch-council.sh` shows each voice in its own pane as it completes. Requires the optional runner (`pip install -e ".[orchestrator]"` (from your clone; not yet on PyPI)) and pinned model lanes; unpinned lenses report `unavailable`. | **Headless / CI / no coding agent** — scheduled audits, pipelines, scripts. |
 
 > So: `--demo` to look, your agent (`/<council>`) for everyday use, `--orchestrate` to run councils
 > without an IDE. Run `eldercouncil models check` before `--orchestrate` so every lens has a real model.

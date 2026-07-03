@@ -90,11 +90,15 @@ In your Claude-Code-on-Ollama session, when the gate asks you to convene (or any
 Every lens runs on your local model; you get the verdict and the preserved dissent, all on-device. (New
 to the verdict/dissent output? See [GET-STARTED.md](GET-STARTED.md).)
 
-> **Want to WATCH the voices deliberate in realtime?** In your agent the lenses run inline, but the
-> headless runner streams: `eldercouncil convene <council> --orchestrate` prints each lens's vote as
-> it lands and writes every voice's full deliberation to `.council/last-run/<lens>.md` (redacted,
-> live-tailable). One command for a tmux view — one pane per lens plus the verdict:
-> `tools/watch-council.sh eng-team "your question"`. Same models, same fail-closed tally and audit.
+> **Want to WATCH the voices deliberate?** In your agent the lenses run inline, but the headless
+> runner streams: `eldercouncil convene <council> --orchestrate` prints each lens's vote as it lands
+> and writes every voice's full deliberation to `.council/last-run/<lens>.md` (masked under the
+> conservative `[audit]` redact rule; each appears as its lens completes). It needs the orchestrator
+> extra (`pip install -e "~/tools/elder-council-harness[orchestrator]"`) and **pinned model tags** —
+> pull the open-lane models and pass `--lane open` (see [MODEL-GUIDANCE.md](MODEL-GUIDANCE.md) §3);
+> this recipe's inherit-only local lane has no tag for the headless runner to call. With tmux:
+> `~/tools/elder-council-harness/tools/watch-council.sh eng-team "your question" --lane open` —
+> one pane per lens, same fail-closed tally and audit.
 
 > **Want real disagreement instead of one local family?** A cross-family council (different vendors
 > arguing) needs per-seat models — that's [OPENROUTER.md](OPENROUTER.md) (one key, hosted) or the

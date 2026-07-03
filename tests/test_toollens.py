@@ -107,3 +107,16 @@ def test_unavailable_lenses_do_not_count_toward_diversity():
         {"role": "B", "model": "anthropic:claude-sonnet-4-6", "vote": "unavailable"},
     ])
     assert div["families"] == [] and div["monoculture"] is None
+
+
+def test_transcript_reset_preserves_inodes_for_watchers(monkeypatch, tmp_path):
+    # A tmux watcher holds `tail` on the transcript file: reset must TRUNCATE IN
+    # PLACE, never unlink+recreate (a new inode freezes every watcher pane).
+    from eldercouncil.orchestrator import runner
+    monkeypatch.setenv("COUNCIL_DIR", str(tmp_path / ".council"))
+    review = {"tasks": [{"role": "Some Lens"}]}
+    runner._reset_transcripts(review)
+    f = tmp_path / ".council" / "last-run" / "some-lens.md"
+    ino = f.stat().st_ino
+    runner._reset_transcripts(review)           # second run (the watcher is attached now)
+    assert f.stat().st_ino == ino, "transcript inode changed — watcher panes would freeze"

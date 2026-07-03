@@ -9,8 +9,8 @@ A developer asks to push a diff that hardcodes an AWS key and builds a SQL query
 concatenation on user input.
 
 - **[decision.json](code-council/decision.json)** — the machine-readable decision record exactly as
-  `eldercouncil` writes it to `.council/decisions/`: every lens's vote, the verdict, the route, and
-  the preserved dissent. Reproduce it with:
+  `eldercouncil … --json` emits it (the copy persisted to `.council/decisions/` additionally carries a
+  `ts` timestamp): every lens's vote, the verdict, the route, and the preserved dissent. Reproduce it with:
 
   ```console
   eldercouncil convene code-council --demo --json \

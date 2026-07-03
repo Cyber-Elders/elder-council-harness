@@ -35,7 +35,8 @@ flowchart TD
 | `risk_gate` | impact × likelihood scoring (1–25) + route (SOLO / DUAL / FULL_COUNCIL / +HUMAN) |
 | `consensus` | `tally(votes, council)` — combine votes under the minimum-governance fail-closed rules |
 | `gates` | `evaluate(profile, signals, …)` — the 11 deterministic control gates (`gate-policy.yaml`); a gate can block/escalate even when the council approved. Offensive-misuse is a non-overridable hard stop |
-| `audit` | hash-chained, tamper-evident decision records + dissent + gate outcomes + `verify` |
+| `detectors` | the shared secret/PII/injection regexes + `redact()` — one definition for gates, audit redaction, and the tool lens |
+| `audit` | hash-chained, tamper-evident decision records + dissent + gate outcomes + `verify`; secrets/PII redacted at persistence (`[audit] redact`, default on) |
 | `schema` | `Council` / `Role` dataclasses + strict validation (fail-closed on malformed) |
 | `catalog` | load + validate + merge council definitions (bundled + project overrides) |
 | `models` | `council-models.json` loader + role→model resolution + fallback + unresolved-sentinel reporting |
@@ -45,6 +46,13 @@ flowchart TD
 None of these touch a model, the network, or randomness. The only wall-clock value is the audit
 event's timestamp; the **decision id is a content hash**, so the same votes + council produce an
 identical record.
+
+Two modules sit deliberately OUTSIDE the purity rule (behind explicit operator config, argv-parsed
+subprocesses with timeouts, fail-safe/fail-closed on error): **`toollens`** — the `--orchestrate`
+tool lens runs REAL checks (the shared detectors + `.council/config.toml` `[tools]` commands) and
+labels its votes `provenance: "tool"`; **`approval`** — the engine verifies an asserted
+`human_approver` via `[signals] approval_verify_command` (failure strips the assertion, so the gates
+escalate).
 
 ## The injected seam (non-deterministic)
 
@@ -64,7 +72,7 @@ with mocked votes.
 
 `install.py` is a **generic renderer**: councils are pure data, so there is **no per-council code
 branch**. For each `(IDE, council)` it renders the IDE-native files from the council YAML + the model
-registry, via an `_INSTALLERS` dispatch table (one render fn + one hook-wiring fn per IDE). Merges are
+registry, via an `_RENDERERS` dispatch table (one render fn + one hook-wiring fn per IDE). Merges are
 idempotent — JSON is merged, `CLAUDE.md`/steering blocks are sentinel-guarded, and re-running after a
 registry edit re-pins only the `model:` lines. `harness.py` translates each IDE's native pre-tool
 event into a verdict + exit code (`eldercouncil gate <ide>`). `server.py` exposes the advisory MCP

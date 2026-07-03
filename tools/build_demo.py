@@ -38,11 +38,11 @@ _HEAD = [
 _VERDICT = [
     ("", FG),
     ("  COUNCIL VERDICT: block   → route: human", RED),
-    ("  a lens rated this CRITICAL (Deterministic Tool Lens)", FG),
+    ("  a lens rated this CRITICAL (Deterministic Tool Lens) — blocked pending human review", FG),
     ("  dissent preserved: 3 lens(es) disagreed", DIM),
-    ("  GATES (standard): allow  — no safety gate tripped", GREEN),
+    ("  GATES (standard): allow  — no safety gate tripped; the council sets the routing", GREEN),
     ("  DISPOSITION: human (the final call — a person decides)", FG),
-    ("  decision EC-9c65a3c2cd4f", DIM),
+    ("  decision EC-c00bdfa6906b", DIM),
 ]
 LINES = _HEAD + _VOTES + _VERDICT
 # Frame 1: votes in, verdict not yet revealed (animates the "reveal").
