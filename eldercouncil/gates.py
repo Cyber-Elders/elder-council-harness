@@ -192,10 +192,17 @@ def evaluate(profile: str = "standard", signals: dict | None = None, *, action: 
     policy = policy or load_policy()
     gate_defs = policy.get("gates", {})
     if only is not None:
-        gate_names = [g for g in only if g in gate_defs]
+        gate_names = list(only)
         controls: list = []
     else:
         gate_names, controls = _profile_gates(policy, profile)
+    # A profile (or an `only=` request) that names a gate the policy never DEFINES
+    # is a broken policy, not a set of always-passing gates. Fail closed: raise so
+    # the caller escalates, rather than silently treating "no definition" as ALLOW
+    # (a truncated/mis-merged gates: section would otherwise disable every gate).
+    missing_defs = [g for g in gate_names if g not in gate_defs]
+    if missing_defs:
+        raise GatePolicyError(f"policy references gates with no definition: {', '.join(missing_defs)}")
 
     high_impact = bool(signals.get("high_impact")) or risk_gate.compute_risk_score(f"{action} {target}") >= _HIGH_IMPACT_SCORE
     derived = _derived_signals(action, target, outcome, high_impact, signals)
@@ -230,6 +237,16 @@ def evaluate(profile: str = "standard", signals: dict | None = None, *, action: 
         else:
             result = ESCALATE
         outcomes.append(GateOutcome(name, result, g.get("escalation"), reasons, hard))
+
+    # NON-OVERRIDABLE offensive-misuse hard stop — enforced independently of the
+    # policy's offensive_misuse gate body. A neutered/emptied body (`fail_closed_if: []`,
+    # `hard_stop: false`) or a dropped gate must NOT be able to disable it; the detector
+    # runs here regardless of the policy. (Obfuscation that evades the detector remains
+    # the documented risk-gate limit — see THREAT_MODEL.md.)
+    if (bool(signals.get("offensive_intent")) or bool(_OFFENSIVE_RE.search(f"{action} {target}"))) \
+            and not any(o.hard_stop for o in outcomes):
+        outcomes.append(GateOutcome("offensive_misuse", HUMAN_REQUIRED, "counsel",
+                                    ["payload_generation_requested"], hard_stop=True))
 
     if outcomes:
         worst = max(outcomes, key=lambda o: _SEVERITY[o.result])

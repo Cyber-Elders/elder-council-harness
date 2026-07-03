@@ -203,7 +203,7 @@ def cmd_convene(args) -> int:
                 votes = engine.demo_votes(c, scenario=args.scenario)
             rec = engine.convene_with_votes(c, question, votes, reg, lane=args.lane,
                                             do_audit=not args.no_audit, profile=args.profile,
-                                            signals=signals)
+                                            signals=signals, demo=args.demo)
         except RegistryError as exc:
             print(exc); return 1
         if args.json:
@@ -409,14 +409,23 @@ def cmd_models(args) -> int:
 
 
 def cmd_verify(args) -> int:
-    from .audit import head_hash, verify
-    r = verify(args.path)
+    from .audit import verify
+    r = verify(args.path, expected_head=getattr(args, "expect_head", None),
+               expected_count=getattr(args, "expect_count", None))
     if r["ok"]:
         print(f"✓ audit chain intact — {r['entries']} entr{'y' if r['entries']==1 else 'ies'}")
-        print(f"  head: {head_hash()}")
-        print("  (record the head externally — a full local rewrite is not detectable alone; see THREAT_MODEL.md)")
+        print(f"  head:  {r['head']}")
+        print(f"  count: {r['entries']}")
+        if getattr(args, "expect_head", None) or getattr(args, "expect_count", None):
+            print("  (verified against the off-box anchor — truncation/rewrite would fail here)")
+        else:
+            print("  record the HEAD off-box, then re-run with --expect-head <hash>:")
+            print("  a full local rewrite (incl. an in-place substance edit + recompute) is only")
+            print("  detectable against that anchor. --expect-count catches truncation/append only,")
+            print("  not an in-place rewrite — it is not a substitute for --expect-head (THREAT_MODEL.md)")
         return 0
-    print(f"✗ audit chain BROKEN at entry {r['broken_at']} of {r['entries']}: {r['reason']}")
+    where = f" at entry {r['broken_at']} of {r['entries']}" if r["broken_at"] else ""
+    print(f"✗ audit chain BROKEN{where}: {r['reason']}")
     return 2
 
 
@@ -538,6 +547,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     vf = sub.add_parser("verify", help="verify the audit hash-chain")
     vf.add_argument("--path")
+    vf.add_argument("--expect-head", help="off-box anchor: the chain head hash you recorded earlier "
+                                          "(detects a full rewrite / tail-truncation)")
+    vf.add_argument("--expect-count", type=int, help="off-box anchor: the entry count you recorded earlier")
     vf.set_defaults(func=cmd_verify)
 
     s = sub.add_parser("audit-summary", help="aggregate the decision log")

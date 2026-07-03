@@ -50,19 +50,25 @@ def test_mid_entry_tamper_detected(council_dir):
     assert not r["ok"] and r["broken_at"] == 1
 
 
-def test_full_rewrite_is_NOT_detected_tamper_evident_not_proof(council_dir):
-    # Honest scope: an attacker who recomputes the whole chain passes verify().
+def test_full_rewrite_is_NOT_detected_without_offbox_anchor(council_dir):
+    # Honest scope: an attacker who recomputes the WHOLE chain AND writes a consistent
+    # decision record (+ its record_sha256) passes a purely-local verify(). Substance
+    # binding raises the bar (a naive forge with no bound record is now caught) but does
+    # NOT close this — only the off-box --expect-head anchor does.
     c = mkcouncil(mode="action-gate", n_roles=3, outcomes=("merge", "block"))
     _record(council_dir, c, "real decision we want to hide")
-    # Rewrite from genesis with a fabricated, internally-consistent chain:
-    p = council_dir / "audit.jsonl"
+    orig_head = audit.head_hash()
+    decisions = council_dir / "decisions"
+    decisions.mkdir(exist_ok=True)
+    (decisions / "forged.json").write_text(json.dumps({"verdict": "merge", "decision_id": "EC-forged"}))
     forged = {"ts": "2026-01-01T00:00:00+00:00", "kind": "decision", "decision_id": "EC-forged",
-              "council": "stub", "verdict": "merge", "route": "auto", "prev": "EC-GENESIS"}
+              "council": "stub", "verdict": "merge", "route": "auto", "record": "forged.json",
+              "record_sha256": audit._sha256_file(decisions / "forged.json"), "prev": "EC-GENESIS"}
     forged["hash"] = audit._entry_hash(forged)
-    p.write_text(json.dumps(forged) + "\n")
+    (council_dir / "audit.jsonl").write_text(json.dumps(forged) + "\n")
     (council_dir / "audit.head").write_text(forged["hash"])
-    r = audit.verify()
-    assert r["ok"], "documented limitation: a full rewrite is not locally detectable"
+    assert audit.verify()["ok"], "documented limitation: a full local rewrite is not detectable alone"
+    assert not audit.verify(expected_head=orig_head)["ok"]   # ...but the off-box anchor catches it
 
 
 def test_stale_head_does_not_break_next_append(council_dir):

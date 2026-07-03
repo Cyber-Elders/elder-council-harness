@@ -63,17 +63,30 @@ ships **no model and no API keys** — councils run on the user's own LLM(s).
    themselves asserted — a host could misreport them.) `eldercouncil models check` warns ahead of time, and
    `convene <council> --demo --scenario monoculture` demonstrates the failure.
    **Pin at least one SEATED lens (e.g. `critic_challenge`) to a different model family** — the `cross_family_critic` role exists for custom councils; no shipped council seats it.
-7. **Severity is lens-asserted, not authenticated — except the orchestrate tool lens.** A `CRITICAL`
-   finding can force a block. To limit abuse (a prompt-injected or over-eager reasoning lens forcing a
-   denial-of-service), a council that has a deterministic-tool lens honours `CRITICAL` **only** from
-   that lens; a council without one honours any lens's `CRITICAL` (fail-closed). In the
-   `--orchestrate` path the tool lens **actually runs deterministic checks** (built-in detectors +
-   your `[tools]` commands) and its votes carry `provenance: "tool"`; when the HOST agent runs the
-   tool lens (the in-IDE path), the harness cannot verify which tools ran — those votes are
-   `host-asserted` and the verdict rationale says so. Authority stays role-based either way (stripping
-   host-run tool votes would fail open); on the MCP path a host-claimed `tool`/`demo` label is coerced
-   to `host-asserted` — the harness cannot verify it, so it does not pretend to. Note the asymmetry: the *absence* of a severity field does
-   **not** mean "not critical" — it just means no lens asserted one.
+7. **Severity is lens-asserted, not authenticated — but the deterministic tool lens is run by the
+   harness, not the host.** A `CRITICAL` finding can force a block. To limit abuse (a prompt-injected or
+   over-eager reasoning lens forcing a denial-of-service), a council that has a deterministic-tool lens
+   honours `CRITICAL` **only** from that lens; a council without one honours any lens's `CRITICAL`
+   (fail-closed). The tool lens **actually runs deterministic checks** (built-in detectors + your
+   `[tools]` commands) in BOTH BYO-LLM paths: the `--orchestrate` runner runs it, and the **MCP
+   `audit_log` tool re-runs it server-side over the reported decision** — so a host agent **cannot omit
+   or forge** the authoritative tool finding (any host-reported vote carrying the tool role is replaced
+   by the genuine one; a host-claimed `tool`/`demo` provenance on the *reasoning* votes is coerced to
+   `host-asserted`). The reasoning lenses on the in-IDE / MCP path remain **host-reported**: the harness
+   cannot authenticate that the host ran each lens faithfully — it records the votes and flags any lens
+   whose role is **not part of the council** (`off_council_roles`), but a compromised host can still
+   misreport its own reasoning votes (it could equally ignore the verdict — the MCP path is advisory).
+   Authority stays role-based (stripping host-run tool votes would fail open). Note the asymmetry: the
+   *absence* of a severity field does **not** mean "not critical" — it just means no lens asserted one.
+   **Two sharp limits of the server-run tool lens:** (a) it judges the decision **TEXT** (the `question`
+   the host reports) plus any operator-configured `[tools]` commands — **not the working tree/diff**. If
+   the risky change lives in the diff and the host phrases the question benignly, the built-in detectors
+   see nothing and the lens abstains; a real guarantee requires wiring a tree-scanning `[tools]` command
+   (e.g. `secret_scan_cmd = "gitleaks detect -s ."`). (b) Only councils that **seat a tool lens** get
+   this server-run check — of the shipped councils, **code-council and eng-team** do; the others do not,
+   so on the MCP path a host reports 100% of their votes. **This is why the MCP path is advisory:** a
+   compromised host can misreport (or simply ignore) the verdict. Hard enforcement is the separate
+   **pre-tool gate hook**, not the MCP path.
 8. **Outage is reported as `inconclusive`, not a verdict.** If too many lenses are unreachable, the
    council returns `inconclusive` (routed to a human), never a deliberated-looking `block`/`allow` — so
    an infrastructure failure is not mistaken for a decision. Distinguishing the two is the honest design.
@@ -87,11 +100,20 @@ The audit is an append-only, hash-chained JSONL (`.council/audit.jsonl`): each e
 (the previous entry's hash) and `hash` (sha256 over the entry incl. `prev`). `eldercouncil verify`
 walks the chain and detects an **altered, reordered, inserted, or dropped** entry.
 
-This is **tamper-evident, not tamper-proof.** Anyone (or any compromised agent) with write access to
-`.council/` can delete an entry and recompute the entire chain plus `audit.head`, and `verify()` would
-then pass. There is no external anchor. To detect a **full local rewrite**, record the chain head
-off-box — `eldercouncil verify` prints it. (`tests/test_audit.py` includes a test asserting a full
-rewrite is *not* locally detectable, so this limit stays documented.)
+**The chain binds the full decision record, not just the index.** Each decision entry carries a
+`record_sha256` over the persisted `decisions/<id>.json` bytes, and `verify()` re-hashes those files —
+so editing a **vote, confidence, reason, dissent, or risk score** in the full record (not only the
+one-line index) is detected, and deleting/renaming a bound record is detected. This closes the gap
+where the index looked intact while the audited substance had been rewritten.
+
+It remains **tamper-evident, not tamper-proof.** Anyone (or any compromised agent) with write access to
+`.council/` can delete the last N entries (and their records) or recompute the entire chain plus
+`audit.head` from scratch, and a *purely local* `verify()` would then pass — there is no local anchor
+that survives a full rewrite. The defense is an **off-box anchor**: `eldercouncil verify` prints the
+chain **head hash + entry count**; record them off `.council/` (a different host, a ticket, a
+signed commit) and re-run `eldercouncil verify --expect-head <hash> --expect-count <n>` — truncation
+or a full rewrite then fails because it cannot reproduce your recorded anchor. Without that anchor, a
+local rewrite/truncation stays undetectable (a pinned test keeps this limit honest).
 
 ## Threats to the governance system itself
 
@@ -101,12 +123,13 @@ responsibility (much of this is deployment posture, especially at the `regulated
 
 | # | Threat | What it achieves | Harness controls / operator responsibility |
 |---|---|---|---|
-| 1 | **Policy tampering** | weaken gate conditions / allowlists / thresholds so controls look active but don't enforce | version-control `gate-policy.yaml` + `councils/` + `council-models.json` with reviewed, signed commits (operator); CODEOWNERS protects the load-bearing files; the gate policy is data the operator must protect |
+| 1 | **Policy tampering** | weaken gate conditions / allowlists / thresholds so controls look active but don't enforce | version-control `gate-policy.yaml` + `councils/` + `council-models.json` with reviewed, signed commits (operator); CODEOWNERS protects the load-bearing files. Structural degradation now **fails closed**: a profile that references an **undefined** gate (a truncated/mis-merged `gates:` section) raises → the caller escalates (never a silent all-pass ALLOW), and the pre-tool **offensive hard stop survives a policy error** via a policy-independent detector backstop |
 | 2 | **Eval / calibration poisoning** | skew confidence calibration so bad decisions read as safe | provenance-label any eval corpus; human review before use; keep a hold-out set (operator) — the harness ships no learned calibration, so there is nothing to poison out of the box |
 | 3 | **Compromised escalation path** | a blocked action appears human-approved | approvals must be authenticated (SSO/MFA), out-of-band, time-bound — the `authenticated_approval_api` control in the `regulated` profile is a *requirement on the operator*, not something the harness provides |
 | 4 | **Model-router abuse** | route sensitive context to an untrusted/rogue endpoint | role→model resolution is data the operator version-controls; `models check` flags monoculture; the operator pins endpoints + enforces data-class routing |
-| 5 | **Fake human approval** | an automated process forges an approval token | approvals are an operator-owned, authenticated step; the harness records `human_approver`/`approval_basis` in the audit but cannot itself authenticate the human |
-| 6 | **Audit-log tampering** | hide a gate bypass or override | the hash chain is **tamper-evident** (see above) — full off-box replication / immutability is the `regulated` profile's operator requirement |
+| 5 | **Fake human approval** | an automated process forges an approval token | approvals are an operator-owned, authenticated step; the harness records `human_approver`/`approval_basis` in the audit but cannot itself authenticate the human. **By default a bare `human_approver` string satisfies the approval gate** and is recorded as `asserted — unverified` (approver≠requester is *not* checked) — set `[signals] approval_verify_command` to actually verify it against your identity/ticketing system (a non-zero/timeout strips the assertion → the gate escalates, fail-closed) |
+| 6 | **Audit-log tampering** | hide a gate bypass, override, or a rewritten vote | the hash chain is **tamper-evident** and now **binds the full decision record** (`record_sha256` → editing/deleting `decisions/<id>.json` is caught, not just index edits); truncation / full rewrite is caught only against an **off-box anchor** (`verify --expect-head/--expect-count`) — full off-box replication / immutability is the `regulated` profile's operator requirement |
+| 9 | **Gate-hook / env / path substitution** | disable or downgrade enforcement from the environment | the pre-tool gate command is resolved from `PATH` (a malicious `eldercouncil` earlier on `PATH` would answer for every tool call); `COUNCIL_MODE/PROFILE/THRESHOLD/LANE/REDACT` override policy; `COUNCIL_DIR` redirects the audit write location entirely — all **environment-control** threats consistent with "a user with write access can change their own project". The harness records active **policy** overrides (those five vars) in the audit (`policy_overrides`) so an operator-downgrade (observe / lite / redact-off) leaves a trace. `COUNCIL_DIR` is **not** recorded — an attacker who redirects the write location also controls where any trace would be written, so recording it there is meaningless; protecting `PATH`/env + the `.council/` location is operator posture |
 | 7 | **Credential misuse** | an over-scoped credential exfiltrates or mutates beyond scope | the `tool_permission` gate flags over-broad scope *when the scope is asserted to it*; least-privilege, scoped, rotated credentials are an operator responsibility |
 | 8 | **Governance bypass via prompt injection** | untrusted content makes the agent skip gates / self-approve | the `context_integrity` gate flags injection; gate decisions are made by this **deterministic engine outside the model's control**, not by the LLM in-prompt — but an advisory-tier IDE cannot force the agent to consult it |
 

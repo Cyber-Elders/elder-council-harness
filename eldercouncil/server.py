@@ -72,18 +72,42 @@ def audit_log(council: str, question: str, verdicts: list, context: dict | None 
     lens. Applies Elder Council consensus (ties block; escalation wins;
     risk-acceptance/critical/advisory route to a human) and writes a
     hash-chained decision record + dissent to `.council/`.
+
+    On this HOST-REPORTED path the harness cannot authenticate the reported
+    votes, so it (a) coerces any claimed tool/demo provenance to host-asserted,
+    (b) RE-RUNS the deterministic tool lens itself (the host cannot omit or forge
+    the authoritative tool finding — its detectors run server-side over the
+    question + configured [tools]), and (c) records any roles that do not match
+    the council's declared lenses (a forged/renamed lens is then evident).
     """
     try:
         c = get_council(council)
     except SchemaError as exc:
         return {"error": str(exc)}
-    outcome = tally(coerce_host_provenance(verdicts), c)
+    votes = coerce_host_provenance(verdicts)
+    # (b) The tool lens is deterministic — compute it here rather than trust the
+    # host's self-reported tool vote. Replace any host vote carrying the tool
+    # role with the genuine server-run finding.
+    tool_role = next((r.name for r in c.roles if getattr(r, "is_tool", False)), None)
+    if tool_role:
+        from .toollens import run_tool_lens
+        votes = [v for v in votes
+                 if not (isinstance(v, dict) and str(v.get("role")) == tool_role)]
+        votes.append(run_tool_lens(tool_role, question, list(c.decision_outcomes)))
+    # (c) Flag reported lenses that are not part of this council.
+    expected = {r.name for r in c.roles}
+    reported = {str(v.get("role")) for v in (verdicts or []) if isinstance(v, dict)}
+    off_council = sorted(reported - expected)
+    ctx = dict(context or {})
+    if off_council:
+        ctx["off_council_roles"] = off_council
+    outcome = tally(votes, c)
     diversity = models.diversity_of(outcome.votes)
-    did = audit.record(c.id, question, outcome, mode=c.mode, context=context or {},
-                       diversity=diversity)
+    did = audit.record(c.id, question, outcome, mode=c.mode, context=ctx, diversity=diversity)
     return {"decision_id": did, "verdict": outcome.verdict, "route": outcome.route,
             "rationale": outcome.rationale, "dissent": outcome.dissent,
-            "diversity": diversity}
+            "diversity": diversity,
+            **({"off_council_roles": off_council} if off_council else {})}
 
 
 @mcp.tool()

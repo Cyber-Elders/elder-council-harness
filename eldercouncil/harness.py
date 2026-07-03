@@ -25,7 +25,7 @@ import json
 import sys
 
 from . import audit
-from .config import load_config
+from .config import env_overrides, load_config
 from .risk_gate import assess
 
 _TOOL_ALIASES = {
@@ -96,8 +96,19 @@ def _gate_overlay(action: str, target: str, cfg) -> tuple[str, str, bool]:
                                 only=["offensive_misuse", "data_sensitivity", "context_integrity"],
                                 affirmative=False)
     except Exception:  # noqa: BLE001 — gate policy issues must never crash the hook
-        # Degraded, and SAY so: the base risk gate still applies, but the detector
-        # overlay (hard stop / secrets / injection) is out of action.
+        # A policy/detector failure must NOT silently drop the non-overridable
+        # offensive-misuse HARD STOP. Run the detectors DIRECTLY (independent of the
+        # policy file) as a fail-closed backstop: offensive → hard stop; a secret or
+        # injection pattern → ask; otherwise degrade to "risk gate only" and SAY so.
+        from . import detectors, gates
+        text = f"{action} {target}"
+        try:
+            if gates._OFFENSIVE_RE.search(text):
+                return "block", " ⛔ hard stop: offensive-cyber-misuse (direct detector; gate policy unavailable)", True
+            if detectors.SECRET_RE.search(text) or detectors.INJECTION_RE.search(text):
+                return "ask", " [gate policy unavailable — direct detector flagged a secret/injection pattern]", False
+        except Exception:  # noqa: BLE001 — even the backstop must never crash the hook
+            pass
         return "allow", " [detector-gate overlay unavailable — policy error; risk gate only]", False
     if report.hard_stopped:
         return "block", " ⛔ hard stop: offensive-cyber-misuse gate", True
@@ -135,10 +146,13 @@ def _decide(action: str, target: str) -> dict:
 
 def _safe_gate_audit(action, target, d):
     # Record the OBSERVED (real) verdict so observe-mode entries are not misleading.
+    ctx = {"reason": d.get("reason", ""), "enforced": d["verdict"]}
+    ov = env_overrides()
+    if ov:
+        ctx["policy_overrides"] = ov   # enforcement downgraded at the environment layer — leave a trace
     try:
         audit.record_gate(action, target, d["risk"]["score"], d["risk"]["route"],
-                          d.get("observed", d["verdict"]),
-                          context={"reason": d.get("reason", ""), "enforced": d["verdict"]})
+                          d.get("observed", d["verdict"]), context=ctx)
     except OSError:
         pass
 

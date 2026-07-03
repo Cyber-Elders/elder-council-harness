@@ -10,11 +10,15 @@ Three artifacts under `.council/`:
   * dissent/<ts>-<id>.json   — the dissent alone (the proprietary learning signal:
                                where lenses systematically disagree over time).
 
-IMPORTANT (honest scope): this is tamper-EVIDENT against careless edits, not
-tamper-PROOF. Anyone with write access to `.council/` can delete an entry and
-recompute the whole chain + `audit.head`, and `verify()` would then pass. There
-is no external anchor. To detect a full rewrite, record the head hash off-box
-(`eldercouncil verify` prints it). See THREAT_MODEL.md.
+IMPORTANT (honest scope): this is tamper-EVIDENT, not tamper-PROOF. The chain
+binds the FULL record — each decision entry carries `record_sha256` over the
+persisted `decisions/<id>.json`, and `verify()` re-hashes those files, so editing
+a vote/reason/dissent (not just the index) is caught. What a local chain alone
+CANNOT catch is a full rewrite or tail-truncation: anyone with write access to
+`.council/` can drop the last entries (+ their records) or recompute the whole
+chain + `audit.head`. The defense is an off-box anchor: record the head hash +
+entry count (`eldercouncil verify` prints them) and re-run
+`verify --expect-head <h> --expect-count <n>`. See THREAT_MODEL.md.
 
 The decision itself is deterministic (a content-addressed id); the audit event
 adds a wall-clock timestamp — the per-event uniqueness the decision_id omits.
@@ -83,6 +87,10 @@ def _head_path() -> Path:
 def _entry_hash(event_without_hash: dict) -> str:
     canonical = json.dumps(event_without_hash, sort_keys=True, separators=(",", ":"), default=str)
     return "sha256:" + hashlib.sha256(canonical.encode()).hexdigest()
+
+
+def _sha256_file(p: Path) -> str:
+    return "sha256:" + hashlib.sha256(p.read_bytes()).hexdigest()
 
 
 def read_events(path: str | Path | None = None) -> list[dict]:
@@ -186,9 +194,11 @@ def build_record(council_id: str, question: str, outcome, *, mode: str = "",
 def record(council_id: str, question: str, outcome, *, mode: str = "",
            risk: dict | None = None, context: dict | None = None,
            gate_report: dict | None = None, profile: str = "",
-           diversity: dict | None = None, approval: dict | None = None) -> str:
+           diversity: dict | None = None, approval: dict | None = None,
+           demo: bool = False) -> str:
     """Persist a decision: full record file + dissent file + chained index line.
-    Returns the decision_id."""
+    Returns the decision_id. `demo=True` marks the chain entry `kind:"demo"` so the
+    summary excludes illustrative `--demo` runs from the real decision counts."""
     rec = build_record(council_id, question, outcome, mode=mode, risk=risk, context=context,
                        gate_report=gate_report, profile=profile,
                        diversity=diversity, approval=approval)
@@ -203,8 +213,14 @@ def record(council_id: str, question: str, outcome, *, mode: str = "",
 
     decisions = paths.decisions_dir()
     decisions.mkdir(parents=True, exist_ok=True)
-    full = dict(persisted, ts=ts.isoformat())
-    (decisions / fname).write_text(json.dumps(full, indent=2, ensure_ascii=False), encoding="utf-8")
+    full = dict(persisted, ts=ts.isoformat(), **({"demo": True} if demo else {}))
+    record_path = decisions / fname
+    record_path.write_text(json.dumps(full, indent=2, ensure_ascii=False), encoding="utf-8")
+    # Bind the FULL record's bytes into the chain (hash the persisted file, not the
+    # in-memory string, so newline translation etc. can't desync verify()). This is
+    # what makes the audit tamper-evident over every vote/reason/dissent, not just
+    # the chain index — editing decisions/<id>.json now fails verify().
+    record_sha = _sha256_file(record_path)
 
     if persisted["dissent"]:
         dissent = paths.dissent_dir()
@@ -215,7 +231,7 @@ def record(council_id: str, question: str, outcome, *, mode: str = "",
 
     _append_chain({
         "ts": ts.isoformat(),
-        "kind": "decision",
+        "kind": "demo" if demo else "decision",
         "decision_id": did,
         "council": council_id,
         "mode": mode,
@@ -226,6 +242,7 @@ def record(council_id: str, question: str, outcome, *, mode: str = "",
         "gate_result": (gate_report or {}).get("result"),
         "score": (risk or {}).get("score"),
         "record": fname,
+        "record_sha256": record_sha,
     })
     return did
 
@@ -294,25 +311,70 @@ def record_gate(action: str, target: str, score: int, route: str, verdict: str,
     })
 
 
-def verify(path: str | Path | None = None) -> dict:
-    """Walk the chain and confirm integrity.
-    Returns {ok, entries, broken_at, reason}."""
+def verify(path: str | Path | None = None, *, expected_head: str | None = None,
+           expected_count: int | None = None) -> dict:
+    """Walk the chain and confirm integrity. Returns {ok, entries, broken_at, reason, head}.
+
+    Three layers, from cheapest to strongest:
+      1. Chain links + per-entry hash  — detects any edit/insert/reorder WITHIN a line.
+      2. Bound decision records        — re-hashes each decisions/<id>.json and compares
+                                         to `record_sha256`, so editing a vote/reason/dissent
+                                         in the full record (not just the index) is caught.
+      3. Off-box anchor — the ONLY thing that catches a full-chain rewrite, since an attacker
+         with write access can recompute the local chain + head. `expected_head` is the sound
+         anchor: it pins the exact chain tip, so ANY rewrite (including an in-place substance
+         edit + recompute) fails. `expected_count` only catches truncation/appended entries —
+         an in-place rewrite preserves the count, so it is NOT a substitute for `expected_head`.
+         Record the head (and optionally count) off `.council/` — the CLI prints both.
+    """
     events = read_events(path)
+    decisions_dir = (Path(path).parent / "decisions") if path else paths.decisions_dir()
     expected_prev = _GENESIS
     for i, e in enumerate(events, start=1):
         stored = e.get("hash")
         if stored is None:
             return {"ok": False, "entries": len(events), "broken_at": i,
-                    "reason": "entry missing hash"}
+                    "reason": "entry missing hash", "head": expected_prev}
         recomputed = _entry_hash({k: v for k, v in e.items() if k != "hash"})
         if recomputed != stored:
             return {"ok": False, "entries": len(events), "broken_at": i,
-                    "reason": "content hash mismatch (entry altered)"}
+                    "reason": "content hash mismatch (entry altered)", "head": expected_prev}
         if e.get("prev") != expected_prev:
             return {"ok": False, "entries": len(events), "broken_at": i,
-                    "reason": "broken link (entry inserted/removed/reordered)"}
+                    "reason": "broken link (entry inserted/removed/reordered)", "head": expected_prev}
+        # Substance binding: a decision/demo entry MUST carry its bound-record hash,
+        # and the record's bytes must match. Requiring the field (not just checking
+        # it when present) closes the strip attack — dropping `record_sha256` and
+        # recomputing the chain would otherwise skip the substance check silently.
+        kind = e.get("kind", "decision")
+        rsha, rfile = e.get("record_sha256"), e.get("record")
+        if kind in ("decision", "demo"):
+            if not (rsha and rfile):
+                return {"ok": False, "entries": len(events), "broken_at": i,
+                        "reason": "decision entry is missing its bound-record hash "
+                                  "(record_sha256/record stripped) — substance binding removed",
+                        "head": expected_prev}
+            fp = decisions_dir / rfile
+            if not fp.exists():
+                return {"ok": False, "entries": len(events), "broken_at": i,
+                        "reason": f"decision record missing ({rfile}) — deleted or renamed",
+                        "head": expected_prev}
+            if _sha256_file(fp) != rsha:
+                return {"ok": False, "entries": len(events), "broken_at": i,
+                        "reason": f"decision record altered ({rfile}) — substance hash mismatch",
+                        "head": expected_prev}
         expected_prev = stored
-    return {"ok": True, "entries": len(events), "broken_at": None, "reason": "chain intact"}
+    head = events[-1]["hash"] if events else _GENESIS
+    if expected_count is not None and len(events) != expected_count:
+        return {"ok": False, "entries": len(events), "broken_at": None,
+                "reason": f"entry count {len(events)} != expected {expected_count} "
+                          f"(truncated or appended off-anchor)", "head": head}
+    if expected_head is not None and head != expected_head:
+        return {"ok": False, "entries": len(events), "broken_at": None,
+                "reason": "chain head does not match the recorded off-box anchor "
+                          "(full rewrite or tail-truncation)", "head": head}
+    return {"ok": True, "entries": len(events), "broken_at": None,
+            "reason": "chain intact", "head": head}
 
 
 def read_decisions() -> list[dict]:
@@ -333,17 +395,22 @@ def summary(path: str | Path | None = None) -> dict:
     """Aggregate the decision log: verdict distribution, routes, dissent rate.
     A simple log utility — not a performance-KPI framework."""
     events = read_events(path)
+    # Illustrative --demo runs (kind:"demo") and lightweight gate events are not real
+    # council decisions — exclude them so the summary counts deliberated decisions only.
+    decisions_only = [e for e in events if e.get("kind", "decision") == "decision"]
+    demo_runs = sum(1 for e in events if e.get("kind") == "demo")
     by_verdict: dict[str, int] = {}
     by_route: dict[str, int] = {}
     by_council: dict[str, int] = {}
-    for e in events:
+    for e in decisions_only:
         by_verdict[e.get("verdict", "?")] = by_verdict.get(e.get("verdict", "?"), 0) + 1
         by_route[e.get("route", "?")] = by_route.get(e.get("route", "?"), 0) + 1
         by_council[e.get("council", "?")] = by_council.get(e.get("council", "?"), 0) + 1
-    decisions = read_decisions()
+    decisions = [d for d in read_decisions() if not d.get("demo")]
     with_dissent = sum(1 for d in decisions if d.get("dissent"))
     return {
-        "total_decisions": len(events),
+        "total_decisions": len(decisions_only),
+        "demo_runs_excluded": demo_runs,
         "by_verdict": by_verdict,
         "by_route": by_route,
         "by_council": by_council,

@@ -94,7 +94,7 @@ plus one more defect found by our own follow-up audit:
   convene run-mode incl. `--orchestrate` fail-closed and `--profile`, `gate`/`audit` per IDE, `gates`,
   `risk-gate` routing, usage errors, `init` defaults, `serve`); and `uat.yml` (clean-install, 3 OS)
   now runs **every** journey — install per IDE × lane, lane-aware `models check`, all run-modes, the
-  gate fail-closed guard, and `verify`. **203 tests**; UAT green on Ubuntu / macOS / Windows.
+  gate fail-closed guard, and `verify`. **223 tests**; UAT green on Ubuntu / macOS / Windows.
 
 ### Added (post-review)
 
@@ -155,6 +155,48 @@ fixed with reproductions and regression tests:
   `convene --demo … | grep -q` pipeline closing → `BrokenPipeError` / exit 120, which surfaced only on
   the macOS CI runner. `uat.yml` now guards it.) The demo collateral (GIF/PNG) header command matches
   the printed decision id exactly.
+
+### Security (second external review — audit binding + fail-closed gates)
+
+A second external security review (static analysis) raised eight critical/high findings plus mediums.
+Every mechanical claim was reproduced by **running the code**, then fixed; the honest limits that
+remain are stated plainly in THREAT_MODEL.md rather than papered over. (+17 regression tests pinning
+each, `tests/test_review_findings.py`.)
+
+- **The hash chain now binds the FULL decision record, not just the index.** Each decision entry
+  carries `record_sha256` over the persisted `decisions/<id>.json`, and `verify()` re-hashes those
+  files — so editing a **vote / confidence / reason / dissent / risk** in the full record (previously
+  invisible to `verify()`) is caught, as is deleting a bound record. `eldercouncil verify` prints the
+  head **and count**, and `verify --expect-head/--expect-count` checks them against an off-box anchor —
+  the only thing that catches a full rewrite or tail-truncation.
+- **Confidence coercion no longer fails open.** `nan`/`inf` were coerced to **1.0** (full confidence),
+  silently defeating the low-confidence floor; they now resolve to `0.0` (the conservative direction).
+  The floor is now `<=`, so an omitted `Confidence:` (which defaults to the floor) routes to a human
+  instead of auto-proceeding.
+- **The pre-tool gate fails CLOSED on a policy error.** The detector overlay caught every exception and
+  returned **allow**, dropping the "non-overridable" offensive-misuse hard stop (the base risk gate has
+  no offensive vocabulary). It now runs the offensive detector **directly** as a policy-independent
+  backstop (hard-stops offensive content even with a corrupt policy), degrades a flagged secret/injection
+  to *ask*, and a profile that references an **undefined** gate now **raises** (a truncated `gates:`
+  section can no longer silently ALLOW).
+- **The MCP `audit_log` path re-runs the deterministic tool lens server-side.** A host agent can no
+  longer omit or forge the authoritative tool `CRITICAL` — any host-reported vote carrying the tool role
+  is replaced by the genuine server-run finding. Reported lenses that aren't part of the council are
+  recorded (`off_council_roles`). Reasoning votes on this path remain host-reported (documented).
+- **Env-var policy downgrades leave a trace.** Active `COUNCIL_*` overrides (`observe` mode, `lite`
+  profile, raised threshold, redaction off) are recorded in the audit (`policy_overrides`).
+- **`--demo` no longer pollutes the real decision log.** Demo runs are chained as `kind:"demo"` and
+  excluded from `audit-summary`'s decision counts.
+
+A follow-up **adversarial self-review** (independent skeptics trying to break each fix) then closed two
+ways the fixes themselves could be bypassed: **stripping `record_sha256`** from a decision entry (the
+substance check is now *required* on every decision/demo entry, so removing it is itself flagged), and a
+**neutered offensive gate body** (`fail_closed_if: []`, `hard_stop: false` — the offensive hard stop is
+now enforced independently of the policy gate body). Also: a giant-integer confidence no longer crashes
+the tally (`OverflowError` → 0.0); `--expect-count` is documented as truncation/append detection only
+(**`--expect-head` is the sound anchor** for an in-place rewrite); and THREAT_MODEL.md spells out the two
+honest limits of the MCP tool lens (it judges the decision **text**, not the working tree; only councils
+that seat a tool lens get the server-run check).
 
 ### Docs & UX
 

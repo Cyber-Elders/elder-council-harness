@@ -37,6 +37,7 @@ a severity field does NOT mean "not critical" — see THREAT_MODEL.md.
 
 from __future__ import annotations
 
+import math
 from collections import Counter
 from dataclasses import dataclass, field
 
@@ -131,7 +132,12 @@ _restrictiveness = restrictiveness  # internal alias
 
 def _coerce_confidence(value) -> float:
     """Tolerant confidence parse: the protocol asks for Low/Medium/High words,
-    but a numeric is also accepted. Clamp to [0,1]; default 0.5 on anything odd."""
+    but a numeric is also accepted. Clamp to [0,1]; default 0.5 on anything odd.
+
+    NaN/inf are NOT numbers we can trust: `min(1.0, nan)` returns 1.0, which would
+    silently promote a garbage confidence to FULL confidence and bypass the
+    permissive-confidence floor. Non-finite → 0.0 (the conservative direction:
+    it can only ADD caution / route to a human, never manufacture auto-proceed)."""
     if isinstance(value, str):
         w = value.strip().lower()
         if w in _CONF_WORDS:
@@ -141,9 +147,14 @@ def _coerce_confidence(value) -> float:
         except ValueError:
             return 0.5
     try:
-        return max(0.0, min(1.0, float(value)))
+        f = float(value)
     except (TypeError, ValueError):
         return 0.5
+    except OverflowError:
+        return 0.0                  # a huge int (float(10**400)) is not a usable confidence
+    if not math.isfinite(f):        # nan / inf / -inf → no usable confidence
+        return 0.0
+    return max(0.0, min(1.0, f))
 
 
 def _is_escalation(token: str) -> bool:
@@ -288,7 +299,10 @@ def tally(votes, council) -> Outcome:
         names = ", ".join(sorted({v.vote for v in blocking_dissent}))
         route, why = "human", (f"'{verdict}' would carry, but {len(blocking_dissent)} lens(es) "
                                f"dissented to stop ({names}) — routed to a human, not auto")
-    elif mean_conf < _PERMISSIVE_CONFIDENCE_FLOOR:
+    elif mean_conf <= _PERMISSIVE_CONFIDENCE_FLOOR:
+        # `<=`, not `<`: a permissive verdict whose winning votes sit AT the floor
+        # (incl. the 0.5 default a lens gets when it omits Confidence:) is not
+        # "confident enough" to auto-proceed — it routes to a human.
         route, why = "human", f"'{verdict}' but low confidence ({mean_conf:.2f}) — routed to a human"
     else:
         suffix = f" ({unavailable} lens(es) unavailable)" if unavailable else ""

@@ -63,6 +63,20 @@ def load_config(path: str | Path | None = None) -> Config:
     )
 
 
+_POLICY_ENV = ("COUNCIL_MODE", "COUNCIL_PROFILE", "COUNCIL_THRESHOLD", "COUNCIL_LANE", "COUNCIL_REDACT")
+
+
+def env_overrides() -> dict:
+    """Which security knobs are being set by ENVIRONMENT VARIABLE right now.
+
+    Env vars override config.toml (useful for a one-off `COUNCIL_MODE=observe` run),
+    but a silent downgrade (observe / lite profile / raised threshold / redaction off)
+    should leave a TRACE. The gate + decision records include this map so an audit
+    reader can see enforcement was operator-downgraded at the environment layer —
+    e.g. an injected `.envrc` or wrapper script. Values are recorded verbatim."""
+    return {k: os.environ[k] for k in _POLICY_ENV if os.environ.get(k) is not None}
+
+
 # Fixed allowlist of [tools] KEYS the tool lens honours (unknown keys are ignored).
 # The command CONTENT is operator-controlled — config.toml is code; see THREAT_MODEL.
 _TOOL_KEYS = ("secret_scan_cmd", "sast_cmd", "dependency_scan_cmd", "test_cmd", "policy_cmd")

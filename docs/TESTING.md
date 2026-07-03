@@ -7,7 +7,7 @@ the network. Three tiers.
 
 ## Tier 1 — Deterministic regression (every PR, in-repo, keyless)
 
-`pytest tests/` — **203 tests across the files below**, all keyless. Runs on Ubuntu ×
+`pytest tests/` — **223 tests across the files below**, all keyless. Runs on Ubuntu ×
 Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 
 | File | Covers |
@@ -16,7 +16,8 @@ Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 | `test_consensus.py` | every minimum-governance rule (ties/quorum/escalation/empty/human-reserved/low-confidence/word-confidence/CRITICAL/abstain) + per-council outcomes |
 | `test_gates.py` | the 11 control gates, profiles, the offensive-misuse hard stop, fail-closed defaults, and a **gate blocking even when the council approved** |
 | `test_orchestrator.py` | BYO-LLM vote parsing — garbled/ambiguous replies abstain (never guess) |
-| `test_audit.py` | hash chain, mid-entry tamper detected, **full rewrite NOT detected** (tamper-evident-not-proof), stale-head recovery, concurrency, determinism |
+| `test_audit.py` | hash chain, mid-entry tamper detected, **record-substance tamper detected** (edit/delete a bound `decisions/*.json`), off-box anchor catches truncation, **full rewrite NOT detected without the anchor** (tamper-evident-not-proof), stale-head recovery, concurrency, determinism |
+| `test_review_findings.py` | the external-security-review fixes, pinned: record-substance binding, non-finite/at-floor confidence, gate fail-closed on policy error + undefined gate, server-run tool lens, off-council roles, env-override + demo tagging |
 | `test_councils.py` | all eight councils validate; malformed council fails closed |
 | `test_registry.py` | role resolution, only-verified-real defaults, unpinned sentinels flagged, fail-loud on unknown role |
 | `test_install.py` | per-IDE × per-council render, idempotency, re-pin changes only the model line, fail-safes |

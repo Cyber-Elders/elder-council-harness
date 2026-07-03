@@ -26,7 +26,8 @@ from .models import ModelRegistry
 def convene_with_votes(council, question: str, votes, registry: ModelRegistry,
                        *, lane: str = "frontier", risk: dict | None = None,
                        context: dict | None = None, do_audit: bool = True,
-                       signals: dict | None = None, profile: str | None = None) -> dict:
+                       signals: dict | None = None, profile: str | None = None,
+                       demo: bool = False) -> dict:
     """Tally injected votes, run the deterministic control gates over the decision,
     and assemble a decision record (optionally persisted).
 
@@ -35,6 +36,13 @@ def convene_with_votes(council, question: str, votes, registry: ModelRegistry,
     restrictive of the council route and the gate result)."""
     outcome = tally(votes, council)
     profile = profile or load_config().profile
+    # A silent env-var downgrade (COUNCIL_MODE=observe, profile=lite, redact=off…)
+    # leaves a trace in the record.
+    from .config import env_overrides
+    ov = env_overrides()
+    context = dict(context or {})
+    if ov:
+        context["policy_overrides"] = ov
     # Any asserted human approval is verified (or honestly labeled unverified)
     # BEFORE the gates see it; a failed verification strips the assertion, so the
     # gates escalate exactly as if no approval existed (fail-closed).
@@ -58,7 +66,7 @@ def convene_with_votes(council, question: str, votes, registry: ModelRegistry,
             audit.record(council.id, question, outcome, mode=council.mode,
                          risk=risk or {}, context=context or {},
                          gate_report=gate_report, profile=profile,
-                         diversity=diversity, approval=approval)
+                         diversity=diversity, approval=approval, demo=demo)
         except OSError:
             pass  # never let an audit-write failure swallow the verdict
     return rec
