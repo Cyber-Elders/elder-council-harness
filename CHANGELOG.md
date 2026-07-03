@@ -94,7 +94,7 @@ plus one more defect found by our own follow-up audit:
   convene run-mode incl. `--orchestrate` fail-closed and `--profile`, `gate`/`audit` per IDE, `gates`,
   `risk-gate` routing, usage errors, `init` defaults, `serve`); and `uat.yml` (clean-install, 3 OS)
   now runs **every** journey — install per IDE × lane, lane-aware `models check`, all run-modes, the
-  gate fail-closed guard, and `verify`. **202 tests**; UAT green on Ubuntu / macOS / Windows.
+  gate fail-closed guard, and `verify`. **203 tests**; UAT green on Ubuntu / macOS / Windows.
 
 ### Added (post-review)
 

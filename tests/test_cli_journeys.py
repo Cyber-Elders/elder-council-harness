@@ -52,6 +52,20 @@ def test_convene_json_cli(tmp_path, capsys, monkeypatch):
     assert "verdict" in capsys.readouterr().out          # full decision record JSON
 
 
+def test_demo_lane_note_only_on_explicit_lane(tmp_path, capsys, monkeypatch):
+    # Regression: the "--lane has no effect with --demo" note must fire ONLY when the
+    # user actually typed --lane. It used to fire on EVERY --demo (the project lane
+    # always fills args.lane by then), which both mislabels the run AND poisons
+    # `convene --demo 2>&1 | grep -q …` pipelines -> BrokenPipeError/exit 120 (the CI
+    # break this test guards). Plain demo: silent. Explicit --lane demo: noted.
+    _install(tmp_path, monkeypatch)
+    capsys.readouterr()
+    assert cli.main(["convene", "code-council", "--demo", "--no-audit", "--question", "x"]) == 0
+    assert "no effect with --demo" not in capsys.readouterr().err
+    assert cli.main(["convene", "code-council", "--demo", "--lane", "local", "--no-audit", "--question", "x"]) == 0
+    assert "no effect with --demo" in capsys.readouterr().err
+
+
 def test_convene_orchestrate_fails_closed_cli(tmp_path, capsys, monkeypatch):
     _install(tmp_path, monkeypatch)
     capsys.readouterr()

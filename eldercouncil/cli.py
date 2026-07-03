@@ -152,6 +152,7 @@ def cmd_convene(args) -> int:
     except (SchemaError, RegistryError) as exc:
         print(exc); return 1
     question = _read(args.question) or f"(no decision text supplied for {c.id})"
+    explicit_lane = args.lane is not None   # did the USER type --lane? (before we default it)
     if args.lane is None:
         # No explicit --lane: honor the PROJECT's configured lane (config.toml),
         # like `models check` does — a local/open-lane project must not silently
@@ -171,7 +172,11 @@ def cmd_convene(args) -> int:
             sys.stderr.write(f"invalid --signals JSON: {exc}\n")
             return 2
 
-    if args.demo and args.lane is not None:
+    if args.demo and explicit_lane:
+        # Only when the user ACTUALLY typed --lane with --demo — not for every demo
+        # (the project's default lane always fills args.lane by here). Emitting this
+        # on every demo also poisons `convene --demo 2>&1 | grep -q …` pipelines
+        # (a late stderr write after grep closes the pipe → BrokenPipeError/exit 120).
         sys.stderr.write(_c("2", "  note: --lane has no effect with --demo (demo votes are canned, "
                                  "lane-invariant); it applies to --orchestrate and in-agent runs.\n"))
     if args.demo or args.orchestrate:
