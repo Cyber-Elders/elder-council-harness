@@ -42,6 +42,12 @@ Run the honesty + leak guards locally before opening a PR: `python -m pytest tes
 - Fill in the PR checklist (tests pass, honesty kept, threat model updated if limits changed, no
   internal references).
 
+## Releases (maintainers)
+
+Publishing to PyPI is documented in [RELEASING.md](RELEASING.md): OIDC Trusted Publishing (no stored
+tokens) via [`.github/workflows/release.yml`](.github/workflows/release.yml), with a TestPyPI rehearsal
+before the real, irreversible upload. Local pre-flight: `python -m build && twine check --strict dist/*`.
+
 ## Reporting security issues
 
 Please use a private advisory — see [SECURITY.md](SECURITY.md). Do not open a public issue for a

@@ -7,17 +7,17 @@
 
 **Convene the council. Keep the dissent. Own the decision.**
 
-[![License: Apache-2.0](https://img.shields.io/badge/code-Apache--2.0-blue.svg)](LICENSE)
-[![Docs: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-green.svg)](LICENSE-DOCS)
-[![Version](https://img.shields.io/badge/version-0.1.0-orange.svg)](CHANGELOG.md)
-[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
-[![Tests](https://img.shields.io/badge/tests-203%20passing-brightgreen.svg)](docs/TESTING.md)
-[![OWASP Agentic 2026: aware](https://img.shields.io/badge/OWASP%20Agentic%202026-aware-6f42c1.svg)](docs/STANDARDS-MAP.md)
-[![NIST AI RMF: aligned](https://img.shields.io/badge/NIST%20AI%20RMF-aligned-6f42c1.svg)](docs/STANDARDS-MAP.md)
+[![License: Apache-2.0](https://img.shields.io/badge/code-Apache--2.0-blue.svg)](https://github.com/Cyber-Elders/elder-council-harness/blob/main/LICENSE)
+[![Docs: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-green.svg)](https://github.com/Cyber-Elders/elder-council-harness/blob/main/LICENSE-DOCS)
+[![Version](https://img.shields.io/badge/version-0.1.0-orange.svg)](https://github.com/Cyber-Elders/elder-council-harness/blob/main/CHANGELOG.md)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://github.com/Cyber-Elders/elder-council-harness/blob/main/pyproject.toml)
+[![Tests](https://img.shields.io/badge/tests-203%20passing-brightgreen.svg)](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/TESTING.md)
+[![OWASP Agentic 2026: aware](https://img.shields.io/badge/OWASP%20Agentic%202026-aware-6f42c1.svg)](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/STANDARDS-MAP.md)
+[![NIST AI RMF: aligned](https://img.shields.io/badge/NIST%20AI%20RMF-aligned-6f42c1.svg)](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/STANDARDS-MAP.md)
 
 *Multi-model **councils** for high-stakes decisions — built for cyber, and for any call too consequential to leave to one model alone. Convened only when the decision is worth it.*
 
-<img src="docs/assets/demo-block.gif" alt="The code-council convening: five independent lenses vote (Software Engineering and Reliability say merge; AppSec and the Deterministic Tool Lens say block, the tool lens flagging a CRITICAL hardcoded-secret finding; the Critic asks for changes). Verdict: block, routed to a human, with the three dissenting lenses preserved on the record." width="720">
+<img src="https://raw.githubusercontent.com/Cyber-Elders/elder-council-harness/main/docs/assets/demo-block.gif" alt="The code-council convening: five independent lenses vote (Software Engineering and Reliability say merge; AppSec and the Deterministic Tool Lens say block, the tool lens flagging a CRITICAL hardcoded-secret finding; the Critic asks for changes). Verdict: block, routed to a human, with the three dissenting lenses preserved on the record." width="720">
 
 </div>
 
@@ -37,8 +37,8 @@ where that is enough — and convene a structured, multi-lens **council** only w
 consequential, uncertain, adversarial, or expensive to get wrong. A council is not a committee for
 every task. It is a risk-governance pattern for the decisions that matter — **built for cyber**
 (where the councils, lenses, and threat model run deepest) and general enough for any high-stakes
-call, including the **executive Business Decision** council. See [the councils](docs/COUNCILS.md) and
-[domain adaptation](docs/DOMAIN-ADAPTATION.md).
+call, including the **executive Business Decision** council. See [the councils](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/COUNCILS.md) and
+[domain adaptation](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/DOMAIN-ADAPTATION.md).
 
 > A council is **decision support, not a guarantee**. Councils can be wrong. A named human owns every
 > critical and risk-acceptance decision. The audit trail is **tamper-evident, not tamper-proof**.
@@ -105,7 +105,7 @@ flowchart LR
 4. **Control gates** — 11 deterministic, fail-closed gates (evidence, action-safety, data-sensitivity,
    a non-overridable offensive-misuse **hard stop**, production-change…) run *around* the council: a
    gate can withhold an action the council voted to permit. Pick a **profile** — Lite / Standard /
-   Regulated. See [docs/GATES.md](docs/GATES.md).
+   Regulated. See [docs/GATES.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/GATES.md).
 5. **Audit** records the verdict, every vote, the gate outcomes, **which model families actually
    voted** (the `diversity` field), and the **dissent** to a hash-chained, tamper-evident log under
    `.council/`.
@@ -126,7 +126,7 @@ Six cyber councils, a general **Business Decision** council for executive calls,
 | **Engineering Team** | a feature design, user story, or implementation plan before build (dev + analyst + QA + critic) | advisory |
 
 Each council ships as pure data (`eldercouncil/councils/*.yaml`) and installs into every supported
-IDE. See [docs/COUNCILS.md](docs/COUNCILS.md).
+IDE. See [docs/COUNCILS.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/COUNCILS.md).
 
 ## Quick start
 
@@ -146,11 +146,11 @@ eldercouncil convene code-council --demo   # watch a council decide, keyless
 that asks you to convene the right council on high-risk actions. The councils run on **your agent's
 own model(s)** — Elder Council ships no keys.
 
-> **New here, or not a developer?** [**docs/GET-STARTED.md**](docs/GET-STARTED.md) walks the whole thing
+> **New here, or not a developer?** [**docs/GET-STARTED.md**](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/GET-STARTED.md) walks the whole thing
 > — install → what changed → how you actually *use* a council — in plain English. Want it on **your own
-> local models** (Ollama, offline)? → [docs/CLAUDE-CODE-OLLAMA.md](docs/CLAUDE-CODE-OLLAMA.md). Want a
-> **cross-family council with one API key** (OpenRouter)? → [docs/OPENROUTER.md](docs/OPENROUTER.md).
-> Or **let your coding agent set it all up for you** → [docs/AGENT-SETUP.md](docs/AGENT-SETUP.md).
+> local models** (Ollama, offline)? → [docs/CLAUDE-CODE-OLLAMA.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/CLAUDE-CODE-OLLAMA.md). Want a
+> **cross-family council with one API key** (OpenRouter)? → [docs/OPENROUTER.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/OPENROUTER.md).
+> Or **let your coding agent set it all up for you** → [docs/AGENT-SETUP.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/AGENT-SETUP.md).
 
 ## Supported IDEs
 
@@ -162,7 +162,7 @@ own model(s)** — Elder Council ships no keys.
 
 *"Hard block" = the agent is physically stopped before the action runs (via a **pre-tool hook** — a checkpoint the agent runs before each action). "Advisory" = the agent is **asked** to convene and comply, but isn't forced to. **MCP** (Model Context Protocol) is the standard way an agent connects to external tools.*
 
-Full matrix and per-IDE behaviour: [docs/IDE-SUPPORT.md](docs/IDE-SUPPORT.md).
+Full matrix and per-IDE behaviour: [docs/IDE-SUPPORT.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/IDE-SUPPORT.md).
 
 ## How this relates to Elder Mind
 
@@ -199,12 +199,12 @@ This is an honest tool. It is **out of scope** for it to:
   wrong or stale**; the Compliance council's references are illustrative — configure for your
   jurisdiction and have qualified counsel verify.
 - **Resist a determined local tamperer.** The audit is **tamper-evident, not tamper-proof** — record
-  the chain head off-box (see [THREAT_MODEL.md](THREAT_MODEL.md)).
+  the chain head off-box (see [THREAT_MODEL.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/THREAT_MODEL.md)).
 - **Ship or manage your model access.** It **ships no keys** — you bring your own LLM. You pin which
   model plays each lens (and re-pin as models change). Because a provider can become unavailable
   (export controls, sanctions, licensing), critical councils should configure fallback models and a
   local/offline option. And note: a council whose lenses all share one model has *correlated* blind
-  spots — the very failure it exists to prevent (see [THREAT_MODEL.md](THREAT_MODEL.md)). The open
+  spots — the very failure it exists to prevent (see [THREAT_MODEL.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/THREAT_MODEL.md)). The open
   lane ships a **cross-family default**, every decision record carries a **`diversity` field**, and
   the CLI warns — before a run (`eldercouncil models check`) and at verdict time — when your lenses
   all resolve to one provider family. Detection, not enforcement: diversifying remains your call.
@@ -213,27 +213,27 @@ This is an honest tool. It is **out of scope** for it to:
 
 | Start here | Then |
 |---|---|
-| [docs/GET-STARTED.md](docs/GET-STARTED.md) — **install & first run (plain English)** | [START-HERE.md](START-HERE.md) — pick your path |
-| [docs/CONCEPT.md](docs/CONCEPT.md) — the why | [docs/CLAUDE-CODE-OLLAMA.md](docs/CLAUDE-CODE-OLLAMA.md) — run on your own local models (Ollama) |
-| [docs/AGENT-SETUP.md](docs/AGENT-SETUP.md) — let your coding agent install & tailor it | [docs/OPENROUTER.md](docs/OPENROUTER.md) — cross-family councils with one key |
-| [docs/COUNCILS.md](docs/COUNCILS.md) — the councils | [docs/LENSES.md](docs/LENSES.md) — the six lenses |
-| [docs/LOOP-ENGINEERING.md](docs/LOOP-ENGINEERING.md) — the decision loop (how it fits the agent loop) | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — how it's built |
-| [docs/GATES.md](docs/GATES.md) — the 11 control gates + profiles | [docs/DOMAIN-ADAPTATION.md](docs/DOMAIN-ADAPTATION.md) — beyond cyber |
-| [docs/METHODOLOGY.md](docs/METHODOLOGY.md) — the full method | [docs/IDE-SUPPORT.md](docs/IDE-SUPPORT.md) — install per IDE |
-| [docs/STANDARDS-MAP.md](docs/STANDARDS-MAP.md) — OWASP/NIST | [docs/LICENSING.md](docs/LICENSING.md) — licensing |
-| [docs/TESTING.md](docs/TESTING.md) — how it's tested | [THREAT_MODEL.md](THREAT_MODEL.md) — the honest edges |
-| [docs/GLOSSARY.md](docs/GLOSSARY.md) · [docs/FAQ.md](docs/FAQ.md) | [docs/MODEL-GUIDANCE.md](docs/MODEL-GUIDANCE.md) — choosing models per role (IDE-aware, local, hybrid) |
+| [docs/GET-STARTED.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/GET-STARTED.md) — **install & first run (plain English)** | [START-HERE.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/START-HERE.md) — pick your path |
+| [docs/CONCEPT.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/CONCEPT.md) — the why | [docs/CLAUDE-CODE-OLLAMA.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/CLAUDE-CODE-OLLAMA.md) — run on your own local models (Ollama) |
+| [docs/AGENT-SETUP.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/AGENT-SETUP.md) — let your coding agent install & tailor it | [docs/OPENROUTER.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/OPENROUTER.md) — cross-family councils with one key |
+| [docs/COUNCILS.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/COUNCILS.md) — the councils | [docs/LENSES.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/LENSES.md) — the six lenses |
+| [docs/LOOP-ENGINEERING.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/LOOP-ENGINEERING.md) — the decision loop (how it fits the agent loop) | [docs/ARCHITECTURE.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/ARCHITECTURE.md) — how it's built |
+| [docs/GATES.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/GATES.md) — the 11 control gates + profiles | [docs/DOMAIN-ADAPTATION.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/DOMAIN-ADAPTATION.md) — beyond cyber |
+| [docs/METHODOLOGY.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/METHODOLOGY.md) — the full method | [docs/IDE-SUPPORT.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/IDE-SUPPORT.md) — install per IDE |
+| [docs/STANDARDS-MAP.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/STANDARDS-MAP.md) — OWASP/NIST | [docs/LICENSING.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/LICENSING.md) — licensing |
+| [docs/TESTING.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/TESTING.md) — how it's tested | [THREAT_MODEL.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/THREAT_MODEL.md) — the honest edges |
+| [docs/GLOSSARY.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/GLOSSARY.md) · [docs/FAQ.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/FAQ.md) | [docs/MODEL-GUIDANCE.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/MODEL-GUIDANCE.md) — choosing models per role (IDE-aware, local, hybrid) |
 
 ## Contributing & security
 
-Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) and [GOVERNANCE.md](GOVERNANCE.md).
-Report a vulnerability privately via [SECURITY.md](SECURITY.md) (not a public issue). We follow the
-[Contributor Covenant](CODE_OF_CONDUCT.md). If the systemic-single-model-risk thesis resonates,
+Contributions welcome — see [CONTRIBUTING.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/CONTRIBUTING.md) and [GOVERNANCE.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/GOVERNANCE.md).
+Report a vulnerability privately via [SECURITY.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/SECURITY.md) (not a public issue). We follow the
+[Contributor Covenant](https://github.com/Cyber-Elders/elder-council-harness/blob/main/CODE_OF_CONDUCT.md). If the systemic-single-model-risk thesis resonates,
 **star the repo** and open an issue with your council ideas.
 
 ## License
 
-Code: [Apache-2.0](LICENSE). Documentation: [CC BY 4.0](LICENSE-DOCS). See [docs/LICENSING.md](docs/LICENSING.md).
+Code: [Apache-2.0](https://github.com/Cyber-Elders/elder-council-harness/blob/main/LICENSE). Documentation: [CC BY 4.0](https://github.com/Cyber-Elders/elder-council-harness/blob/main/LICENSE-DOCS). See [docs/LICENSING.md](https://github.com/Cyber-Elders/elder-council-harness/blob/main/docs/LICENSING.md).
 Elder Council reduces decision risk; it does not eliminate it. Provided **as is**, without warranty.
 
 © 2026 ZenBlue Pty Ltd t/a Cyber Elders
