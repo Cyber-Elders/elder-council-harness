@@ -14,9 +14,15 @@ keywords = ["agentic", "council", "governance", "multi-model", "consensus", "ris
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
     "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
 ]
 dependencies = [
     "pyyaml>=6.0",
@@ -35,6 +41,9 @@ eldercouncil = "eldercouncil.cli:main"
 [project.urls]
 Homepage = "https://github.com/Cyber-Elders/elder-council-harness"
 Source = "https://github.com/Cyber-Elders/elder-council-harness"
+Documentation = "https://github.com/Cyber-Elders/elder-council-harness#readme"
+Changelog = "https://github.com/Cyber-Elders/elder-council-harness/blob/main/CHANGELOG.md"
+Issues = "https://github.com/Cyber-Elders/elder-council-harness/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["eldercouncil"]
