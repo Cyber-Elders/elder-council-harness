@@ -474,6 +474,8 @@ def build_parser() -> argparse.ArgumentParser:
                 description="Elder Council — local-first multi-model council harness for "
                             "high-stakes decisions: built for cyber, general enough for any "
                             "call too consequential to leave to one model alone.")
+    p.add_argument("--version", "-V", action="version", version=f"eldercouncil {__version__}",
+                   help="print version and exit")
     sub = p.add_subparsers(dest="command", required=True)
 
     n = sub.add_parser("init", help="guided install (interactive)")

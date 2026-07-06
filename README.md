@@ -17,7 +17,7 @@
 
 *Multi-model **councils** for high-stakes decisions — built for cyber, and for any call too consequential to leave to one model alone. Convened only when the decision is worth it.*
 
-<img src="docs/assets/demo-block.gif" alt="The code-council convening: five independent lenses vote (Software Engineering and Reliability say merge; AppSec and the Deterministic Tool Lens say block, the tool lens flagging a CRITICAL hardcoded-secret finding; the Critic asks for changes). Verdict: block, routed to a human, with the three dissenting lenses preserved on the record." width="720">
+<img src="https://raw.githubusercontent.com/Cyber-Elders/elder-council-harness/main/docs/assets/demo-block.gif" alt="The code-council convening: five independent lenses vote (Software Engineering and Reliability say merge; AppSec and the Deterministic Tool Lens say block, the tool lens flagging a CRITICAL hardcoded-secret finding; the Critic asks for changes). Verdict: block, routed to a human, with the three dissenting lenses preserved on the record." width="720">
 
 </div>
 
