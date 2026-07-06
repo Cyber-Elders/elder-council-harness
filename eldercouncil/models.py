@@ -159,7 +159,8 @@ def diversity_of(votes) -> dict:
     real = [f for f in families if f not in ("demo", "host")]
     mono = real[0] if (len(real) == 1 and families == real) else None
     note = (f"every model lens resolves to one provider family ('{mono}') — "
-            f"correlated blind spots; diversify (docs/MODEL-GUIDANCE.md)" if mono else "")
+            f"correlated blind spots; for cross-family diversity use OpenRouter (one key, "
+            f"docs/OPENROUTER.md) or repin per docs/MODEL-GUIDANCE.md" if mono else "")
     return {"families": families, "monoculture": mono, "note": note}
 
 

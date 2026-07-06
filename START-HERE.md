@@ -20,12 +20,11 @@ high-stakes call, including executive business decisions. It stays out of the wa
 
 ## The 5-minute path — see it decide first
 
-The fastest taste needs **no keys and no model** — a one-time install from source (alpha; not yet on
-PyPI), then the keyless demo:
+The fastest taste needs **no keys and no model** — a one-time install (alpha; not yet on PyPI, so
+install with **pipx**, which also puts `eldercouncil` on your PATH), then the keyless demo:
 
 ```console
-git clone https://github.com/Cyber-Elders/elder-council-harness && cd elder-council-harness
-pip install -e .
+pipx install git+https://github.com/Cyber-Elders/elder-council-harness
 eldercouncil convene code-council --demo --question "merge a diff with a hardcoded AWS key"
 ```
 
@@ -38,8 +37,8 @@ eldercouncil init                       # guided: pick your agent + councils
 eldercouncil install claude-code --all  # or non-interactive
 ```
 
-*(Install snags — `externally-managed-environment`, `command not found`? See the fix box in
-[GET-STARTED](docs/GET-STARTED.md).)*
+*(Install snags — `externally-managed-environment`, `command not found`, an editable-mode/`setup.py`
+error, or `Requires-Python >=3.11`? See the fix box in [GET-STARTED](docs/GET-STARTED.md).)*
 
 ## For non-developers
 

@@ -40,24 +40,29 @@ one when a decision is actually consequential — not for routine work.
 In a terminal:
 
 ```console
-# alpha — not yet on PyPI, so install from source:
-git clone https://github.com/Cyber-Elders/elder-council-harness && cd elder-council-harness
-pip install -e .
+# alpha — not yet on PyPI. Recommended: pipx — it installs `eldercouncil` into its own
+# isolated environment AND puts it on your PATH (the hard-block IDE hooks call it by name):
+pipx install git+https://github.com/Cyber-Elders/elder-council-harness
+
+# no pipx yet? install it once, then re-run the line above:
+#   python3 -m pip install --user pipx && python3 -m pipx ensurepath   (then restart your shell)
 ```
 
-> **For hard-block IDEs (Claude Code, OpenCode, Kiro):** the generated hooks and MCP configs call
-> `eldercouncil` by name, so it needs to stay on your PATH. The easiest way is **`pipx install -e .`**
-> (or activate your venv in every shell where the agent runs). If `which eldercouncil` returns
-> nothing, the gate will fail to launch — see the install warning, or use a venv-aware setup.
-
 This puts the `eldercouncil` command on your machine. It ships **no AI model and no API keys** — the
-councils run on the model your coding agent already uses.
+councils run on the model your coding agent already uses. Confirm it worked: `eldercouncil --version`.
 
-> **If the install command is refused:** on newer Macs/Linux, `pip` may say
-> `externally-managed-environment`. Use `pipx install -e .` instead (or
-> `python3 -m venv ~/.eldercouncil-env && ~/.eldercouncil-env/bin/pip install -e .`). And if a later
-> step says `eldercouncil: command not found`, the command isn't on your PATH — `pipx` avoids this;
-> with a venv, use its full path or activate it first.
+> **Why pipx, not plain `pip install`?** The generated hooks and MCP configs call `eldercouncil` by
+> *name*, so it must stay on your PATH — pipx installs it into its own isolated environment and puts it
+> there; if `which eldercouncil` returns nothing, the gate silently won't launch. *(Contributors who want an editable checkout instead:*
+> `git clone … && cd elder-council-harness && pip install -e .`, *then keep that venv active.)*
+
+> **If install fails:**
+> - `error: … editable mode currently requires a setuptools-based build` / `"setup.py" … not found` —
+>   your `pip` is too old for this project. **Use pipx** (above), or first `python3 -m pip install --upgrade pip`.
+> - it refuses with `Requires-Python: >=3.11` (or you're on the Mac's default Python) — install
+>   **Python 3.11+** and retry. Check with `python3 --version`.
+> - `externally-managed-environment` (newer Mac/Linux) — this is exactly what **pipx** avoids; use it.
+> - `eldercouncil: command not found` later — it isn't on your PATH; run `pipx ensurepath` and restart your shell.
 
 ## Step 2 — go to YOUR project, then wire the councils in
 

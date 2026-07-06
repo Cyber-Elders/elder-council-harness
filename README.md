@@ -131,11 +131,11 @@ IDE. See [docs/COUNCILS.md](docs/COUNCILS.md).
 ## Quick start
 
 ```console
-# Not yet on PyPI (alpha) — install from source for now; ships no model and no API keys (BYO LLM).
-# For hard-block IDEs (Claude Code / OpenCode / Kiro), use pipx or a permanently-activated venv
-# so `eldercouncil` stays on PATH — the generated hooks call it by name.
-git clone https://github.com/Cyber-Elders/elder-council-harness && cd elder-council-harness
-pip install -e .                    # or: pipx install -e .  (avoids PATH issues)
+# Alpha — not yet on PyPI. Install with pipx: it isolates the app AND keeps `eldercouncil`
+# on your PATH (the generated hooks call it by name). Ships no model, no API keys (BYO LLM).
+# Needs Python 3.11+.
+pipx install git+https://github.com/Cyber-Elders/elder-council-harness
+#   (contributors wanting an editable checkout: git clone … && pip install -e .)
 
 cd /path/to/your/project            # install writes HERE — your project, not the harness clone
 eldercouncil init                   # guided: pick your agent + which councils to install
