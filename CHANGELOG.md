@@ -233,9 +233,14 @@ remaining P1/P2 gaps from the external review and added regression coverage for 
   warning; OPENROUTER's example uses the correct engineering role; METHODOLOGY/GATES/DESIGN-REVIEW/
   GLOSSARY/THREAT_MODEL language and examples were tightened (e.g., "ties block", `allow_with_controls`,
   three common confusions).
+- **Risk gate escalates plaintext destructive commands (post-review QA).** Several unobfuscated destroyers
+  (`find … -delete`, `dd if=…`, `chmod -R 777`, fork bombs, `curl … | bash`) scored below the convene
+  threshold; the impact heuristic now recognises them and treats pipe-to-shell as an impact signal, so
+  they route to a council instead of `SOLO_ALLOW`. `THREAT_MODEL.md` wording corrected: the under-escalation
+  limit covers plaintext commands, not only obfuscated ones.
 
-+13 regression tests added (consensus, gates, engine, audit, install, server, CLI journeys); total suite
-now **236 tests**.
++18 regression tests added across the review-closure and QA passes (consensus, gates, engine, audit,
+install, server, CLI journeys, risk gate); total suite now **241 tests**.
 
 ### Docs & UX
 

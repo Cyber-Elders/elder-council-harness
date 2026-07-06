@@ -7,12 +7,12 @@ the network. Three tiers.
 
 ## Tier 1 — Deterministic regression (every PR, in-repo, keyless)
 
-`pytest tests/` — **236 tests across the files below**, all keyless. Runs on Ubuntu ×
+`pytest tests/` — **241 tests across the files below**, all keyless. Runs on Ubuntu ×
 Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 
 | File | Covers |
 |---|---|
-| `test_risk_gate.py` | 1–25 scoring, clamps, route boundaries, escalation-not-default |
+| `test_risk_gate.py` | 1–25 scoring, clamps, route boundaries, escalation-not-default, plaintext destructive-command escalation |
 | `test_consensus.py` | every minimum-governance rule (ties/quorum/escalation/empty/human-reserved/low-confidence/word-confidence/CRITICAL/abstain) + per-council outcomes |
 | `test_gates.py` | the 11 control gates, profiles, the offensive-misuse hard stop, fail-closed defaults, and a **gate blocking even when the council approved** |
 | `test_orchestrator.py` | BYO-LLM vote parsing — garbled/ambiguous replies abstain (never guess) |

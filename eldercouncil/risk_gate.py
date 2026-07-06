@@ -56,12 +56,17 @@ def _compile(terms: tuple[str, ...]) -> re.Pattern:
 # legitimate threat-hunting OUTCOME (and containment verb), and an isolate VOTE
 # already routes to a human via the consensus human-reserved rule.
 _DESTRUCTIVE = _compile(("rm ", "rm -", "drop ", "destroy", "truncate", "overwrite",
-                         "--force", "--hard", "format ", "mkfs", "revoke", "wipe", "purge"))
+                         "--force", "--hard", "format ", "mkfs", "fdisk", "dd if=",
+                         "-delete", "chmod -r", "chmod 777", "chown -r", ":(){",
+                         "revoke", "wipe", "purge"))
 _PRODUCTION = _compile(("production", "prod", "deploy", "release", "kubectl apply", "terraform apply"))
 _SECRETS = _compile(("credential", "secret", "api_key", "api-key", "apikey", "token", ".env",
                      "private key", "id_rsa", ".pem", ".npmrc"))
 _DATABASE = _compile(("database", " db ", "dropdb", "drop table", "delete from", "alter table"))
 _PUBLISH = _compile(("git push", "npm publish", "docker push", "pip upload", "twine upload", "kubectl apply"))
+# Pipe-to-shell / remote code execution is an IMPACT signal (not just likelihood):
+# piping a download straight into an interpreter runs arbitrary remote code.
+_REMOTE_PIPE = _compile(("| bash", "| sh", "|bash", "|sh", "iex ", "invoke-expression", "powershell -enc"))
 
 # Likelihood signals — things that make a bad outcome more likely to land.
 _UNATTENDED = _compile(("--force", "--yes", " -y", "sudo", "--no-verify", "--hard"))
@@ -135,6 +140,8 @@ def _impact_of(text: str) -> int:
         impact += 1
     if _PUBLISH.search(text):
         impact += 2  # publishing/deploying reaches users — a release is consequential
+    if _REMOTE_PIPE.search(text):
+        impact += 2  # piping a download into a shell executes arbitrary remote code
     return _clamp(impact)
 
 

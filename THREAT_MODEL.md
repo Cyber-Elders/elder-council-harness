@@ -41,12 +41,16 @@ ships **no model and no API keys** — councils run on the user's own LLM(s).
 3. **Councils reviewing attacker-controlled content are injectable.** A council reading logs, tickets,
    dependency manifests, or incident evidence can be steered by malicious content. Hard gates (the risk
    gate, fail-closed rules) live *outside* the prompt and reduce — but do not remove — this risk.
-4. **The risk gate is keyword-based and bypassable by obfuscation.** It keys on visible tokens to
-   *route* (escalate or not). An encoded or obfuscated destructive command can score low. The gate
-   routes; it does not adjudicate. Pair it with deterministic tools and human judgement for high blast
-   radius. The **cry-wolf direction matters too**: an over-firing gate trains users to ignore it, which
-   is its own failure mode. Matching is word-boundary-precise (substrings inside ordinary words don't
-   fire) and the keyword lists are tuned for precision — accepting that **under-escalation stays the
+4. **The risk gate is keyword-based and bypassable.** It keys on visible tokens to *route* (escalate or
+   not). A destructive command that matches no listed keyword can score low — whether **encoded/obfuscated
+   or simply plaintext the lists don't yet cover**. The lists do cover the common destroyers, including
+   plaintext forms (`rm -rf`, `find … -delete`, `dd if=…`, `mkfs`/`fdisk`, `chmod -R 777`, fork bombs,
+   and pipe-to-shell such as `curl … | bash`), but the set is necessarily incomplete and a novel phrasing
+   can slip through. The gate routes; it does not adjudicate. Pair it with deterministic tools and human
+   judgement for high blast radius. The **cry-wolf direction matters too**: an over-firing gate trains
+   users to ignore it, which is its own failure mode. Matching is word-boundary-precise (substrings inside
+   ordinary words don't fire) and the keyword lists are tuned for precision — accepting that
+   **under-escalation (a destructive command with no matching keyword, plaintext or obfuscated) stays the
    pinned bypass limit** above.
 5. **On hard-block IDEs the gate enforces escalation, not council quality.** It can stop an action and
    require a council; it cannot make the host model reason well or run every lens faithfully.
