@@ -28,10 +28,18 @@ from . import __version__
 
 
 # --- small ANSI helper (respects NO_COLOR / non-tty) -----------------------
-def _c(code: str, text: str) -> str:
-    if os.environ.get("NO_COLOR") or not sys.stdout.isatty():
+# Colour is gated on the EMITTING stream's tty: `_c` for stdout writes, `_ce` for
+# stderr writes — so a redirected stderr log never gets ANSI, and colour isn't
+# dropped just because stdout is piped.
+def _c(code: str, text: str, stream=None) -> str:
+    stream = stream if stream is not None else sys.stdout
+    if os.environ.get("NO_COLOR") or not stream.isatty():
         return text
     return f"\033[{code}m{text}\033[0m"
+
+
+def _ce(code: str, text: str) -> str:
+    return _c(code, text, sys.stderr)
 
 
 _VERDICT_COLOR = {"block": "31", "reject": "31", "escalate": "33", "defer": "33",
@@ -179,7 +187,7 @@ def cmd_convene(args) -> int:
         # (the project's default lane always fills args.lane by here). Emitting this
         # on every demo also poisons `convene --demo 2>&1 | grep -q …` pipelines
         # (a late stderr write after grep closes the pipe → BrokenPipeError/exit 120).
-        sys.stderr.write(_c("2", "  note: --lane has no effect with --demo (demo votes are canned, "
+        sys.stderr.write(_ce("2", "  note: --lane has no effect with --demo (demo votes are canned, "
                                  "lane-invariant); it applies to --orchestrate and in-agent runs.\n"))
     if args.demo or args.orchestrate:
         try:
@@ -191,7 +199,7 @@ def cmd_convene(args) -> int:
                     # Realtime visibility: stream each lens's vote as it lands and
                     # point at the full per-lens transcripts (tail them — or run
                     # tools/watch-council.sh for a one-command tmux view).
-                    sys.stderr.write(_c("2",
+                    sys.stderr.write(_ce("2",
                         f"  convening {len(review['tasks'])} lenses in parallel — "
                         f"full deliberations stream to .council/last-run/\n"))
 
@@ -213,7 +221,7 @@ def cmd_convene(args) -> int:
         else:
             _print_decision(rec)
         if args.scenario == "monoculture":
-            sys.stderr.write(_c("33",
+            sys.stderr.write(_ce("33",
                 "\n  ⚠ This is the failure a council does NOT catch: when your lenses share a\n"
                 "    blind spot (e.g. all one model/provider), they can be confidently wrong\n"
                 "    together. Diversify your model lanes — see THREAT_MODEL.md.\n"))
@@ -224,20 +232,24 @@ def cmd_convene(args) -> int:
                         if (v.get("provenance") or "") != "tool" and v.get("model") != "tool"]
             unavail = [v for v in verdicts if v.get("vote") == "unavailable"]
             if verdicts and len(unavail) == len(verdicts):
-                sys.stderr.write(_c("33",
+                sys.stderr.write(_ce("33",
                     "\n  hint: no model lanes resolved — run `eldercouncil models check` and pin a real\n"
                     "        model per lane in .council/council-models.json before --orchestrate.\n"))
         if not args.json and not args.demo:
             div = rec.get("diversity") or {}
+            note = div.get("note")
             if div.get("monoculture"):
-                sys.stderr.write(_c("33", f"\n  ⚠ diversity: {div['note']}\n"))
-            elif div.get("families") == ["host"]:
-                sys.stderr.write(_c("36", f"\n  diversity: {div['note']}\n"))
+                sys.stderr.write(_ce("33", f"\n  ⚠ diversity: {note}\n"))
+            elif note:
+                # Multi-family / host / unanimous — INFORMATIONAL, never a ⚠: reserve the
+                # warning glyph for the actionable monoculture case (avoid alarm fatigue —
+                # the note text carries the "agreement is not verification" caution itself).
+                sys.stderr.write(_ce("36", f"\n  diversity: {note}\n"))
         app = rec.get("approval") or {}
         if app and not args.json:
             colour = "32" if app.get("status") == "verified" else "33"
             hint = "" if app.get("status") == "verified" else "  (what this means: docs/GATES.md)"
-            sys.stderr.write(_c(colour, f"  approval: {app.get('approver')} — {app.get('status')}{hint}\n"))
+            sys.stderr.write(_ce(colour, f"  approval: {app.get('approver')} — {app.get('status')}{hint}\n"))
         # `--demo` is an illustration, not a gate → always exit 0. Real runs
         # (`--orchestrate`) gate on the DISPOSITION (council route ∧ gate result).
         if args.demo:
@@ -251,7 +263,7 @@ def cmd_convene(args) -> int:
     except RegistryError as exc:
         print(exc); return 1
     if sys.stdout.isatty():
-        sys.stderr.write(_c("1",
+        sys.stderr.write(_ce("1",
             "\n  These are the deliberation tasks for your coding agent to run on your own models — "
             "not the verdict itself.\n"))
         sys.stderr.write(
@@ -332,7 +344,7 @@ def cmd_gates(args) -> int:
         signals, approval = check_approval(signals)
         if approval:
             colour = "32" if approval.get("status") == "verified" else "33"
-            sys.stderr.write(_c(colour, f"approval: {approval.get('approver')} — {approval.get('status')}\n"))
+            sys.stderr.write(_ce(colour, f"approval: {approval.get('approver')} — {approval.get('status')}\n"))
         try:
             report = gates.evaluate(args.profile, signals, action=action)
         except GatePolicyError as exc:
@@ -420,20 +432,63 @@ def cmd_verify(args) -> int:
     r = verify(args.path, expected_head=getattr(args, "expect_head", None),
                expected_count=getattr(args, "expect_count", None))
     if r["ok"]:
-        print(f"✓ audit chain intact — {r['entries']} entr{'y' if r['entries']==1 else 'ies'}")
+        print(_c("32", f"✓ audit chain intact — {r['entries']} entr{'y' if r['entries']==1 else 'ies'}"))
         print(f"  head:  {r['head']}")
         print(f"  count: {r['entries']}")
         if getattr(args, "expect_head", None) or getattr(args, "expect_count", None):
             print("  (verified against the off-box anchor — truncation/rewrite would fail here)")
         else:
-            print("  record the HEAD off-box, then re-run with --expect-head <hash>:")
-            print("  a full local rewrite (incl. an in-place substance edit + recompute) is only")
-            print("  detectable against that anchor. --expect-count catches truncation/append only,")
-            print("  not an in-place rewrite — it is not a substitute for --expect-head (THREAT_MODEL.md)")
+            print("  capture the HEAD off-box — run `eldercouncil anchor` to print it (or")
+            print("  `anchor --run` to pipe it to a configured [audit] sink) — then re-run with")
+            print("  --expect-head <hash>: a full local rewrite (incl. an in-place substance edit +")
+            print("  recompute) is only detectable against that anchor. --expect-count catches")
+            print("  truncation/append only, not an in-place rewrite (THREAT_MODEL.md)")
         return 0
     where = f" at entry {r['broken_at']} of {r['entries']}" if r["broken_at"] else ""
-    print(f"✗ audit chain BROKEN{where}: {r['reason']}")
+    print(_c("31", f"✗ audit chain BROKEN{where}: {r['reason']}"))
     return 2
+
+
+def cmd_anchor(args) -> int:
+    """Emit the off-box audit anchor (chain head + count) — scriptable, and optionally
+    piped to your configured `[audit] anchor_command` sink. Read-only; off the hot path.
+    Still tamper-evident, not tamper-proof: detection depends on the sink being outside
+    the adversary's write scope (that stays your posture)."""
+    import json as _json
+    from .audit import anchor_state
+    from .config import anchor_command, load_config
+    st = anchor_state()
+    fmt = getattr(args, "format", "expect")
+    if fmt == "json":
+        print(_json.dumps(st))
+    elif fmt == "line":
+        print(f"{st['ts']}\t{st['head']}\t{st['count']}")
+    else:  # expect — paste-ready for `verify`
+        print(f"--expect-head {st['head']} --expect-count {st['count']}")
+    if getattr(args, "run", False):
+        cmd = anchor_command()
+        if not cmd:
+            sys.stderr.write(_ce("33", "  no [audit] anchor_command configured — the anchor above was still "
+                                      "printed to stdout; capture it manually, or set [audit] anchor_command to "
+                                      "pipe it to an off-box sink (syslog / webhook / WORM path / signed commit)\n"))
+            return 1
+        import os as _os
+        import shlex as _shlex
+        import subprocess as _sp
+        try:
+            proc = _sp.run(_shlex.split(cmd), input=_json.dumps(st), text=True, capture_output=True,
+                           timeout=10, env=dict(_os.environ, EC_HEAD=st["head"], EC_COUNT=str(st["count"])))
+        except (_sp.TimeoutExpired, FileNotFoundError, OSError, ValueError) as exc:
+            sys.stderr.write(_ce("31", f"  anchor sink failed ({type(exc).__name__}: {exc})\n"))
+            return 1
+        if proc.returncode != 0:
+            sys.stderr.write(_ce("31", f"  anchor sink exited {proc.returncode}: {proc.stderr.strip()}\n"))
+            return 1
+        sys.stderr.write(_ce("32", "  ✓ anchor emitted to your configured off-box sink\n"))
+    elif load_config().profile == "regulated" and not anchor_command():
+        sys.stderr.write(_ce("33", "  (regulated) no [audit] anchor_command set — configure one and run "
+                                  "`eldercouncil anchor --run` to capture this off-box\n"))
+    return 0
 
 
 def cmd_audit_summary(args) -> int:
@@ -561,6 +616,15 @@ def build_parser() -> argparse.ArgumentParser:
                                           "(detects a full rewrite / tail-truncation)")
     vf.add_argument("--expect-count", type=int, help="off-box anchor: the entry count you recorded earlier")
     vf.set_defaults(func=cmd_verify)
+
+    an = sub.add_parser("anchor", help="capture the audit chain head+count for off-box storage "
+                                       "(so a later log rewrite is detectable)")
+    an.add_argument("--format", choices=["expect", "json", "line"], default="expect",
+                    help="expect: paste-ready --expect-head/--expect-count (default); json; or a tab line")
+    an.add_argument("--run", action="store_true",
+                    help="pipe the anchor to your configured [audit] anchor_command off-box sink "
+                         "(the sink always receives JSON on stdin, plus EC_HEAD/EC_COUNT in the env)")
+    an.set_defaults(func=cmd_anchor)
 
     s = sub.add_parser("audit-summary", help="aggregate the decision log")
     s.add_argument("--path")

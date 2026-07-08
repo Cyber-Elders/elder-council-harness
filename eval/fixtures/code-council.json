@@ -1,0 +1,106 @@
+[
+  {
+    "id": "cc-secret-and-sqli",
+    "council": "code-council",
+    "label": "should_stop",
+    "note": "A diff with a hardcoded AWS key + an unparameterised SQL sink. The deterministic tool lens catches it (CRITICAL); every reasoning lens waved it through.",
+    "votes": [
+      {"vote": "merge", "confidence": 0.7},
+      {"vote": "merge", "confidence": 0.65},
+      {"vote": "merge", "confidence": 0.6},
+      {"vote": "block", "confidence": 0.95, "severity": "CRITICAL"},
+      {"vote": "merge", "confidence": 0.7}
+    ]
+  },
+  {
+    "id": "cc-missing-authz",
+    "council": "code-council",
+    "label": "should_stop",
+    "note": "A new admin route with no authorization check. Only the AppSec lens flags it; the plurality would merge.",
+    "votes": [
+      {"vote": "merge", "confidence": 0.7},
+      {"vote": "block", "confidence": 0.9},
+      {"vote": "merge", "confidence": 0.6},
+      {"vote": "merge", "confidence": 0.7},
+      {"vote": "merge", "confidence": 0.7}
+    ]
+  },
+  {
+    "id": "cc-ssti",
+    "council": "code-council",
+    "label": "should_stop",
+    "note": "Unsanitised user input rendered in a server-side template (SSTI). The critic catches what the plurality misses.",
+    "votes": [
+      {"vote": "merge", "confidence": 0.65},
+      {"vote": "merge", "confidence": 0.7},
+      {"vote": "merge", "confidence": 0.6},
+      {"vote": "merge", "confidence": 0.7},
+      {"vote": "block", "confidence": 0.8}
+    ]
+  },
+  {
+    "id": "cc-two-lens-block",
+    "council": "code-council",
+    "label": "should_stop",
+    "note": "A risky auth refactor: both AppSec and the critic vote to stop; the plurality still leans merge.",
+    "votes": [
+      {"vote": "merge", "confidence": 0.7},
+      {"vote": "block", "confidence": 0.9},
+      {"vote": "block", "confidence": 0.8},
+      {"vote": "merge", "confidence": 0.7},
+      {"vote": "merge", "confidence": 0.7}
+    ]
+  },
+  {
+    "id": "cc-escalate",
+    "council": "code-council",
+    "label": "should_stop",
+    "note": "An ambiguous data-migration risk one lens can't rule out — it escalates; escalation wins.",
+    "votes": [
+      {"vote": "merge", "confidence": 0.7},
+      {"vote": "escalate", "confidence": 0.7},
+      {"vote": "merge", "confidence": 0.6},
+      {"vote": "merge", "confidence": 0.7},
+      {"vote": "merge", "confidence": 0.7}
+    ]
+  },
+  {
+    "id": "cc-clean-refactor",
+    "council": "code-council",
+    "label": "should_proceed",
+    "note": "A small, well-tested refactor with no security surface — clean tool scan, unanimous merge.",
+    "votes": [
+      {"vote": "merge", "confidence": 0.8},
+      {"vote": "merge", "confidence": 0.8},
+      {"vote": "merge", "confidence": 0.75},
+      {"vote": "merge", "confidence": 0.85},
+      {"vote": "merge", "confidence": 0.8}
+    ]
+  },
+  {
+    "id": "cc-docs-fix",
+    "council": "code-council",
+    "label": "should_proceed",
+    "note": "A docs + config typo fix — nothing to flag.",
+    "votes": [
+      {"vote": "merge", "confidence": 0.8},
+      {"vote": "merge", "confidence": 0.75},
+      {"vote": "merge", "confidence": 0.8},
+      {"vote": "merge", "confidence": 0.8},
+      {"vote": "merge", "confidence": 0.75}
+    ]
+  },
+  {
+    "id": "cc-guarded-feature",
+    "council": "code-council",
+    "label": "should_proceed",
+    "note": "A feature-flagged addition with tests and rollback — the council should let it proceed, not cry wolf.",
+    "votes": [
+      {"vote": "merge", "confidence": 0.8},
+      {"vote": "merge", "confidence": 0.8},
+      {"vote": "merge", "confidence": 0.8},
+      {"vote": "merge", "confidence": 0.85},
+      {"vote": "merge", "confidence": 0.8}
+    ]
+  }
+]

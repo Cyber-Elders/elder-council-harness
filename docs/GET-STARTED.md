@@ -146,11 +146,13 @@ verdict always goes to a human.)
   have it actually checked against your ticket system, see [GATES.md](GATES.md).
 - **"Where do the decisions go — and can I tell if the log was tampered with?"** Every decision is
   written to `.council/decisions/` and chained in a tamper-evident log. Run **`eldercouncil verify`** to
-  check it's intact (it re-hashes each full record, so a changed vote/reason is caught) and to print the
-  chain **head** and **entry count** — record both somewhere off the machine and re-run
-  `eldercouncil verify --expect-head <hash>` (catches a wholesale rewrite) and/or
-  `eldercouncil verify --expect-count <n>` (catches truncation or appended entries). It's tamper-**evident**,
-  not tamper-proof — see [THREAT_MODEL.md](../THREAT_MODEL.md).
+  check it's intact (it re-hashes each full record, so a changed vote/reason is caught). To catch a
+  *wholesale* local rewrite you need an anchor stored off the machine: run **`eldercouncil anchor`** to
+  print the chain **head** + **entry count** (or **`eldercouncil anchor --run`** to pipe it automatically
+  to a sink you configure under `[audit] anchor_command` — syslog, a webhook, a git hook), then re-run
+  `eldercouncil verify --expect-head <hash>` (catches a wholesale rewrite) and/or `--expect-count <n>`
+  (catches truncation or appended entries). It's tamper-**evident**, not tamper-proof — see
+  [THREAT_MODEL.md](../THREAT_MODEL.md).
 - **"Which model setup should I pick?"**
 
   | You want | Pick | Trade-off |

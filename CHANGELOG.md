@@ -13,6 +13,27 @@ Bring-your-own-LLM; ships no keys.
 
 ### Added
 
+- **Agreement ≠ validation: tool-lens-first positioning, MCP approval-seam fix, off-box anchor,
+  verdict-quality eval.** A sharp public critique drove this focused batch, all keyless + honesty-gate-clean:
+  - **MCP approval-seam fix (security).** The advisory `audit_log` path now runs the SAME `check_approval`
+    the engine does — a self-asserted `human_approver` can no longer silently relax a gate-blocked
+    destructive action, and the approval status is recorded (`asserted — unverified` / `FAILED`).
+  - **Graded diversity + unanimity flag.** `diversity_of` now reports `distinct`/`lenses` and a
+    `unanimous` flag with an "agreement is not verification" note, surfaced at verdict time — the two
+    cases the tool used to paint green (cross-family-unanimous, 4-of-5-same-family) are now visible.
+  - **Verdict-quality eval (tier A)** (`eval/`): a deterministic, keyless regression guard that grades
+    `permits_action()` over labelled fixtures — the consensus machinery catches every planted defect,
+    lifts over a single lens, and does not over-block clean cases. Scoped honestly (not "councils beat
+    one model" — that's the non-deterministic tier B, not run in CI).
+  - **Off-box audit anchor as a mechanism.** `eldercouncil anchor [--run]` emits the chain head + count
+    (scriptable, or piped to a configured `[audit] anchor_command` off-box sink) — turning the prose
+    "record the head off-box" into an actual capture command. Still tamper-evident, not tamper-proof.
+  - **Convergence observability + playbook.** `audit-summary` now reports `tie_rate` + a `human_routing`
+    breakdown; METHODOLOGY gains "Reading a high tie-rate" (respond by sharpening the question, not by
+    homogenising the panel).
+  - **Positioning reframe (docs).** Lead with the control that holds regardless of model agreement — the
+    deterministic tool lens + preserved dissent + human ownership — and frame plurality as *surfacing
+    disagreement for a human*, not vote-as-validation.
 - **Eleven deterministic control gates + Lite/Standard/Regulated profiles** (`eldercouncil/gates.py`,
   `gate-policy.yaml`): a fail-closed control layer around the council — a gate can block or escalate an
   action even when the council voted to permit it (the recorded **disposition** is the most restrictive
@@ -239,8 +260,9 @@ remaining P1/P2 gaps from the external review and added regression coverage for 
   they route to a council instead of `SOLO_ALLOW`. `THREAT_MODEL.md` wording corrected: the under-escalation
   limit covers plaintext commands, not only obfuscated ones.
 
-+18 regression tests added across the review-closure and QA passes (consensus, gates, engine, audit,
-install, server, CLI journeys, risk gate); total suite now **241 tests**.
+Regression tests added across the review-closure, QA, and external-critique passes (consensus, gates,
+engine, audit, install, server, CLI journeys, risk gate, MCP approval, diversity/unanimity, off-box
+anchor, tie-rate, and the verdict-quality eval); total suite now **256 tests**.
 
 ### Docs & UX
 

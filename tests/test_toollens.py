@@ -109,6 +109,44 @@ def test_unavailable_lenses_do_not_count_toward_diversity():
     assert div["families"] == [] and div["monoculture"] is None
 
 
+def test_diversity_grades_distinct_families_and_lenses():
+    # Graded signal: provider diversity is a weak proxy for reasoning diversity, so
+    # distinct-family and lens counts are surfaced even when it isn't a full monoculture.
+    from eldercouncil import models
+    div = models.diversity_of([
+        {"role": "A", "model": "claude-opus-4-8", "vote": "block"},
+        {"role": "B", "model": "qwen3-32b", "vote": "merge"},
+        {"role": "C", "model": "deepseek-v3", "vote": "merge"},
+    ])
+    assert div["monoculture"] is None
+    assert div["distinct"] == 3 and div["lenses"] == 3
+    assert div["unanimous"] is False          # block vs merge — they disagreed
+
+
+def test_diversity_flags_unanimous_cross_family_agreement():
+    # Cross-family, but EVERY lens agreed — the shared-blind-spot case the tool
+    # otherwise paints green. Agreement is not verification; surface it.
+    from eldercouncil import models
+    div = models.diversity_of([
+        {"role": "A", "model": "claude-opus-4-8", "vote": "merge"},
+        {"role": "B", "model": "qwen3-32b", "vote": "merge"},
+        {"role": "C", "model": "deepseek-v3", "vote": "merge"},
+    ])
+    assert div["monoculture"] is None and div["distinct"] == 3
+    assert div["unanimous"] is True
+    assert "agreement is not verification" in div["note"]
+
+
+def test_diversity_monoculture_note_adds_agreement_caution_when_unanimous():
+    from eldercouncil import models
+    div = models.diversity_of([
+        {"role": "A", "model": "claude-opus-4-8", "vote": "merge"},
+        {"role": "B", "model": "claude-sonnet-4-6", "vote": "merge"},
+    ])
+    assert div["monoculture"] == "anthropic" and div["unanimous"] is True
+    assert "agreement is not verification" in div["note"]
+
+
 def test_transcript_reset_preserves_inodes_for_watchers(monkeypatch, tmp_path):
     # A tmux watcher holds `tail` on the transcript file: reset must TRUNCATE IN
     # PLACE, never unlink+recreate (a new inode freezes every watcher pane).

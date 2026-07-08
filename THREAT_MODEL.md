@@ -113,11 +113,15 @@ where the index looked intact while the audited substance had been rewritten.
 It remains **tamper-evident, not tamper-proof.** Anyone (or any compromised agent) with write access to
 `.council/` can delete the last N entries (and their records) or recompute the entire chain plus
 `audit.head` from scratch, and a *purely local* `verify()` would then pass — there is no local anchor
-that survives a full rewrite. The defense is an **off-box anchor**: `eldercouncil verify` prints the
-chain **head hash + entry count**; record them off `.council/` (a different host, a ticket, a
-signed commit) and re-run `eldercouncil verify --expect-head <hash> --expect-count <n>` — truncation
-or a full rewrite then fails because it cannot reproduce your recorded anchor. Without that anchor, a
-local rewrite/truncation stays undetectable (a pinned test keeps this limit honest).
+that survives a full rewrite. The defense is an **off-box anchor**: **`eldercouncil anchor --run`**
+emits the chain **head hash + entry count** to an operator-configured sink off `.council/` (`[audit]
+anchor_command` — syslog, a webhook, a WORM path, a signed commit; drop it in a git post-commit hook,
+cron, or CI step). `eldercouncil verify` also prints the same head + count for manual capture. Re-run
+`eldercouncil verify --expect-head <hash> --expect-count <n>` — truncation or a full rewrite then fails
+because it cannot reproduce your recorded anchor. The mechanism helps you *capture* the anchor reliably;
+detection still depends on the sink being outside the adversary's write scope (that stays the operator's
+posture). Without an anchor, a local rewrite/truncation stays undetectable (a pinned test keeps this
+limit honest).
 
 ## Threats to the governance system itself
 

@@ -18,3 +18,21 @@ lane = "frontier"
 # This is the escalation-not-default control: councils are for consequential,
 # uncertain, or adversarial decisions, not for every task.
 convene_threshold = 5
+
+[audit]
+# Redact secrets / PII from decision records before they are written (default: true).
+redact = true
+# OPTIONAL off-box anchor sink. When set, `eldercouncil anchor --run` pipes the audit
+# chain head + count (JSON on stdin; EC_HEAD / EC_COUNT in the env) to this command — so a
+# later local rewrite becomes detectable against a copy the local machine can't reach.
+# Drop it in a git post-commit hook, a cron job, or a CI step. Examples:
+#   anchor_command = "logger -t eldercouncil"                        # -> syslog
+#   anchor_command = "curl -sS -X POST https://example/anchor -d @-" # -> a webhook
+# anchor_command = "logger -t eldercouncil"
+
+[signals]
+# OPTIONAL human-approval verifier. When set, an asserted `human_approver` is accepted only
+# after this command exits 0 (ELDERCOUNCIL_APPROVER / ELDERCOUNCIL_BASIS in the env); a
+# non-zero exit strips the assertion and the gates escalate (fail-closed). Without it an
+# approval passes through but is recorded as "asserted — unverified".
+# approval_verify_command = "check-approval-ticket"

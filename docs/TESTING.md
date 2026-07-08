@@ -7,7 +7,7 @@ the network. Three tiers.
 
 ## Tier 1 — Deterministic regression (every PR, in-repo, keyless)
 
-`pytest tests/` — **241 tests across the files below**, all keyless. Runs on Ubuntu ×
+`pytest tests/` — **256 tests across the files below**, all keyless. Runs on Ubuntu ×
 Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 
 | File | Covers |
@@ -16,8 +16,9 @@ Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 | `test_consensus.py` | every minimum-governance rule (ties/quorum/escalation/empty/human-reserved/low-confidence/word-confidence/CRITICAL/abstain) + per-council outcomes |
 | `test_gates.py` | the 11 control gates, profiles, the offensive-misuse hard stop, fail-closed defaults, and a **gate blocking even when the council approved** |
 | `test_orchestrator.py` | BYO-LLM vote parsing — garbled/ambiguous replies abstain (never guess) |
-| `test_audit.py` | hash chain, mid-entry tamper detected, **record-substance tamper detected** (edit/delete a bound `decisions/*.json`), off-box anchor catches truncation, **full rewrite NOT detected without the anchor** (tamper-evident-not-proof), stale-head recovery, concurrency, determinism |
-| `test_review_findings.py` | the external-security-review fixes, pinned: record-substance binding, non-finite/at-floor confidence, gate fail-closed on policy error + undefined gate, server-run tool lens, off-council roles, env-override + demo tagging |
+| `test_audit.py` | hash chain, mid-entry tamper detected, **record-substance tamper detected** (edit/delete a bound `decisions/*.json`), off-box anchor catches truncation, **full rewrite NOT detected without the anchor** (tamper-evident-not-proof), stale-head recovery, concurrency, determinism, tie-rate + human-routing decomposition in `audit-summary` |
+| `test_anchor.py` | the off-box audit anchor — `anchor` emits chain head + count; a captured anchor detects a later full local rewrite; `--run` pipes to a configured off-box sink |
+| `test_review_findings.py` | the external-security-review fixes, pinned: record-substance binding, non-finite/at-floor confidence, gate fail-closed on policy error + undefined gate, server-run tool lens, off-council roles, env-override + demo tagging, **MCP approval verification** (a self-asserted `human_approver` can't relax a gate-blocked action) |
 | `test_councils.py` | all eight councils validate; malformed council fails closed |
 | `test_registry.py` | role resolution, only-verified-real defaults, unpinned sentinels flagged, fail-loud on unknown role |
 | `test_install.py` | per-IDE × per-council render, idempotency, re-pin changes only the model line, fail-safes |
@@ -26,10 +27,11 @@ Python 3.11/3.12/3.13, and (gated to main) on macOS + Windows.
 | `test_cli_journeys.py` | every CLI subcommand's exit-code + output contract — `models list/resolve`, all convene run-modes (default task-pack, `--json`, `--orchestrate` fail-closed, `--profile`), `gate`/`audit` per IDE, `gates list`, `risk-gate` routing, usage errors, `init` defaults, `serve` |
 | `test_docs.py` | doc-as-test + the internal-leak guard + the no-fabricated-model-tags guard |
 | `test_detectors.py` | the shared secret/PII/injection patterns + redaction (runtime-assembled fixtures) |
-| `test_toollens.py` | the REAL deterministic tool lens: built-in detectors, `[tools]` commands, fail-safe abstain, provenance |
+| `test_toollens.py` | the REAL deterministic tool lens: built-in detectors, `[tools]` commands, fail-safe abstain, provenance; graded provider-diversity + the **unanimity flag** (agreement ≠ verification) |
 | `test_approval.py` | approval provenance: verified / asserted-unverified / stripped fail-closed |
 | `test_server.py` | the advisory MCP tool surface (skipped without `[mcp]`) |
 | `test_known_bypasses.py` | the documented residual limits, pinned so they stay honest |
+| `test_eval.py` | verdict-quality eval (tier A) — a **deterministic regression guard** on the consensus rules: catches every planted defect, keeps catch-lift ≥ 0 over a single lens, and does not over-block clean cases (grades `eval/fixtures/`, no model in the loop) |
 
 ## Tier 2 — Clean-install UAT (dispatch, per OS, keyless)
 

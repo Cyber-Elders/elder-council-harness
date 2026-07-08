@@ -114,6 +114,35 @@ ordering principle — the Code/Eng Team tool lens + the pre-tool gate embody it
 councils keep fallback models and a local/offline lane** for continuity (a registry/config
 recommendation — see `fallback` lists in `council-models.json`).
 
+## Reading a high tie-rate (convergence)
+
+"Ties block" and "escalation wins" are the right safety posture, but they create a real operational
+tension: if a council *frequently* ties or routes to a human, the two tempting fixes both defeat the
+point — tuning the lenses toward agreement collapses the diversity the council exists for, and bypassing
+under time pressure removes the control entirely. Manage it with the signal, not by homogenising the panel.
+
+`eldercouncil audit-summary` reports `tie_rate` and a `human_routing` breakdown (ties / low-confidence /
+blocking-dissent) so you can see *why* decisions reach a human rather than guess. How to read it:
+
+- **A high tie-rate is usually a signal about the QUESTION, not the panel.** Persistent ties most often
+  mean the decision is genuinely ambiguous or under-specified — the fix is a sharper question, more
+  evidence, or a narrower scope, not more agreeable lenses.
+- **Tune the panel for *coverage*, not agreement.** If two lenses always split the same way on thin
+  reasoning, the cause may be role overlap or a weak prompt for that role — refine the role's remit or its
+  evidence ask. Do NOT drop a dissenting lens or pin every lens to one model to make ties disappear; that
+  is the monoculture the tool warns about (a unanimous verdict is not a verified one).
+- **Route by risk, not by clock.** For time-pressured work, lower the *convene threshold* so only
+  genuinely high-impact actions reach a council (selective plurality) — don't bypass the council you did
+  convene. A council that must decide in seconds should be a small `dual_review`, not a skipped gate.
+- **A rising `blocking_dissent` count is information, not noise.** One lens repeatedly stopping the group
+  is either catching something the plurality misses (keep it) or mis-scoped (fix its remit) — the preserved
+  dissent in the record tells you which. Treat `low_confidence` routing as a prompt/evidence fix, not a
+  reason to lower the confidence floor.
+
+None of this changes the tally: conservative tie-breaking stays. The point is to respond to a high
+tie-rate by improving the *inputs*, so a council converges because the decision got clearer — not because
+the panel was flattened into agreement.
+
 ## Control gates & profiles
 
 Consensus decides what the council *recommends*; **control gates** decide what may actually *proceed*.

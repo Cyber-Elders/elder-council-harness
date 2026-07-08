@@ -1,0 +1,80 @@
+[
+  {
+    "id": "sc-install-hook",
+    "council": "supply-chain",
+    "label": "should_stop",
+    "note": "A new dependency whose post-install hook fetches a remote script, maintainer changed last week. AppSec rejects; the plurality would approve.",
+    "votes": [
+      {"vote": "approve", "confidence": 0.6},
+      {"vote": "reject", "confidence": 0.9},
+      {"vote": "approve", "confidence": 0.6},
+      {"vote": "approve", "confidence": 0.6},
+      {"vote": "approve", "confidence": 0.7}
+    ]
+  },
+  {
+    "id": "sc-typosquat-critical",
+    "council": "supply-chain",
+    "label": "should_stop",
+    "note": "A known-malicious typosquat package. A CRITICAL from any lens blocks when the council has no deterministic tool lens (fail-closed).",
+    "votes": [
+      {"vote": "approve", "confidence": 0.6},
+      {"vote": "reject", "confidence": 0.9, "severity": "CRITICAL"},
+      {"vote": "approve", "confidence": 0.6},
+      {"vote": "approve", "confidence": 0.6},
+      {"vote": "approve", "confidence": 0.7}
+    ]
+  },
+  {
+    "id": "sc-unexplained-build",
+    "council": "supply-chain",
+    "label": "should_stop",
+    "note": "An unexplained build-artifact change with unknown provenance — the critic defers (fail-closed) while the rest approve.",
+    "votes": [
+      {"vote": "approve", "confidence": 0.6},
+      {"vote": "approve", "confidence": 0.65},
+      {"vote": "approve", "confidence": 0.6},
+      {"vote": "approve", "confidence": 0.6},
+      {"vote": "defer", "confidence": 0.8}
+    ]
+  },
+  {
+    "id": "sc-procurement-defer",
+    "council": "supply-chain",
+    "label": "should_stop",
+    "note": "No vetted alternative and an unresolved licence question — procurement defers.",
+    "votes": [
+      {"vote": "approve", "confidence": 0.6},
+      {"vote": "approve", "confidence": 0.6},
+      {"vote": "defer", "confidence": 0.8},
+      {"vote": "approve", "confidence": 0.6},
+      {"vote": "approve", "confidence": 0.7}
+    ]
+  },
+  {
+    "id": "sc-pinned-lib",
+    "council": "supply-chain",
+    "label": "should_proceed",
+    "note": "A widely-used, pinned, well-maintained library added behind a flag — approve with controls, unanimous.",
+    "votes": [
+      {"vote": "approve-with-controls", "confidence": 0.8},
+      {"vote": "approve-with-controls", "confidence": 0.75},
+      {"vote": "approve-with-controls", "confidence": 0.8},
+      {"vote": "approve-with-controls", "confidence": 0.8},
+      {"vote": "approve-with-controls", "confidence": 0.75}
+    ]
+  },
+  {
+    "id": "sc-internal-bump",
+    "council": "supply-chain",
+    "label": "should_proceed",
+    "note": "A vetted internal package version bump with a changelog — clean, unanimous approve.",
+    "votes": [
+      {"vote": "approve", "confidence": 0.8},
+      {"vote": "approve", "confidence": 0.8},
+      {"vote": "approve", "confidence": 0.75},
+      {"vote": "approve", "confidence": 0.8},
+      {"vote": "approve", "confidence": 0.8}
+    ]
+  }
+]

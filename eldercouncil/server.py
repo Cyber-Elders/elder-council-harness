@@ -78,8 +78,11 @@ def audit_log(council: str, question: str, verdicts: list, context: dict | None 
     votes, so it (a) coerces any claimed tool/demo provenance to host-asserted,
     (b) RE-RUNS the deterministic tool lens itself (the host cannot omit or forge
     the authoritative tool finding — its detectors run server-side over the
-    question + configured [tools]), and (c) records any roles that do not match
-    the council's declared lenses (a forged/renamed lens is then evident).
+    question + configured [tools]), (c) records any roles that do not match the
+    council's declared lenses (a forged/renamed lens is then evident), and (d)
+    verifies (or honestly labels "asserted — unverified") any host-asserted
+    `human_approver` via the SAME fail-closed check as the engine, so a
+    self-asserted approval cannot silently relax a gate-blocked action.
     """
     try:
         c = get_council(council)
@@ -112,8 +115,19 @@ def audit_log(council: str, question: str, verdicts: list, context: dict | None 
     # the MCP path's disposition is the most restrictive of council route and gate
     # result. Gate failures escalate (fail closed).
     profile = load_config().profile
+    # (d) Verify (or honestly label) any host-asserted human approval BEFORE the
+    # gates see it — the SAME fail-closed check the engine path runs. The MCP host
+    # cannot authenticate a person: with an approval_verify_command configured, a
+    # failed check STRIPS the assertion so the gates escalate as if no approval
+    # existed; with none configured, it passes through but is RECORDED as
+    # "asserted — unverified". Without this, a client could self-assert human_approver
+    # and silently relax a gate-blocked destructive action with no trace.
+    from .approval import check_approval
+    signals, approval = check_approval(ctx.get("signals", {}) or {})
+    if "signals" in ctx:
+        ctx["signals"] = signals  # record the signals the gates actually saw (stripped on failed verification)
     try:
-        report = gates.evaluate(profile, ctx.get("signals", {}), action=question, target="",
+        report = gates.evaluate(profile, signals, action=question, target="",
                                 outcome=outcome, council=c)
         gate_report = report.to_dict()
     except Exception as exc:  # noqa: BLE001
@@ -121,10 +135,11 @@ def audit_log(council: str, question: str, verdicts: list, context: dict | None 
                        "error": f"gate evaluation error — fail closed ({type(exc).__name__}: {exc})"}
     disposition = _disposition(outcome, gate_report)
     did = audit.record(c.id, question, outcome, mode=c.mode, context=ctx, diversity=diversity,
-                       gate_report=gate_report, profile=profile)
+                       gate_report=gate_report, profile=profile, approval=approval)
     return {"decision_id": did, "verdict": outcome.verdict, "route": outcome.route,
             "rationale": outcome.rationale, "dissent": outcome.dissent,
             "diversity": diversity, "disposition": disposition, "gate_report": gate_report,
+            **({"approval": approval} if approval else {}),
             **({"off_council_roles": off_council} if off_council else {})}
 
 

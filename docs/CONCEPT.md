@@ -12,6 +12,10 @@ a high-stakes decision before it is made. Each lens has a distinct job (technica
 challenge, operations) and reasons independently before the group synthesises. The point is not
 ceremony. The point is to stop an important decision from depending on one unchallenged viewpoint.
 
+A council does not *validate* a decision by majority vote — lenses that share a blind spot can agree and
+still be wrong. Its job is to **surface disagreement for a human**, and to let a **deterministic tool
+lens** put real scanner findings next to the reasoning. Agreement is never treated as assurance.
+
 ## The problem it addresses: single-model dependence as systemic risk
 
 A traditional chatbot mistake is local: one user gets one weak answer. An AI model embedded across

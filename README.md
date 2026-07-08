@@ -11,11 +11,11 @@
 [![Docs: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-green.svg)](LICENSE-DOCS)
 [![Version](https://img.shields.io/badge/version-0.1.0-orange.svg)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
-[![Tests](https://img.shields.io/badge/tests-241%20passing-brightgreen.svg)](docs/TESTING.md)
+[![Tests](https://img.shields.io/badge/tests-256%20passing-brightgreen.svg)](docs/TESTING.md)
 [![OWASP Agentic 2026: aware](https://img.shields.io/badge/OWASP%20Agentic%202026-aware-6f42c1.svg)](docs/STANDARDS-MAP.md)
 [![NIST AI RMF: aligned](https://img.shields.io/badge/NIST%20AI%20RMF-aligned-6f42c1.svg)](docs/STANDARDS-MAP.md)
 
-*Multi-model **councils** for high-stakes decisions — built for cyber, and for any call too consequential to leave to one model alone. Convened only when the decision is worth it.*
+*A **council** is a structured, multi-lens review for decisions too consequential to leave to one model alone. Independent lenses **surface where they disagree**, a **named human owns the call** with the dissent preserved, and — where a decision is machine-checkable — a **deterministic tool lens** puts real scanner findings on the record (not a model's opinion). Built for cyber; convened only when the decision is worth it.*
 
 <img src="https://raw.githubusercontent.com/Cyber-Elders/elder-council-harness/main/docs/assets/demo-block.gif" alt="The code-council convening: five independent lenses vote (Software Engineering and Reliability say merge; AppSec and the Deterministic Tool Lens say block, the tool lens flagging a CRITICAL hardcoded-secret finding; the Critic asks for changes). Verdict: block, routed to a human, with the three dissenting lenses preserved on the record." width="720">
 
@@ -39,6 +39,15 @@ every task. It is a risk-governance pattern for the decisions that matter — **
 (where the councils, lenses, and threat model run deepest) and general enough for any high-stakes
 call, including the **executive Business Decision** council. See [the councils](docs/COUNCILS.md) and
 [domain adaptation](docs/DOMAIN-ADAPTATION.md).
+
+**What provides the control holds even when the models agree.** Two things hold on *every* council
+regardless of whether the lenses agree: **preserved dissent** (disagreement is surfaced, never averaged
+away) and a **named human** who owns every critical call — backed by fail-closed **gates**. And where a
+decision is machine-checkable (code, dependencies), a **deterministic tool lens** adds real scanner
+output to the record (`provenance: tool`, not a model's opinion). Plurality's job is to *surface
+disagreement for that human* — not to validate a decision by counting votes; lenses that share a blind
+spot agree and are still wrong (the `--scenario monoculture` case), which is why agreement is never
+treated as assurance.
 
 > A council is **decision support, not a guarantee**. Councils can be wrong. A named human owns every
 > critical and risk-acceptance decision. The audit trail is **tamper-evident, not tamper-proof**.
@@ -183,10 +192,11 @@ consequential decision behind it. Neither requires the other.
 
 | | Single strong agent | Human committee | Generic multi-agent framework | **Elder Council** |
 |---|---|---|---|---|
-| Cross-model diversity | ✗ | n/a | sometimes | **yes (BYO, cross-family)** |
-| Convenes only when warranted | n/a | rarely | no (runs always) | **yes (risk-gated)** |
-| Dissent preserved + audited | ✗ | minutes | ✗ | **yes** |
+| **Deterministic control, independent of model agreement** | ✗ | ✗ | ✗ | **yes (tool lens: real scanner output, where machine-checkable)** |
 | Human owns critical calls | depends | yes | ✗ | **yes (enforced)** |
+| Dissent preserved + audited | ✗ | minutes | ✗ | **yes** |
+| Convenes only when warranted | n/a | rarely | no (runs always) | **yes (risk-gated)** |
+| Cross-model diversity | ✗ | n/a | sometimes | **yes (BYO, cross-family — detection, not assurance)** |
 | Ships no keys / no lock-in | n/a | n/a | varies | **yes** |
 
 ## What it does NOT do

@@ -1,9 +1,11 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Start here
 
-Elder Council convenes a structured, multi-lens **council** when a decision is too consequential to
-leave to one model alone — built for cyber (where it runs deepest), and general enough for any
-high-stakes call, including executive business decisions. It stays out of the way otherwise. Pick your path.
+Elder Council brings **plural scrutiny plus a real control** to decisions too consequential to leave to
+one model alone: independent lenses **surface where they disagree**, a **named human owns the call**
+(dissent kept on the record), and — where a decision is machine-checkable — a **deterministic tool lens**
+contributes actual scanner findings, not a model's opinion. Built for cyber (where it runs deepest),
+general enough for any high-stakes call, and out of the way otherwise. Pick your path.
 
 | I am a… | Go to | Time |
 |---|---|---|

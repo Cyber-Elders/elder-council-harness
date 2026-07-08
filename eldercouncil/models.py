@@ -133,35 +133,57 @@ def provider_of(tag: str) -> str:
 
 
 def diversity_of(votes) -> dict:
-    """Decision-time diversity: which provider families actually voted.
+    """Decision-time diversity: which provider families voted, how many DISTINCT
+    ones, and whether the reasoning lenses were UNANIMOUS.
 
-    Considers model lenses only (the deterministic tool lens is not a model
-    voice). Returns {families, monoculture, note} — `monoculture` names the one
-    family when EVERY model lens resolved to it (the correlated-blind-spot
-    condition); demo and all-inherit runs return monoculture=None with an
-    honest note. Detection + warning, not enforcement."""
+    Considers model lenses only (the deterministic tool lens is not a model voice;
+    an unavailable lens never voted). Returns
+    {families, distinct, lenses, monoculture, unanimous, note}:
+      * `monoculture` names the one family when EVERY model lens resolved to it
+        (the correlated-blind-spot condition).
+      * `distinct` / `lenses` grade partial homogeneity — provider diversity is a
+        weak proxy for reasoning diversity, so a low distinct-count is a caution
+        even when it isn't a full monoculture.
+      * `unanimous` flags when every counted lens cast the SAME vote. Agreement is
+        NOT verification: a shared blind spot shows up as confident consensus, and
+        for the adversarial cases a council is for, unanimity is exactly where that
+        shared blind spot hides. Detection + honest surfacing, not enforcement."""
     fams: list[str] = []
+    cast: list[str] = []
     for v in votes or []:
         if (v.get("provenance") or "") == "tool" or str(v.get("model", "")) == "tool":
             continue
         if str(v.get("vote", "")) == "unavailable":
             continue  # an unreachable lens never voted — it is an outage, not a voice
         fams.append(provider_of(str(v.get("model", ""))))
+        cast.append(str(v.get("vote", "")))
     families = sorted(set(fams))
+    lenses = len(cast)
+    unanimous = (len(set(cast)) == 1) if lenses >= 2 else None
+    base = {"families": families, "lenses": lenses, "distinct": 0, "unanimous": unanimous}
     if not families:
-        return {"families": [], "monoculture": None, "note": "no model lenses voted"}
+        return {**base, "monoculture": None, "note": "no model lenses voted"}
     if families == ["demo"]:
-        return {"families": families, "monoculture": None,
-                "note": "illustrative demo votes — no real models ran"}
+        return {**base, "monoculture": None, "note": "illustrative demo votes — no real models ran"}
     if families == ["host"]:
-        return {"families": families, "monoculture": None,
+        return {**base, "monoculture": None,
                 "note": "every lens inherited the host model — diversity unknown (single session)"}
     real = [f for f in families if f not in ("demo", "host")]
+    distinct = len(set(real))
+    base["distinct"] = distinct
     mono = real[0] if (len(real) == 1 and families == real) else None
-    note = (f"every model lens resolves to one provider family ('{mono}') — "
-            f"correlated blind spots; for cross-family diversity use OpenRouter (one key, "
-            f"docs/OPENROUTER.md) or repin per docs/MODEL-GUIDANCE.md" if mono else "")
-    return {"families": families, "monoculture": mono, "note": note}
+    if mono:
+        note = (f"every model lens resolves to one provider family ('{mono}') — "
+                f"correlated blind spots; for cross-family diversity use OpenRouter (one key, "
+                f"docs/OPENROUTER.md) or repin per docs/MODEL-GUIDANCE.md")
+        if unanimous:
+            note += " — and all lenses agreed (agreement is not verification)"
+    else:
+        note = f"{distinct} provider families across {lenses} lenses ({', '.join(real)})"
+        if unanimous:
+            note += (" — but all agreed: agreement is not verification (a shared blind spot can show up "
+                     "as confident cross-family consensus) → a named human still owns this call")
+    return {**base, "monoculture": mono, "note": note}
 
 
 def monoculture(reg: ModelRegistry, lane: str = "frontier") -> str | None:

@@ -28,6 +28,9 @@ node_modules/
 uat/agentic/_results/
 .scratch/
 
+# Verdict-quality eval output
+eval/_results/
+
 # Local-only working material (never committed)
 *.bundle
 .scratch_ref/

@@ -109,3 +109,20 @@ def approval_verify_command(path: str | Path | None = None) -> str | None:
         return None
     cmd = (data.get("signals", {}) or {}).get("approval_verify_command")
     return str(cmd) if cmd else None
+
+
+def anchor_command(path: str | Path | None = None) -> str | None:
+    """The optional `[audit] anchor_command` — when set, `eldercouncil anchor --run`
+    pipes the chain head + count (JSON on stdin; EC_HEAD/EC_COUNT in the env) to it,
+    so an operator can capture the anchor off-box (syslog, a webhook, a WORM path, a
+    signed git commit). Operator-controlled allowlisted command, same trust model as
+    `approval_verify_command` — `config.toml` is code."""
+    p = Path(path) if path else paths.config_path()
+    if not p.exists():
+        return None
+    try:
+        data = tomllib.loads(p.read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError):
+        return None
+    cmd = (data.get("audit", {}) or {}).get("anchor_command")
+    return str(cmd) if cmd else None

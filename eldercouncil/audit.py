@@ -134,6 +134,17 @@ def head_hash() -> str:
     return _read_head()
 
 
+def anchor_state() -> dict:
+    """The off-box anchor: the current chain head + entry count + capture time.
+    Store it OUTSIDE `.council/` (a git commit, syslog, a WORM path, a webhook) so a
+    later full-chain rewrite that local `verify()` alone cannot catch becomes
+    detectable via `verify --expect-head/--expect-count`. Read-only; it is NEVER
+    called inside `record()`, so it can't slow or fork the chain during a decision.
+    It does not make the log immutable — it stays tamper-evident, not tamper-proof."""
+    return {"head": head_hash(), "count": len(read_events()),
+            "ts": datetime.now(timezone.utc).isoformat()}
+
+
 def decision_id(council_id: str, question: str, outcome, gate_result: str = "") -> str:
     """Deterministic, content-addressed id. Same inputs -> same id, offline.
     The gate overall result is part of the id so a gate-changed disposition gets a
@@ -412,6 +423,36 @@ def summary(path: str | Path | None = None) -> dict:
         by_council[e.get("council", "?")] = by_council.get(e.get("council", "?"), 0) + 1
     decisions = [d for d in read_decisions() if not d.get("demo")]
     with_dissent = sum(1 for d in decisions if d.get("dissent"))
+    # WHY decisions route to a human — an EXHAUSTIVE breakdown (the buckets sum to the
+    # human-routed count, incl. an `other` residual), keyed on the deterministic rationale
+    # from consensus.py. A persistently high tie-rate is a signal to investigate the
+    # QUESTION (ambiguous / underspecified) — NOT a reason to tune lenses toward agreement,
+    # which collapses the diversity the council exists for. See docs/METHODOLOGY.md
+    # "Reading a high tie-rate".
+    def _rat(d):
+        return str(d.get("rationale", ""))
+    _HUMAN_REASONS = (
+        ("ties", lambda r: r.startswith("tie (")),
+        ("critical", lambda r: "rated this critical" in r.lower()),
+        ("escalation", lambda r: "voted to escalate" in r),
+        ("human_reserved", lambda r: "human-accountability decision" in r),
+        ("advisory", lambda r: "advisory council" in r),
+        ("blocking_verdict", lambda r: "action withheld" in r),
+        ("blocking_dissent", lambda r: "dissented to stop" in r),
+        ("low_confidence", lambda r: "low confidence" in r),
+        ("did_not_convene", lambda r: "did not convene" in r),
+    )
+    human_routing = {name: 0 for name, _ in _HUMAN_REASONS}
+    human_routing["other"] = 0
+    for d in (x for x in decisions if str(x.get("route")) == "human"):
+        r = _rat(d)
+        for name, pred in _HUMAN_REASONS:
+            if pred(r):
+                human_routing[name] += 1
+                break
+        else:
+            human_routing["other"] += 1
+    n = max(1, len(decisions))
     return {
         "total_decisions": len(decisions_only),
         "demo_runs_excluded": demo_runs,
@@ -419,4 +460,7 @@ def summary(path: str | Path | None = None) -> dict:
         "by_route": by_route,
         "by_council": by_council,
         "decisions_with_dissent": with_dissent,
+        "tie_rate": round(human_routing["ties"] / n, 3),
+        "human_routing": human_routing,   # sums to the human-routed count (see `guidance`)
+        "guidance": "docs/METHODOLOGY.md — Reading a high tie-rate",
     }

@@ -103,6 +103,22 @@ def test_summary_counts(council_dir):
     assert s["total_decisions"] == 1
 
 
+def test_summary_surfaces_tie_rate_and_human_routing(council_dir):
+    # A tie routes to a human with a rationale starting "tie (" — audit-summary must
+    # decompose it so an operator can SEE convergence, not guess (see METHODOLOGY.md).
+    tie_c = mkcouncil(mode="action-gate", n_roles=4, outcomes=("merge", "block"))
+    audit.record(tie_c.id, "ambiguous",
+                 tally(votes(("merge", 0.8), ("merge", 0.8), ("block", 0.8), ("block", 0.8)), tie_c),
+                 mode=tie_c.mode)
+    clean_c = mkcouncil(mode="action-gate", n_roles=3, outcomes=("merge", "block"))
+    audit.record(clean_c.id, "clean", tally(votes(("merge", 0.9),) * 3, clean_c), mode=clean_c.mode)
+    s = audit.summary()
+    assert s["tie_rate"] == 0.5
+    assert s["human_routing"]["ties"] == 1
+    # the breakdown is EXHAUSTIVE — the buckets reconcile with the human-routed count
+    assert sum(s["human_routing"].values()) == s["by_route"].get("human", 0) == 1
+
+
 # --- redaction: the audit must never persist the secret the gates detect ----
 # Secret shape assembled at runtime — a literal would trip CI's own secret scan.
 FAKE_SK = "sk-" + "B" * 24
