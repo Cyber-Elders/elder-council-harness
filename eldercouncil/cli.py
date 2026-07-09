@@ -120,7 +120,7 @@ def _print_decision(rec: dict) -> None:
         # Pad on the PLAIN vote length, THEN colorize — ANSI codes must not be
         # counted in the column width (else colored output mis-aligns in a TTY).
         # Severity gets its own fixed-width slot so non-severity rows line up.
-        vote_cell = _c(vc, vote) + " " * max(1, vw - len(vote))
+        vote_cell = _c(vc, vote) + " " * (vw - len(vote) + 1)  # uniform width for EVERY row (incl. the longest vote)
         reason = v.get("reason", "")
         reason = (reason[:65].rstrip() + "…") if len(reason) > 66 else reason  # ellipsis = intentional cut, not a broken line
         print(f"    {v.get('role',''):<{rw}} {vote_cell}{sev:<11} ({conf:>4})  {reason}")
@@ -249,7 +249,7 @@ def cmd_convene(args) -> int:
         if app and not args.json:
             colour = "32" if app.get("status") == "verified" else "33"
             hint = "" if app.get("status") == "verified" else "  (what this means: docs/GATES.md)"
-            sys.stderr.write(_ce(colour, f"  approval: {app.get('approver')} — {app.get('status')}{hint}\n"))
+            sys.stderr.write(_ce(colour, f"\n  approval: {app.get('approver')} — {app.get('status')}{hint}\n"))
         # `--demo` is an illustration, not a gate → always exit 0. Real runs
         # (`--orchestrate`) gate on the DISPOSITION (council route ∧ gate result).
         if args.demo:

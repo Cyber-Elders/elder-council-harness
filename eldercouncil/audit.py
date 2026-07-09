@@ -215,8 +215,12 @@ def record(council_id: str, question: str, outcome, *, mode: str = "",
                        diversity=diversity, approval=approval)
     did = rec["decision_id"]
     ts = datetime.now(timezone.utc)
-    stamp = ts.strftime("%Y%m%dT%H%M%S")
-    fname = f"{stamp}-{did[3:11]}.json"
+    # SUB-second stamp: the decision_id is content-based (time-independent), so two
+    # IDENTICAL decisions must NOT share a file. The chain appends one entry per
+    # record() call and each entry binds its OWN record file — a shared/overwritten
+    # file would desync verify() (a false "chain BROKEN") and break audit-summary
+    # reconciliation. Uniquify on any residual same-microsecond collision.
+    stamp = ts.strftime("%Y%m%dT%H%M%S_%f")
 
     # Redact secrets/PII at the persistence boundary (decision_id was computed
     # over the ORIGINAL record above, so redaction never changes an id).
@@ -225,7 +229,13 @@ def record(council_id: str, question: str, outcome, *, mode: str = "",
     decisions = paths.decisions_dir()
     decisions.mkdir(parents=True, exist_ok=True)
     full = dict(persisted, ts=ts.isoformat(), **({"demo": True} if demo else {}))
+    fname = f"{stamp}-{did[3:11]}.json"
     record_path = decisions / fname
+    _n = 1
+    while record_path.exists():
+        fname = f"{stamp}-{did[3:11]}-{_n}.json"
+        record_path = decisions / fname
+        _n += 1
     record_path.write_text(json.dumps(full, indent=2, ensure_ascii=False), encoding="utf-8")
     # Bind the FULL record's bytes into the chain (hash the persisted file, not the
     # in-memory string, so newline translation etc. can't desync verify()). This is

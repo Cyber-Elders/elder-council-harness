@@ -202,3 +202,19 @@ def test_chain_lock_exhaustion_raises(council_dir, monkeypatch):
     o = tally(votes(("merge", 0.9), ("merge", 0.9), ("merge", 0.9)), c)
     with pytest.raises(OSError, match="could not acquire audit lock"):
         audit.record(c.id, "q", o, mode=c.mode)
+
+
+def test_identical_decisions_in_quick_succession_do_not_collide(council_dir):
+    # Regression: a second-resolution filename + a content-based (time-independent) id
+    # used to COLLIDE when two IDENTICAL decisions landed in the same wall-clock second —
+    # the second file overwrote the first while the chain appended both, so verify() falsely
+    # reported BROKEN and audit-summary stopped reconciling. Each record() must get its own file.
+    c = mkcouncil(mode="action-gate", n_roles=3, outcomes=("merge", "block"))
+    o = tally(votes(("block", 0.9), ("block", 0.9), ("block", 0.9)), c)
+    d1 = audit.record(c.id, "same question", o, mode=c.mode)
+    d2 = audit.record(c.id, "same question", o, mode=c.mode)
+    assert d1 == d2                                            # content id: identical decisions share an id
+    assert len(sorted((council_dir / "decisions").glob("*.json"))) == 2   # ...but each gets its OWN file
+    assert audit.verify()["ok"]                               # no false "chain BROKEN"
+    s = audit.summary()
+    assert sum(s["human_routing"].values()) == s["by_route"].get("human", 0) == 2   # reconciles

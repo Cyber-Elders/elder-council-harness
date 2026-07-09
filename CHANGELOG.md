@@ -262,7 +262,13 @@ remaining P1/P2 gaps from the external review and added regression coverage for 
 
 Regression tests added across the review-closure, QA, and external-critique passes (consensus, gates,
 engine, audit, install, server, CLI journeys, risk gate, MCP approval, diversity/unanimity, off-box
-anchor, tie-rate, and the verdict-quality eval); total suite now **256 tests**.
+anchor, tie-rate, and the verdict-quality eval); total suite now **257 tests**.
+- **QA-round fixes** (marketing/UI SME pass over the live repo): audit decision-record
+  filenames are now sub-second + collision-uniquified, so two identical decisions in the
+  same wall-clock second no longer share a file (which had caused a false `verify` BROKEN
+  and broken `audit-summary` reconciliation); the convene vote column is uniform-width
+  (the longest verdict no longer shifts the confidence/reason columns); and the eng-team
+  roster shorthand now includes its **tool** lens.
 
 ### Docs & UX
 

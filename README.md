@@ -11,7 +11,7 @@
 [![Docs: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-green.svg)](LICENSE-DOCS)
 [![Version](https://img.shields.io/badge/version-0.1.0-orange.svg)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
-[![Tests](https://img.shields.io/badge/tests-256%20passing-brightgreen.svg)](docs/TESTING.md)
+[![Tests](https://img.shields.io/badge/tests-257%20passing-brightgreen.svg)](docs/TESTING.md)
 [![OWASP Agentic 2026: aware](https://img.shields.io/badge/OWASP%20Agentic%202026-aware-6f42c1.svg)](docs/STANDARDS-MAP.md)
 [![NIST AI RMF: aligned](https://img.shields.io/badge/NIST%20AI%20RMF-aligned-6f42c1.svg)](docs/STANDARDS-MAP.md)
 
@@ -84,7 +84,7 @@ and **real deterministic checks behind the tool lens**. *(Want to see the failur
 > **Not a cyber call?** `eldercouncil convene business-decision --demo` runs the *same machinery* on a
 > $40M M&A decision — Finance defers on runway, the Critic rejects an unstressed synergy number — and
 > the verdict (`defer`) routes to a named human with the dissent preserved. **A product team?**
-> `eldercouncil convene eng-team --demo` reviews a feature design with a dev + analyst + QA + critic
+> `eldercouncil convene eng-team --demo` reviews a feature design with a dev + analyst + QA + tool + critic
 > panel (advisory — the feature owner decides).
 
 ## How it works
@@ -132,7 +132,7 @@ Six cyber councils, a general **Business Decision** council for executive calls,
 | **Cyber Risk** | risk acceptance, control gaps, or remediation sequencing | advisory |
 | **Platform Architecture** | an architecture decision with long-term, hard-to-reverse trade-offs | advisory |
 | **Business Decision** | a business-critical, high-spend, or hard-to-reverse executive call (M&A, market entry, big bets) | advisory |
-| **Engineering Team** | a feature design, user story, or implementation plan before build (dev + analyst + QA + critic) | advisory |
+| **Engineering Team** | a feature design, user story, or implementation plan before build (dev + analyst + QA + tool + critic) | advisory |
 
 Each council ships as pure data (`eldercouncil/councils/*.yaml`) and installs into every supported
 IDE. See [docs/COUNCILS.md](docs/COUNCILS.md).

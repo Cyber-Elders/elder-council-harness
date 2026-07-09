@@ -127,7 +127,7 @@ sample votes). That's exactly what a real run looks like; the only difference is
 agent's model on *your* decision. **Not a cyber person?** Try
 `eldercouncil convene business-decision --demo` — same machinery, on a $40M business call. **A
 developer?** `eldercouncil convene eng-team --demo` reviews a feature design with a dev + analyst +
-QA + critic panel. (Both are **advisory** — whether the gate suggests them or you convene them, their
+QA + tool + critic panel. (Both are **advisory** — whether the gate suggests them or you convene them, their
 verdict always goes to a human.)
 
 ## Common questions

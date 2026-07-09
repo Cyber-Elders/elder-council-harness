@@ -17,7 +17,7 @@ general enough for any high-stakes call, and out of the way otherwise. Pick your
 | **risk / compliance owner** | [METHODOLOGY](docs/METHODOLOGY.md) (routing + governance) → [Compliance](docs/COUNCILS.md#4-multi-jurisdictional-compliance-council--compliance--advisory--scheduled) / [Cyber Risk](docs/COUNCILS.md#5-cyber-risk-council--cyber-risk--advisory) | 30 min |
 | **security owner / skeptic** | [THREAT_MODEL](THREAT_MODEL.md) → [STANDARDS-MAP](docs/STANDARDS-MAP.md) | 20 min |
 | **executive / leadership (a high-stakes business call)** | try `eldercouncil convene business-decision --demo` → [Business Decision council](docs/COUNCILS.md#7-business-decision-council--business-decision--advisory) | 10 min |
-| **product team (design/feature reviews)** | try `eldercouncil convene eng-team --demo` → [Engineering Team council](docs/COUNCILS.md#8-engineering-team-council--eng-team--advisory) — dev + analyst + QA + critic | 10 min |
+| **product team (design/feature reviews)** | try `eldercouncil convene eng-team --demo` → [Engineering Team council](docs/COUNCILS.md#8-engineering-team-council--eng-team--advisory) — dev + analyst + QA + tool + critic | 10 min |
 | **new here / not a developer** | [**GET-STARTED**](docs/GET-STARTED.md) — install → what changed → how you actually use a council, in plain English | 10 min |
 
 ## The 5-minute path — see it decide first
